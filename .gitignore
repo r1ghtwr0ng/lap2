@@ -53,4 +53,5 @@ Mkfile.old
 dkms.conf
 
 # Project-specific
-Docs/
+docs/
+testing/
