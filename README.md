@@ -1,4 +1,4 @@
-# **LA2P** 
+# **LAP2** 
 ## *Lightweight Anonymous P2P Overlay Network*
 <br>
 
@@ -14,6 +14,8 @@
 ## *General*
 - [ ] Testing framework
 - [ ] Docker build
+- [ ] Error logging
+- [ ] Configuration file parsing
 ## *Networking*
 - [ ] UDP communication module
 - [ ] Peer connection and discovery
@@ -32,3 +34,4 @@
 - [ ] Sybil guard
 - [ ] Contribution verification
 - [ ] Removing bad nodes
+- [ ] Phoenix frontend
