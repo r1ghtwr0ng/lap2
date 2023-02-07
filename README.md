@@ -14,9 +14,10 @@
 ## *General*
 - [ ] Testing framework
 - [ ] Docker build
-- [ ] Error logging
-- [ ] Configuration file parsing
+- [x] Error logging
+- [x] Configuration file parsing
 ## *Networking*
+- [x] Efficient UDP packet buffering and handling
 - [ ] UDP communication module
 - [ ] Peer connection and discovery
 - [ ] Distributeed hash table
@@ -29,6 +30,8 @@
 ## *Crypto*
 - [ ] Key exchange
 - [ ] Cryptographic module
+- [ ] RSDAKE - Random Oracle
+- [ ] RSDAKE - Claimability
 
 ## *Bonus*
 - [ ] Sybil guard

@@ -1,12 +1,12 @@
-defmodule Networking.LAP2Socket do
+defmodule LAP2.Networking.LAP2Socket do
     use GenServer
 
     # Client API
     def start_link(state) when is_map(state) do
-        GenServer.start_link(__MODULE__, state, name: __MODULE__)
+        GenServer.start_link(__MODULE__, state, name: {:global, :lap2_sock})
     end
 
-    @doc """
+    @doc """ 
     Update the GenServer state.
     """
     def update(pid, map) when is_pid(pid) do
@@ -23,8 +23,8 @@ defmodule Networking.LAP2Socket do
     # Server API
     def init(state) do
         # Open UDP socket
-        case :gen_udp.open(state.port, [binary: true, active: true]) do
-            {:ok, udp_sock} -> {:ok, Map.update(state, %{udp_sock: udp_sock})}
+        case :gen_udp.open(state.udp_port, [binary: true, active: true]) do
+            {:ok, udp_sock} -> {:ok, Map.merge(state, %{udp_sock: udp_sock})}
             {:error, _} -> {:stop, :udp_open_error} # TODO add logging
         end
     end

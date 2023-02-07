@@ -1,3 +1,8 @@
 {
-    "udp_port": 3000
+    "udp_port": 3000,
+    "proxy_depth": 10,
+    "req_timeout": 50000,
+    "max_dgram_handlers": 10,
+    "queue_interval": 100,
+    "max_queue_size": 1000
 }
