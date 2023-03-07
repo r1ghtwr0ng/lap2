@@ -18,11 +18,12 @@
 - [x] Configuration file parsing
 ## *Networking*
 - [x] Efficient UDP packet buffering and handling
-- [ ] UDP communication module
+- [x] UDP communication module
 - [ ] Peer connection and discovery
 - [ ] Distributeed hash table
 - [ ] Packet storage and relay
 - [ ] Introduction Points
+- [ ] Connection supervisor module
 ## *Garlic Cast*
 - [ ] Information Dispersal Algorithm
 - [ ] Dynamic proxy discovery

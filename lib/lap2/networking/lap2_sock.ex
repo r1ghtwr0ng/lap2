@@ -6,7 +6,7 @@ defmodule LAP2.Networking.LAP2Socket do
         GenServer.start_link(__MODULE__, state, name: {:global, :lap2_sock})
     end
 
-    @doc """ 
+    @doc """
     Update the GenServer state.
     """
     def update(pid, map) when is_pid(pid) do
@@ -36,4 +36,7 @@ defmodule LAP2.Networking.LAP2Socket do
     def handle_call(:get, _from, state) do
         {:reply, state, state}
     end
+
+    # ---- Helper functions ----
+
 end
