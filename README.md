@@ -19,6 +19,7 @@
 ## *Networking*
 - [x] Efficient UDP packet buffering and handling
 - [x] UDP communication module
+- [ ] ProtoBuff serialisation/deserialisation
 - [ ] Peer connection and discovery
 - [ ] Distributeed hash table
 - [ ] Packet storage and relay
