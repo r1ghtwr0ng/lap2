@@ -42,11 +42,14 @@ defmodule LAP2.Networking.Router do
   # Handle received UDP packets
   def handle_info({:route_packet, %{seq: seq_num, headers: headers, data: data} = packet}, state) do
     # TODO route packet -------------------------------------------------<<<<<<<<<<<<<<<<<<DO THIS NEXT>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    state = state
+    |> RoutingHelper.clean_clove_cache()
+    |> RoutingHelper.clean_relay_routes()
     case RoutingHelper.get_route(packet, state) do
       {:local, pid} ->
         # TODO local proc routing
-        Router.add_clove(packet, state)
         IO.puts("[+] Sending packet to #{pid}")
+        {:noreply, RoutingHelper.cache_clove(state, packet)}
       {:remote, dest, opts} ->
         IO.puts("[+] Routing packet to #{dest}") # Debug
         LAP2Socket.send_packet(dest, opts, data)

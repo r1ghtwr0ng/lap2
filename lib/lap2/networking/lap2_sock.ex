@@ -1,5 +1,5 @@
 defmodule LAP2.Networking.LAP2Socket do
-  require CRC
+  alias LAP2.Utils.PacketHelper
   alias LAP2.Networking.Router
   alias LAP2.Networking.ProtoBuf
   alias LAP2.Networking.UdpServer
@@ -58,21 +58,13 @@ defmodule LAP2.Networking.LAP2Socket do
     true
   end
 
-  defp set_headers(pkt, opts) do
+  defp set_headers(pkt) do
     # Set sequence number
+    seq_num = PacketHelper.generate_seq_num()
+    # Set drop probability
+    drop_probab = PacketHelper.generate_drop_probab()
     # TODO
     headers = opts
     %{headers: headers, data: pkt}
-  end
-
-  # ---- Packet checksum ----
-  defp verify_checksum(%{checksum: chksum, seq_num: seq_num, drop_probab: drop_probab, data: data}) do
-    # Verify the checksum
-    chksum == CRC.crc_32(seq_num <> drop_probab <> data)
-  end
-
-  defp set_checksum(%{seq_num: seq_num, drop_probab: drop_probab, data: data} = pkt) do
-    # Compute and prepend checksum to packet
-    Map.put(pkt, :checksum, CRC.crc_32(seq_num <> drop_probab <> data))
   end
 end

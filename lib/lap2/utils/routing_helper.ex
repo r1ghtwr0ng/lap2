@@ -71,29 +71,40 @@ defmodule LAP2.Utils.RoutingHelper do
   end
 
   # ---- State update functions ----
-  def add_route(state, route) do
-      # TODO drop unused routes, based on priority values (first introduce priority values in the route struct)
-      IO.puts("[+] Added route #{inspect route} to routing table")
-      Map.put(state, :relay_routes, Map.put(state.relay_routes, route.source, route)) # TODO fix this
+  def add_route(state, source, dest) do
+    # TODO drop unused routes, based on priority values (first introduce priority values in the route struct)
+    IO.puts("[+] Added route #{inspect route} to routing table")
+    timestamp = :os.system_time(:millisecond)
+    updated_relays = state.relay_routes
+    |> Map.put(source, %{dest: dest, timestamp: timestamp}) # Forward relay route
+    |> Map.put(dest, %{dest: source, timestamp: timestamp}) # Backward relay route
+    Map.put(state, :relay_routes, updated_relays) # TODO check if this is correct
+  end
+
+  # Get rid of outdated clove cache entries
+  def clean_relay_routes(%{relay_routes: relay_routes, config: %{relay_routes_ttl: relay_ttl}} = state) do
+    IO.puts("[+] Deleting outdated clove cache entries")
+    Map.put(state, relay_routes:, Map.drop(relay_routes, fn {_seq_num, relay_data} ->
+      relay_data.timestamp < :os.system_time(:millisecond) - relay_ttl; end))
   end
 
   # Add clove to cache
   def cache_clove(%{} = state, %{seseq_num, clove}) do
-      IO.puts("[+] Caching clove clove #{seq_num}")
-      timestamp = :os.system_time(:millisecond)
-      Map.put(cache, seq_num, %{timestamp: timestamp, data: clove})
+    IO.puts("[+] Caching clove clove #{seq_num}")
+    timestamp = :os.system_time(:millisecond)
+    Map.put(cache, seq_num, %{timestamp: timestamp, data: clove})
   end
 
   # Get rid of outdated clove cache entries
   def clean_clove_cache(%{clove_cache: cache, config: %{clove_cache_ttl: cache_ttl}} = state) do
-      IO.puts("[+] Deleting outdated clove cache entries")
-      Map.put(state, clove_cache:, Map.drop(cache, fn {_seq_num, clove} ->
-        clove.timestamp < :os.system_time(:millisecond) - cache_ttl; end))
+    IO.puts("[+] Deleting outdated clove cache entries")
+    Map.put(state, clove_cache:, Map.drop(cache, fn {_seq_num, clove} ->
+      clove.timestamp < :os.system_time(:millisecond) - cache_ttl; end))
   end
 
   # Get rid of cached clove by seq_num
   def del_clove(state, seq_num) do
-      IO.puts("[+] Deleting clove #{seq_num} from cache")
-      Map.put(state, :clove_cache, Map.delete(state.clove_cache, seq_num))
+    IO.puts("[+] Deleting clove #{seq_num} from cache")
+    Map.put(state, :clove_cache, Map.delete(state.clove_cache, seq_num))
   end
 end

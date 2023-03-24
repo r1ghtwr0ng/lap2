@@ -15,6 +15,7 @@ defmodule LAP2.Networking.UdpServer do
   def init(config) do
     # Open UDP socket
     IO.puts("Starting UDP server")
+    # TODO test the default values
     state = %{
       port: config[:udp_port] || 1442,
       queue_interval: config[:queue_interval] || 100,
