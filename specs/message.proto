@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+message Packet {
+    uint32 checksum = 1;
+    uint32 seq_num = 2;
+    float drop_probab = 3;
+    bytes data = 4;
+}
