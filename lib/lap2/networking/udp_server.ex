@@ -43,8 +43,8 @@ defmodule LAP2.Networking.UdpServer do
   end
 
   # Handle received UDP packets
-  def handle_info({:udp, _socket, _ip, _port, pkt}, state) do
-    case Task.Supervisor.start_child(LAP2.TaskSupervisor, fn -> LAP2Socket.parse_packet(pkt) end) do
+  def handle_info({:udp, _socket, ip, port, pkt}, state) do
+    case Task.Supervisor.start_child(LAP2.TaskSupervisor, fn -> LAP2Socket.parse_packet({ip, port}, pkt) end) do
       {:ok, _pid} ->
         #Logger.debug("Started task to parse packet")
         {:noreply, state}
