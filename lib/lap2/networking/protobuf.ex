@@ -12,6 +12,7 @@ defmodule LAP2.Networking.ProtoBuf do
     |> Protox.encode()
   end
 
+  @spec deserialise(binary, atom) :: {:error, any} | {:ok, struct}
   @doc """
   Deserialised received data
   """
@@ -20,6 +21,7 @@ defmodule LAP2.Networking.ProtoBuf do
   end
 
   # Build packet object
+  # TODO add hop count
   defp build(%{checksum: chksum, seq_num: seq_num, drop_probab: drop_probab, data: data}) do
     %Packet{checksum: chksum, seq_num: seq_num, drop_probab: drop_probab, data: data}
   end

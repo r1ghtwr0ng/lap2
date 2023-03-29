@@ -22,9 +22,10 @@ defmodule LAP2.Networking.LAP2Socket do
   @doc """
   Send a packet to a destination address and port.
   """
-  def send_packet({dest_addr, port}, data) do
+  # TODO LAP2Socket should recalculate checksum before sending!
+  def send_packet({dest_addr, port}, data, headers) do
     data
-    |> PacketHelper.set_headers()
+    |> PacketHelper.set_headers(headers)
     |> PacketHelper.set_checksum()
     |> ProtoBuf.serialise()
     |> UdpServer.send_packet({dest_addr, port})

@@ -23,7 +23,8 @@ defmodule LAP2.MixProject do
     [
         {:jason, "~> 1.4"},
         {:crc, "~> 0.10.4"},
-        {:protox, "~> 1.7"}
+        {:protox, "~> 1.7"},
+        {:elixir_make, "~> 0.6"}
         # {:dep_from_hexpm, "~> 0.3.0"},
         # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
     ]

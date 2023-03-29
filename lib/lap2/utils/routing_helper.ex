@@ -3,161 +3,175 @@ defmodule LAP2.Utils.RoutingHelper do
   Helper functions for routing packets.
   """
   require Logger
+  alias LAP2.Networking.LAP2Socket
 
   # ---- Public functions ----
-  # TODO write a function that moves the entries from clove_cache to local_cloves and cleans up the clove_cache
-  def get_route(state, source, %{seq_num: seq_num, checksum: checksum}) do
-    IO.puts("[+] Getting route")
+  # MAJOR TODO: Update timestamps whenever accessed to prevent deletion
+  # Deliver the clove to the appropriate receiver, either local or remote
+  @spec route_clove({atom, {binary, integer} | pid}, list, map) :: :ok
+  def route_clove({_, _receiver}, [], _headers), do: :ok
+  def route_clove({:remote, dest}, [data | tail], headers) do
+    IO.puts("[+] Delivering to remote")
+    LAP2Socket.send_packet(dest, data, headers)
+    route_clove({:remote, dest}, tail, headers)
+  end
+  @spec route_clove({atom, {binary, integer} | pid}, list, map, atom) :: :ok
+  def route_clove({_, _receiver}, [], _headers, _req_type), do: :ok
+  def route_clove({:local, dest}, [_data | tail], headers, req_type) do
+    IO.puts("[+] Delivering to data processor")
+    # TODO lookup global process naming rather than PID (in case of crash)
+    # TODO implement DataProcessor.deliver
+    # DataProcessor.deliver(dest, req_type, data, headers)
+    route_clove({:local, dest}, tail, headers, req_type)
+  end
 
-    case state_lookup(seq_num, state.local_cloves) do
-      {:map_hit, checksums} ->
-        handle_local_cloves_hit(checksum, checksums)
+  @doc """
+  Remove outdated entries from the state based on their timestamps.
+  """
+  @spec clean_state(map) :: map
+  def clean_state(state) do
+    state
+    |> clean_clove_cache()
+    |> clean_relay_table()
+    #|> RoutingHelper.clean_anon_pool() #TODO implement, might as well refactor the cleaning process too
+  end
 
-      {:map_miss, _} ->
-        case state_lookup(seq_num, state.clove_cache) do
-          {:map_hit, cached} -> handle_cache_hit(cached, checksum)
-          {:map_miss, _} -> handle_cache_miss(source, state)
-        end
+  @doc """
+  Get routing information from state
+  """
+  @spec get_route(map, {binary, integer}, map) :: atom | {atom, {binary, integer} | pid}
+  def get_route(state, source, clove) do
+    cond do
+      drop?(state, source, clove) -> :drop
+      true -> handle_clove(state, source, clove)
     end
   end
 
-  # Deliver the data to the data processing process
-  def deliver_data([], _seq_num, _receiver), do: :ok
-  def deliver_data([data | tail], seq_num, receiver) do
-    IO.puts("[+] Delivering data")
-    # TODO lookup global process naming rather than PID (in case of crash)
-    send(receiver, {:clove, data, seq_num})
-    deliver_data(tail, seq_num, receiver)
+  @doc """
+  Evict a clove from the cache.
+  """
+  @spec evict_clove(map, binary) :: map
+  def evict_clove(state, clove_seq) do
+    Map.put(state, :clove_cache, Map.delete(state.clove_cache, clove_seq))
+  end
+  @doc """
+  Add a drop rule for the clove_Seq.
+  """
+  @spec ban_clove(map, binary) :: map
+  def ban_clove(state, clove_seq) do
+    Map.put(state, :drop_rules, Map.put(state.drop_rules, :clove_seq, {clove_seq, :os.system_time(:millisecond)}))
+  end
+
+  @doc """
+  Add a clove to the local cache.
+  """
+  @spec cache_clove(map, {binary, integer}, {binary, integer}, map) :: map
+  def cache_clove(%{clove_cache: cache} = state, source, dest, %{seq_num: seq_num, data: data}) do
+    cache_entry = %{hash: :erlang.phash2(data), # TODO use xxHash NIF
+      data: data,
+      prev_hop: source,
+      next_hop: dest,
+      timestamp: :os.system_time(:millisecond)}
+    new_cache = Map.put(cache, seq_num, cache_entry)
+    Map.put(state, :clove_cache, new_cache)
+  end
+
+  # Add entry to relay table
+  @spec add_relay(map, binary, {binary, integer}, {binary, integer}, atom) :: map
+  def add_relay(state, relay_seq, relay_1, relay_2, :proxy) do
+    # TODO drop unused routes, based on priority values (first introduce priority values in the route struct)
+    IO.puts("[+] Added route #{inspect {relay_1, relay_2}} to relay table as proxy")
+    data_processor = state.config.data_processor
+    relay_entry = %{type: :proxy,
+      relays: %{relay_1 => data_processor, relay_2 => data_processor},
+      timestamp: :os.system_time(:millisecond)}
+    Map.put(state, :relay_routes, Map.put(state.relay_table, relay_seq, relay_entry)) # TODO check if this is correct
+  end
+  def add_relay(state, relay_seq, relay_1, relay_2, :relay) do
+    # TODO drop unused routes, based on priority values (first introduce priority values in the route struct)
+    IO.puts("[+] Added route #{inspect {relay_1, relay_2}} to routing table as relay")
+    relay_entry = %{type: :relay,
+      relays: %{relay_1 => relay_2, relay_2 => relay_1},
+      timestamp: :os.system_time(:millisecond)}
+    updated_relays = Map.put(state.relay_table, relay_seq, relay_entry)
+    Map.put(state, :relay_routes, updated_relays) # TODO check if this is correct
+  end
+
+  # ---- Private handler functions ----
+  # Handle proxy discovery clove
+  @spec handle_clove(map, {binary, integer}, map) :: atom | {atom, any}
+  defp handle_clove(state, _source, %{clove_seq: clove_seq, drop_probab: _, data: data}) do
+    case Map.get(state.clove_cache, clove_seq) do
+      nil -> {:random_walk, random_neighbor(state)}
+      cached_clove -> handle_clove_cache_hit(:erlang.phash2(data), cached_clove)
+    end
+  end
+  # Handle proxy discovery response clove
+  defp handle_clove(state, _source, %{clove_seq: clove_seq,  proxy_seq: _, hop_count: _}) do
+    cond do
+      clove_seq in state.own_cloves -> :discovery_recv
+      true ->
+        case Map.get(state.clove_cache, clove_seq) do
+          nil -> :drop
+          cached_clove -> {:discovery_response, {cached_clove.next_hop, cached_clove.prev_hop}}
+        end
+    end
+  end
+  # Handle proxy relay clove
+  defp handle_clove(state, source, %{proxy_seq: proxy_seq}) do
+    case Map.get(state.relay_table, proxy_seq) do
+      nil -> :drop
+      relay_route -> {:relay, relay_route.relays[source]}
+    end
   end
 
   # ---- Cache handling functions ----
   # Drop duplicate cloves, route to self if new
-  defp handle_local_cloves_hit(checksum, checksums) do
-    if Enum.member?(checksums, checksum) do
-      IO.puts("[+] Local clove duplicate, dropping packet")
-      :drop
-    else
-      IO.puts("[+] New clove, routing to self")
-      :local_exists
-    end
+  @spec handle_clove_cache_hit(integer, map) :: atom
+  defp handle_clove_cache_hit(hash, cached_clove) when hash == cached_clove.hash, do: :drop
+  defp handle_clove_cache_hit(_hash, _cached_clove), do: :proxy_request
+
+  # ---- Clove drop rules ----
+  @spec drop?(map, {binary, integer}, map) :: boolean
+  defp drop?(state, {ip_addr, _}, %{clove_seq: clove_seq, drop_probab: drop_probab}) do
+    can_drop = clove_seq not in state.own_cloves or ip_addr in state.drop_rules.ip_addr
+    can_drop and (clove_seq in state.drop_rules.clove_seq or drop_probab > :rand.uniform)
+  end
+  defp drop?(state, {ip_addr, _}, %{clove_seq: _clove_seq, proxy_seq: proxy_seq}) do
+    proxy_seq in state.drop_rules.proxy_seq or ip_addr in state.drop_rules.ip_addr
+  end
+  defp drop?(state, {ip_addr, _}, %{proxy_seq: proxy_seq}) do
+    proxy_seq in state.drop_rules.proxy_seq or ip_addr in state.drop_rules.ip_addr
   end
 
-  # Perform cache hit handling by checking if checksum matches
-  defp handle_cache_hit(cached, checksum) do
-    if cached.checksum == checksum do
-      IO.puts("[+] Clove duplicate, dropping packet")
-      :drop
-    else
-      IO.puts("[+] Clove cache hit, routing to self")
-      :local_new
-    end
-  end
-
-  # Perform cache miss handling by doing a lookup source in relay routes map
-  # If found, relay as described, otherwise route to random neighbor
-  defp handle_cache_miss(source, state) do
-    case state_lookup(source, state.relay_routes) do
-      {:map_hit, dest} ->
-        IO.puts("[+] Relay route hit, routing to #{dest}")
-        {:remote, dest}
-
-      {:map_miss, _} ->
-        IO.puts("[+] Relay route miss, routing to random neighbor")
-        {:remote, random_neighbor(state)}
-    end
-  end
-  def add_route(state, source, dest) do
-    # TODO drop unused routes, based on priority values (first introduce priority values in the route struct)
-    IO.puts("[+] Added route #{inspect {source, dest}} to routing table")
-    timestamp = :os.system_time(:millisecond)
-    updated_relays = state.relay_routes
-    |> Map.put(source, %{dest: dest, timestamp: timestamp}) # Forward relay route
-    |> Map.put(dest, %{dest: source, timestamp: timestamp}) # Backward relay route
-    Map.put(state, :relay_routes, updated_relays) # TODO check if this is correct
-  end
-
+  # ---- State cleaning functions ----
   # Get rid of outdated clove cache entries
-  def clean_relay_routes(%{relay_routes: relay_routes, config: %{relay_routes_ttl: relay_ttl}} = state) do
-    IO.puts("[+] Deleting outdated clove cache entries")
-    updated_relay_routes = relay_routes
-    |> Enum.filter(fn {_seq_num, %{timestamp: timestamp}} -> timestamp > :os.system_time(:millisecond) - relay_ttl; end)
-    |> Map.new()
-    Map.put(state, :relay_routes, updated_relay_routes)
-  end
-
-  @doc """
-  Add clove to clove_cache in the state
-  """
-  def cache_clove(%{clove_cache: cache} = state, %{seq_num: seq_num, checksum: checksum, data: data}) do
-    IO.puts("[+] Caching clove clove #{seq_num}")
-    new_cache = Map.put(cache, seq_num, %{timestamp: :os.system_time(:millisecond), data: data, checksum: checksum})
-    Map.put(state, :clove_cache, new_cache)
-  end
-
-  # Get rid of outdated clove cache entries
-  def clean_clove_cache(%{clove_cache: cache, config: %{clove_cache_ttl: cache_ttl}} = state) do
+  @spec clean_clove_cache(map) :: map
+  defp clean_clove_cache(%{clove_cache: cache, config: %{clove_cache_ttl: cache_ttl}} = state) do
     IO.puts("[+] Deleting outdated clove cache entries")
     updated_cache = cache
-    |> Enum.filter(fn {_seq_num, %{timestamp: timestamp}} -> timestamp > :os.system_time(:millisecond) - cache_ttl; end)
+    |> Enum.filter(fn {_clove_seq, %{timestamp: timestamp}} -> timestamp > :os.system_time(:millisecond) - cache_ttl; end)
     |> Map.new()
     Map.put(state, :clove_cache, updated_cache)
   end
 
-  @doc """
-  Migrate clove from clove_cache to local_cloves
-  """
-  def migrate_clove(state, seq_num) do
-    IO.puts("[+] Adding clove #{inspect seq_num} to local clove cache")
-    %{checksum: checksum} = state.local_cloves[seq_num]
-
-    # Evict cloves from cache
-    state
-    |> add_local_clove(seq_num, checksum)
-    |> evict_clove_cache(seq_num)
+  # Get rid of outdated clove cache entries
+  @spec clean_relay_table(map) :: map
+  defp clean_relay_table(%{relay_routes: relay_routes, config: %{relay_routes_ttl: relay_ttl}} = state) do
+    IO.puts("[+] Deleting outdated relay table entries")
+    updated_relay_routes = relay_routes
+    |> Enum.filter(fn {_relay_seq, %{timestamp: timestamp}} -> timestamp > :os.system_time(:millisecond) - relay_ttl; end)
+    |> Map.new()
+    Map.put(state, :relay_routes, updated_relay_routes)
   end
 
-  # Get rid of clove from local clove cache
-  def delete_local_clove(state, seq_num) do
-    IO.puts("[+] Deleting clove #{seq_num} from local clove cache")
-    Map.put(state, :local_cloves, Map.delete(state.local_cloves, seq_num))
-  end
-
-  # ---- Update state caches ----
-  def add_local_clove(state, seq_num, checksum) do
-    IO.puts("[+] Adding clove #{inspect seq_num} to local clove cache")
-    updated_local = cond do
-      Map.has_key?(state.local_cloves, seq_num) ->
-        Map.put(state.local_cloves, seq_num, [checksum | state.local_cloves[seq_num]])
-      true ->
-        Map.put(state.local_cloves, seq_num, [checksum])
-    end
-    Map.put(state, :local_cloves, updated_local)
-  end
-
-  # Get rid of cached clove by seq_num
-  defp evict_clove_cache(state, seq_num) do
-    IO.puts("[+] Deleting clove #{seq_num} from cache")
-    Map.put(state, :clove_cache, Map.delete(state.clove_cache, seq_num))
-  end
-
-  # ---- State lookup functions ----
-  # Return value from state table if key exists
-  defp state_lookup(key, state_table) when is_map_key(state_table, key) do
-    IO.puts("[+] Hashmap lookup hit")
-    {:map_hit, state_table[key]}
-  end
-
-  # Map lookup miss
-  defp state_lookup(_key, _state_table) do
-    IO.puts("[+] Hashmap lookup miss")
-    {:map_miss, nil}
-  end
-
+  # ---- Misc functions ----
   # Select random neighbor
-  defp random_neighbor(_dht) do
+  @spec random_neighbor(map) :: {binary, integer}
+  defp random_neighbor(_state) do
     # TODO select random neighbor, set appropriate port
     dest = {"127.0.0.1", 6666}
     IO.puts("[+] Selected random neighbor #{inspect dest}")
-    {:remote, dest}
+    dest
   end
 end
