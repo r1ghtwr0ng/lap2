@@ -1,32 +1,40 @@
 defmodule LAP2.Networking.LAP2Socket do
-  alias LAP2.Utils.PacketHelper
+  alias LAP2.Utils.CloveHelper
   alias LAP2.Networking.ProtoBuf
   alias LAP2.Networking.UdpServer
 
   # Client API
-  def parse_packet(source, pkt) do
-    IO.puts("[+] Received packet #{inspect pkt}")
+  @doc """
+  Parse a received datagram.
+  """
+  @spec parse_dgram({binary, integer}, binary) :: :ok | :err
+  def parse_dgram(source, dgram) do
+    IO.puts("[+] Received datagram #{inspect dgram}")
     # DEBUG: Sleep for 1 second to simulate (unrealistically large) processing time
     # Process.sleep(1000)
-    # Deserialise packet
-    with {:ok, pkt} <- ProtoBuf.deserialise(pkt) do
-      PacketHelper.handle_deserialised_pkt(source, pkt)
+    # Deserialise dgram
+    with {:ok, clove} <- ProtoBuf.deserialise(dgram) do
+      CloveHelper.handle_deserialised_clove(source, clove)
     else
       {:error, reason} ->
-        IO.puts("Error deserialising packet: #{inspect reason}")
+        IO.puts("Error deserialising datagram: #{inspect reason}")
         :err
     end
   end
 
   @doc """
-  Send a packet to a destination address and port.
+  Send a clove to a destination address and port.
   """
   # TODO LAP2Socket should recalculate checksum before sending!
-  def send_packet({dest_addr, port}, data, headers) do
+  @spec send_clove({binary, integer}, binary, map) :: :ok | :err
+  def send_clove({dest_addr, port}, data, headers) do
     data
-    |> PacketHelper.set_headers(headers)
-    |> PacketHelper.set_checksum()
+    |> CloveHelper.set_headers(headers)
+    |> CloveHelper.set_checksum()
     |> ProtoBuf.serialise()
-    |> UdpServer.send_packet({dest_addr, port})
+    |> case do
+      {:ok, dgram} -> UdpServer.send_dgram(dgram, {dest_addr, port}); :ok
+      {:error, reason} -> IO.puts("Error serialising clove: #{inspect reason}"); :err
+    end
   end
 end

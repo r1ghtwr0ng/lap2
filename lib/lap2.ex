@@ -4,20 +4,23 @@ defmodule LAP2 do
   """
   require Logger
 
+  @spec start :: {:error, any} | {:ok, pid}
   def start() do
     # Start server, load config from file
-    {:ok, config}   = load_config()
+    {:ok, config} = load_config()
     start_supervisor(config)
   end
 
   @doc """
   Kill supervisor and its children
   """
+  @spec kill :: :ok
   def kill() do
     Supervisor.stop(LAP2.Supervisor)
   end
 
   # Load the config file and handle thrown errors (by dying lol)
+  @spec load_config :: {:ok, map} | :init.stop()
   defp load_config() do
     try do
       filepath = System.get_env("LAP2_CONFIG_PATH") || "./config/config.json"
@@ -31,6 +34,7 @@ defmodule LAP2 do
   end
 
   # Start the supervisor and spawns the children
+  @spec start_supervisor(map) :: {:ok, pid}
   defp start_supervisor(config) do
     opts = [strategy: :one_for_one, name: LAP2.Supervisor]
     children = [

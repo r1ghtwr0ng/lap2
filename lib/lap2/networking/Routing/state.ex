@@ -1,6 +1,6 @@
 defmodule LAP2.Networking.Routing.State do
   @moduledoc """
-  Helper functions for routing packets.
+  Module for managing the state of the routing module.
   """
   require Logger
 

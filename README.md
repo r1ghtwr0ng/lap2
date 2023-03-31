@@ -17,12 +17,12 @@
 - [x] Error logging
 - [x] Configuration file parsing
 ## *Networking*
-- [x] Efficient UDP packet buffering and handling
+- [x] Efficient UDP datagram buffering and handling
 - [x] UDP communication module
 - [ ] ProtoBuff serialisation/deserialisation
 - [ ] Peer connection and discovery
 - [ ] Distributeed hash table
-- [ ] Packet storage and relay
+- [ ] Clove storage and relay
 - [ ] Introduction Points
 - [ ] Connection supervisor module
 ## *Garlic Cast*

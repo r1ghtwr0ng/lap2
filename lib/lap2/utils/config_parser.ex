@@ -6,6 +6,7 @@ defmodule LAP2.Utils.ConfigParser do
     @doc """
     Parses a JSON file into a map with atoms as keys.
     """
+    @spec parse_json(String.t()) :: map()
     def parse_json(filename) do
         filename
         |> File.read!()

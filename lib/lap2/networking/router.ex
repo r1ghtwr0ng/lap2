@@ -103,13 +103,13 @@ defmodule LAP2.Networking.Router do
   @doc """
   Terminate the UDP server.
   """
+  @spec terminate(any, map) :: :ok
   def terminate(reason, %{udp_sock: nil}) do
-    Logger.error("UDP socket terminated unexpectedly. Reason: #{inspect(reason)}")
+    Logger.error("UDP socket terminated unexpectedly. Reason: #{inspect reason}")
   end
-
   def terminate(reason, %{udp_sock: udp_sock}) do
     :gen_udp.close(udp_sock)
-    Logger.info("Router terminated. Reason: #{inspect(reason)}")
+    Logger.info("Router terminated. Reason: #{inspect reason}")
   end
 
   # ---- Public functions ----
@@ -118,9 +118,9 @@ defmodule LAP2.Networking.Router do
   end
 
   def route_outbound(dest, proxy_seq, data) do
-    # TODO route outgoing packet via existing connection chain (not known by router)
-    # TODO essentially just send the packet via the nodes in the chain (known by the router by conn_chain identifiers)
-    IO.puts("[+] Routing outbound packet")
+    # TODO route outgoing clove via existing connection chain (not known by router)
+    # TODO essentially just send the clove via the nodes in the chain (known by the router by conn_chain identifiers)
+    IO.puts("[+] Routing outbound clove")
     GenServer.cast({:global, :router}, {:route_outbound, dest, proxy_seq, data})
   end
 
