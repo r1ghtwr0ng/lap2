@@ -55,7 +55,7 @@ defmodule LAP2.Networking.UdpServer do
         cond do
           :queue.len(state.queue) < state.max_queue_size ->
             #Logger.debug("Adding packet to queue")
-            {:noreply, %{state | queue: :queue.in(pkt, state.queue)}}
+            {:noreply, %{state | queue: :queue.in({{ip, port}, pkt}, state.queue)}}
           true ->
             #Logger.debug("Queue full, dropping packet")
             {:noreply, state}
@@ -72,8 +72,8 @@ defmodule LAP2.Networking.UdpServer do
   def handle_info(:check_queue, %{queue: {[], []}} = state), do: {:noreply, state}
 
   def handle_info(:check_queue, %{queue: queue, queue_interval: queue_interval} = state) do
-    {{:value, pkt}, tail} = :queue.out(queue)
-    case Task.Supervisor.start_child(LAP2.TaskSupervisor, fn -> LAP2Socket.parse_packet(pkt) end) do
+    {{:value, {source, pkt}}, tail} = :queue.out(queue)
+    case Task.Supervisor.start_child(LAP2.TaskSupervisor, fn -> LAP2Socket.parse_packet(source, pkt) end) do
       {:ok, _pid} ->
         #Logger.debug("Started task to parse packet")
         {:noreply, %{state | queue: tail}}

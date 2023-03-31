@@ -1,6 +1,5 @@
 defmodule LAP2.Networking.LAP2Socket do
   alias LAP2.Utils.PacketHelper
-  alias LAP2.Networking.Router
   alias LAP2.Networking.ProtoBuf
   alias LAP2.Networking.UdpServer
 

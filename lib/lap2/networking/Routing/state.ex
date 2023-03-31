@@ -1,30 +1,10 @@
-defmodule LAP2.Utils.RoutingHelper do
+defmodule LAP2.Networking.Routing.State do
   @moduledoc """
   Helper functions for routing packets.
   """
   require Logger
-  alias LAP2.Networking.LAP2Socket
 
   # ---- Public functions ----
-  # MAJOR TODO: Update timestamps whenever accessed to prevent deletion
-  # Deliver the clove to the appropriate receiver, either local or remote
-  @spec route_clove({atom, {binary, integer} | pid}, list, map) :: :ok
-  def route_clove({_, _receiver}, [], _headers), do: :ok
-  def route_clove({:remote, dest}, [data | tail], headers) do
-    IO.puts("[+] Delivering to remote")
-    LAP2Socket.send_packet(dest, data, headers)
-    route_clove({:remote, dest}, tail, headers)
-  end
-  @spec route_clove({atom, {binary, integer} | pid}, list, map, atom) :: :ok
-  def route_clove({_, _receiver}, [], _headers, _req_type), do: :ok
-  def route_clove({:local, dest}, [_data | tail], headers, req_type) do
-    IO.puts("[+] Delivering to data processor")
-    # TODO lookup global process naming rather than PID (in case of crash)
-    # TODO implement DataProcessor.deliver
-    # DataProcessor.deliver(dest, req_type, data, headers)
-    route_clove({:local, dest}, tail, headers, req_type)
-  end
-
   @doc """
   Remove outdated entries from the state based on their timestamps.
   """
@@ -37,23 +17,13 @@ defmodule LAP2.Utils.RoutingHelper do
   end
 
   @doc """
-  Get routing information from state
-  """
-  @spec get_route(map, {binary, integer}, map) :: atom | {atom, {binary, integer} | pid}
-  def get_route(state, source, clove) do
-    cond do
-      drop?(state, source, clove) -> :drop
-      true -> handle_clove(state, source, clove)
-    end
-  end
-
-  @doc """
   Evict a clove from the cache.
   """
   @spec evict_clove(map, binary) :: map
   def evict_clove(state, clove_seq) do
     Map.put(state, :clove_cache, Map.delete(state.clove_cache, clove_seq))
   end
+
   @doc """
   Add a drop rule for the clove_Seq.
   """
@@ -97,6 +67,17 @@ defmodule LAP2.Utils.RoutingHelper do
     Map.put(state, :relay_routes, updated_relays) # TODO check if this is correct
   end
 
+  @doc """
+  Get routing information from state
+  """
+  @spec get_route(map, {binary, integer}, map) :: atom | {atom, {binary, integer} | pid}
+  def get_route(state, source, clove) do
+    cond do
+      drop?(state, source, clove) -> :drop
+      true -> handle_clove(state, source, clove)
+    end
+  end
+
   # ---- Private handler functions ----
   # Handle proxy discovery clove
   @spec handle_clove(map, {binary, integer}, map) :: atom | {atom, any}
@@ -109,7 +90,7 @@ defmodule LAP2.Utils.RoutingHelper do
   # Handle proxy discovery response clove
   defp handle_clove(state, _source, %{clove_seq: clove_seq,  proxy_seq: _, hop_count: _}) do
     cond do
-      clove_seq in state.own_cloves -> :discovery_recv
+      clove_seq in state.own_cloves -> :recv_discovery
       true ->
         case Map.get(state.clove_cache, clove_seq) do
           nil -> :drop
@@ -131,19 +112,6 @@ defmodule LAP2.Utils.RoutingHelper do
   defp handle_clove_cache_hit(hash, cached_clove) when hash == cached_clove.hash, do: :drop
   defp handle_clove_cache_hit(_hash, _cached_clove), do: :proxy_request
 
-  # ---- Clove drop rules ----
-  @spec drop?(map, {binary, integer}, map) :: boolean
-  defp drop?(state, {ip_addr, _}, %{clove_seq: clove_seq, drop_probab: drop_probab}) do
-    can_drop = clove_seq not in state.own_cloves or ip_addr in state.drop_rules.ip_addr
-    can_drop and (clove_seq in state.drop_rules.clove_seq or drop_probab > :rand.uniform)
-  end
-  defp drop?(state, {ip_addr, _}, %{clove_seq: _clove_seq, proxy_seq: proxy_seq}) do
-    proxy_seq in state.drop_rules.proxy_seq or ip_addr in state.drop_rules.ip_addr
-  end
-  defp drop?(state, {ip_addr, _}, %{proxy_seq: proxy_seq}) do
-    proxy_seq in state.drop_rules.proxy_seq or ip_addr in state.drop_rules.ip_addr
-  end
-
   # ---- State cleaning functions ----
   # Get rid of outdated clove cache entries
   @spec clean_clove_cache(map) :: map
@@ -163,6 +131,19 @@ defmodule LAP2.Utils.RoutingHelper do
     |> Enum.filter(fn {_relay_seq, %{timestamp: timestamp}} -> timestamp > :os.system_time(:millisecond) - relay_ttl; end)
     |> Map.new()
     Map.put(state, :relay_routes, updated_relay_routes)
+  end
+
+  # ---- Clove drop rules ----
+  @spec drop?(map, {binary, integer}, map) :: boolean
+  defp drop?(state, {ip_addr, _}, %{clove_seq: clove_seq, drop_probab: drop_probab}) do
+    can_drop = clove_seq not in state.own_cloves or ip_addr in state.drop_rules.ip_addr
+    can_drop and (clove_seq in state.drop_rules.clove_seq or drop_probab > :rand.uniform)
+  end
+  defp drop?(state, {ip_addr, _}, %{clove_seq: _clove_seq, proxy_seq: proxy_seq}) do
+    proxy_seq in state.drop_rules.proxy_seq or ip_addr in state.drop_rules.ip_addr
+  end
+  defp drop?(state, {ip_addr, _}, %{proxy_seq: proxy_seq}) do
+    proxy_seq in state.drop_rules.proxy_seq or ip_addr in state.drop_rules.ip_addr
   end
 
   # ---- Misc functions ----

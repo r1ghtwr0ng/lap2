@@ -7,8 +7,8 @@ defmodule LAP2.Networking.Router do
   """
   use GenServer
   require Logger
-  alias LAP2.Networking.LAP2Socket
-  alias LAP2.Utils.RoutingHelper
+  alias LAP2.Utils.PacketHelper
+  alias LAP2.Networking.Routing
 
   @doc """
   Start the Router process.
@@ -48,97 +48,53 @@ defmodule LAP2.Networking.Router do
 
   # Handle received cloves
   @spec handle_info({atom, {binary, integer}, map}, map) :: {:noreply, map}
-  def handle_info({:route_inbound, source, %{data: data} = clove}, state) do
+  def handle_info({:route_inbound, source, clove}, state) do
     state
-    |> RoutingHelper.clean_state()
-    |> RoutingHelper.get_route(source, clove)
+    |> Routing.State.clean_state()
+    |> Routing.State.get_route(source, clove)
     |> case do
       # Proxy discovery
-      {:random_walk, dest} ->
-        IO.puts("[+] Relaying via random walk to #{inspect dest}")
-        new_state = RoutingHelper.cache_clove(state, source, dest, clove)
-        RoutingHelper.route_clove({:remote, dest}, [data], %{clove_seq: clove.clove_seq, drop_probab: clove.drop_probab})
-        {:noreply, new_state}
-
+      {:random_walk, dest} -> route_proxy_discovery(state, source, dest, clove)
       # Proxy request
-      {:proxy_request, proxy_seq} ->
-        IO.puts("[+] Relaying via proxy request to #{inspect proxy_seq}")
-        prev_hop = state.clove_cache[clove.clove_seq].prv_hop
-        dest = {:local, state.config.data_processor}
-        RoutingHelper.route_clove(dest, [data], %{clove_seq: clove.clove_seq, proxy_seq: proxy_seq, hop_count: clove.hop_count, relays: [source, prev_hop]})
-        new_state = state
-        |> RoutingHelper.evict_clove(clove.clove_seq)
-        |> RoutingHelper.ban_clove(clove.clove_seq)
-        {:noreply, new_state}
-
+      :proxy_request-> handle_proxy_request(state, source, clove)
       # Route discovery response to data processor
-      :discovery_recv ->
-        IO.puts("[+] Relaying discovery response to data processor")
-        dest = {:local, state.config.data_processor}
-        RoutingHelper.route_clove(dest, [data], %{clove_seq: clove.clove_seq, proxy_seq: clove.proxy_seq, hop_count: clove.hop_count, relays: [source]})
-        {:noreply, state}
-
+      :recv_discovery -> receive_discovery_response(state, source, clove)
       # Route discovery response
-      {:discovery_response, ^source} ->
-        dest = clove.clove_cache[clove.clove_seq].prv_hop
-        IO.puts("[+] Relaying discovery response to #{inspect dest}")
-        RoutingHelper.route_clove({:remote, dest}, [data], %{clove_seq: clove.clove_seq, proxy_seq: clove.proxy_seq, hop_count: clove.hop_count})
-        new_state = state
-        |> RoutingHelper.add_relay(clove.proxy_seq, source, dest)
-        |> RoutingHelper.evict_clove(clove.clove_seq)
-        {:noreply, new_state}
-
-      # Relay clove to local data processor
-      {:relay, dest} when is_pid(dest) ->
-        IO.puts("[+] Relaying clove to #{inspect dest}") # Debug
-        RoutingHelper.route_clove({:local, dest}, [data], %{proxy_seq: clove.proxy_seq})
-        {:noreply, state}
-
+      {:discovery_response, ^source} -> route_discovery_response(state, source, clove)
       # Relay clove to remote
-      {:relay, dest} when is_tuple(dest) ->
-        IO.puts("[+] Relaying clove to #{inspect dest}") # Debug
-        RoutingHelper.route_clove({:remote, dest}, [data], %{proxy_seq: clove.proxy_seq})
-        {:noreply, state}
-
+      {:relay, dest} -> relay_clove(state, dest, clove)
       # Drop clove
-      _ ->
-        IO.puts("[+] Dropping clove")
+      _ -> IO.puts("[+] Dropping clove")
         {:noreply, state}
     end
   end
 
-  def handle_info({:route_outbound, anonymous_path, data}, state) do
-    # TODO route packet ------------------- <<<<<<<<<<<<<<<<<<<<<<<<DO THIS NEXT>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  def handle_info({:route_outbound, dest, proxy_seq, data}, state) do
     IO.puts("[+] Routing outbound packet")
-    # Return, data_processor will reconstruct packet and decide if node can be a proxy.
-    # If yes, in another handle_info, do
-    # Save: proxy_seq => %{source_1 => data_processor, source_2 => data_processor, timestamp: t} -> relay_table
-    # Save: proxy_seq => [source_1, source_2] -> anon_pool
-    # Relay: for route in anon_pool[proxy_seq]: send(route, {checksum, clove_seq, proxy_seq, hop_count, data})
+    headers = %{proxy_seq: proxy_seq}
+    Routing.Remote.route_clove(dest, [data], headers)
     {:noreply, state}
   end
 
-  def handle_info({:establish_proxy, anonymous_path, packet}, state) do
-    # TODO route packet ------------------- <<<<<<<<<<<<<<<<<<<<<<<<DO THIS NEXT>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  def handle_info({:proxy_discovery, dest, data}, state) do
     IO.puts("[+] Routing outbound packet")
-    # Return, data_processor will reconstruct packet and decide if node can be a proxy.
-    # If yes, in another handle_info, do
-    # Save: proxy_seq => %{source_1 => data_processor, source_2 => data_processor, timestamp: t} -> relay_table
-    # Save: proxy_seq => [source_1, source_2] -> anon_pool
-    # Relay: for route in anon_pool[proxy_seq]: send(route, {checksum, clove_seq, proxy_seq, hop_count, data})
+    clove_seq = PacketHelper.gen_seq_num(4)
+    drop_probab = PacketHelper.gen_drop_probab(0.7, 1.0)
+    headers = %{clove_seq: clove_seq, drop_probab: drop_probab}
+    Routing.Remote.route_clove(dest, [data], headers)
     {:noreply, state}
   end
 
   # Accept a request to become a proxy.
   def handle_info({:accept_proxy, proxy_seq, node_1, node_2}, state) do
-    new_state = RoutingHelper.add_relay(state, proxy_seq, node_1, node_2, :proxy)
+    new_state = Routing.State.add_relay(state, proxy_seq, node_1, node_2, :proxy)
     {:noreply, new_state}
   end
 
   # Remove outdated entries from state (clove_cache, relay_routes) based on timestamps.
   # Routing table is updated by DHT, which is a seperate mechanism.
   def handle_info({:clean_state}, state) do
-    {:noreply, RoutingHelper.clean_state(state)}
+    {:noreply, Routing.State.clean_state(state)}
   end
 
   # Lookup routing information from state.
@@ -163,21 +119,73 @@ defmodule LAP2.Networking.Router do
 
   # ---- Public functions ----
   def route_inbound(source, clove) do
-    GenServer.call({:global, :router}, {:route_packet, source, clove})
+    GenServer.cast({:global, :router}, {:route_inbound, source, clove})
   end
 
-  def route_outbound(conn_chain, clove_list) do
+  def route_outbound(dest, proxy_seq, data) do
     # TODO route outgoing packet via existing connection chain (not known by router)
     # TODO essentially just send the packet via the nodes in the chain (known by the router by conn_chain identifiers)
-    GenServer.call({:global, :router}, {:route_outbound, conn_chain, clove_list})
     IO.puts("[+] Routing outbound packet")
+    GenServer.cast({:global, :router}, {:route_outbound, dest, proxy_seq, data})
   end
 
   def accept_proxy(proxy_seq, node_1, node_2) do
-    GenServer.call({:global, :router}, {:accept_proxy, proxy_seq, node_1, node_2})
+    GenServer.cast({:global, :router}, {:accept_proxy, proxy_seq, node_1, node_2})
   end
 
   def clean_state() do
-    GenServer.call({:global, :router}, {:clean_state})
+    GenServer.cast({:global, :router}, {:clean_state})
+  end
+
+  # ---- Private functions ----
+  defp route_discovery_response(state, source, %{clove_seq: cseq, proxy_seq: pseq, hop_count: hops, data: data}) do
+    dest = state.clove_cache[cseq].prv_hop
+    IO.puts("[+] Relaying discovery response to #{inspect dest}")
+    headers = %{clove_seq: cseq, proxy_seq: pseq, hop_count: hops + 1}
+    Routing.Remote.route_clove(dest, [data], headers)
+    new_state = state
+    |> Routing.State.add_relay(pseq, source, dest, :relay)
+    |> Routing.State.evict_clove(cseq)
+    {:noreply, new_state}
+  end
+
+  defp relay_clove(state, dest, %{proxy_seq: pseq, data: data}) when is_tuple(dest) do
+    IO.puts("[+] Relaying clove to #{inspect dest}") # Debug
+    Routing.Remote.route_clove(dest, [data], %{proxy_seq: pseq})
+    {:noreply, state}
+  end
+  defp relay_clove(state, dest, %{proxy_seq: pseq, data: data}) when is_pid(dest) do
+    IO.puts("[+] Relaying clove to #{inspect dest}") # Debug
+    Routing.Local.route_clove(dest, [data], %{proxy_seq: pseq}, :clove_recv)
+    {:noreply, state}
+  end
+
+  defp receive_discovery_response(state, source, %{clove_seq: cseq, proxy_seq: pseq, hop_count: hops, data: data}) do
+    IO.puts("[+] Relaying discovery response to data processor")
+    dest = state.config.data_processor
+    headers = %{clove_seq: cseq, proxy_seq: pseq, hop_count: hops, relays: [source]}
+    Routing.Local.route_clove(dest, [data], headers, :discovery_response)
+    {:noreply, state}
+  end
+
+  defp handle_proxy_request(state, source, %{clove_seq: cseq, hop_count: hops, data: data} = clove) do
+    IO.puts("[+] Relaying via proxy request from #{inspect source}")
+    prev_hop = state.clove_cache[cseq].prv_hop
+    proxy_seq = PacketHelper.gen_seq_num(8)
+    headers = %{clove_seq: cseq, proxy_seq: proxy_seq, hop_count: hops, relays: [source, prev_hop]}
+    dest = state.config.data_processor
+    Routing.Local.route_clove(dest, [data], headers, :proxy_request)
+    {:noreply, state}
+    new_state = state
+    |> Routing.State.evict_clove(clove.clove_seq)
+    |> Routing.State.ban_clove(clove.clove_seq)
+    {:noreply, new_state}
+  end
+
+  defp route_proxy_discovery(state, source, dest, %{clove_seq: clove_seq, drop_probab: drop_prob, data: data} = clove) do
+    IO.puts("[+] Relaying via random walk to #{inspect dest}")
+    new_state = Routing.State.cache_clove(state, source, dest, clove)
+    Routing.Remote.route_clove(dest, [data], %{clove_seq: clove_seq, drop_probab: drop_prob})
+    {:noreply, new_state}
   end
 end
