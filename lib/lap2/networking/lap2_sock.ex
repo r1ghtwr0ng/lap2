@@ -27,11 +27,10 @@ defmodule LAP2.Networking.LAP2Socket do
   """
   # TODO LAP2Socket should recalculate checksum before sending!
   @spec send_clove({binary, integer}, binary, map) :: :ok | :err
-  def send_clove({dest_addr, port}, data, headers) do
+  def send_clove({dest_addr, port}, data, headers, clove_type \\ :regular_proxy_clove) do
     data
     |> CloveHelper.set_headers(headers)
-    |> CloveHelper.set_checksum()
-    |> ProtoBuf.serialise()
+    |> ProtoBuf.serialise(clove_type)
     |> case do
       {:ok, dgram} -> UdpServer.send_dgram(dgram, {dest_addr, port}); :ok
       {:error, reason} -> IO.puts("Error serialising clove: #{inspect reason}"); :err

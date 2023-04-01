@@ -1,8 +1,27 @@
 {
-    "udp_port": 3000,
-    "proxy_depth": 10,
-    "req_timeout": 50000,
-    "max_dgram_handlers": 10,
-    "queue_interval": 100,
-    "max_queue_size": 1000
+    "name": "lap2_service",
+    "udp_server": {
+        "udp_port": 1447,
+        "req_timeout": 50000,
+        "max_dgram_handlers": 10,
+        "queue_interval": 100,
+        "max_queue_size": 1000
+    },
+    "tcp_server": {
+        "tcp_port": 3001,
+        "req_timeout": 50000,
+        "max_dgram_handlers": 10,
+        "queue_interval": 100,
+        "max_queue_size": 1000
+    },
+    "router": {
+        "name": "router",
+        "lap2_addr": "test",
+        "clove_cache_size": 1000,
+        "clove_cache_ttl": 30000,
+        "relay_routes_size": 5000,
+        "relay_routes_ttl": 1800000,
+        "proxy_policy": true,
+        "proxy_limit": 20
+    }
 }

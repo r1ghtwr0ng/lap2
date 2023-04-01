@@ -4,7 +4,7 @@ message Clove {
     uint32 checksum = 1;
     bytes data = 2;
 
-    oneof header {
+    oneof headers {
         ProxyDiscoveryHeader proxy_discovery_header = 3;
         ProxyResponseHeader proxy_response_header = 4;
         RegularProxyHeader regular_proxy_header = 5;
@@ -12,13 +12,13 @@ message Clove {
 }
 
 message ProxyDiscoveryHeader {
-    uint32 clove_seq = 1;
+    uint64 clove_seq = 1;
     float drop_probab = 2;
 }
 
 message ProxyResponseHeader {
     uint64 proxy_seq = 1;
-    uint32 clove_seq = 2;
+    uint64 clove_seq = 2;
     uint32 hop_count = 3;
 }
 

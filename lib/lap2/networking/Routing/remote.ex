@@ -36,10 +36,13 @@ defmodule LAP2.Networking.Routing.Remote do
   @doc """
   Route a proxy discovery clove to a random neighbour.
   """
-  @spec route_proxy_discovery(map, {binary, integer}, {binary, integer}, map) :: {:noreply, map}
-  def route_proxy_discovery(state, source, dest, %{clove_seq: clove_seq, drop_probab: drop_prob, data: data} = clove) do
+  @spec route_proxy_discovery(map, {binary, integer}, binary, map) :: {:noreply, map}
+  def route_proxy_discovery(state, source, neighbor_addr, %{clove_seq: clove_seq, drop_probab: drop_prob, data: data} = clove) do
+    dest = state.routing_table[neighbor_addr]
     IO.puts("[+] Relaying via random walk to #{inspect dest}")
-    new_state = State.cache_clove(state, source, dest, clove)
+    new_state = state
+    |> State.cache_clove(source, dest, clove)
+    |> State.remove_neighbor(neighbor_addr)
     route_clove(dest, [data], %{clove_seq: clove_seq, drop_probab: drop_prob})
     {:noreply, new_state}
   end

@@ -8,9 +8,20 @@ defmodule LAP2.Utils.ConfigParser do
     """
     @spec parse_json(String.t()) :: map()
     def parse_json(filename) do
-        filename
-        |> File.read!()
-        |> Jason.decode!()
-        |> Enum.into(%{}, fn {k, v} -> {String.to_atom(k), v} end)
+      filename
+      |> File.read!()
+      |> Jason.decode!()
+      |> keys_to_atoms()
+    end
+
+    @doc """
+    Function for recursively converting a map's keys to atoms.
+    """
+    @spec keys_to_atoms(map) :: map
+    def keys_to_atoms(map) do
+      Enum.into(map, %{}, fn
+        {k, v} when is_map(v) -> {String.to_atom(k), keys_to_atoms(v)}
+        {k, v} -> {String.to_atom(k), v}
+      end)
     end
 end

@@ -15,4 +15,5 @@ defmodule LAP2.Networking.Resolver do
   end
 
   # ---- Helper functions ----
+
 end

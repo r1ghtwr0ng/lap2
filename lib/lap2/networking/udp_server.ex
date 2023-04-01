@@ -49,7 +49,8 @@ defmodule LAP2.Networking.UdpServer do
   # Handle received UDP datagrams
   @spec handle_info({:udp, any, binary, integer, binary}, map) :: {:noreply, map}
   def handle_info({:udp, _socket, ip, port, dgram}, state) do
-    case Task.Supervisor.start_child(LAP2.TaskSupervisor, fn -> LAP2Socket.parse_dgram({ip, port}, dgram) end) do
+    case Task.Supervisor.start_child(LAP2.TaskSupervisor, fn ->
+      LAP2Socket.parse_dgram({ip, port}, dgram) end) do
       {:ok, _pid} ->
         #Logger.debug("Started task to parse datagram")
         {:noreply, state}
@@ -98,7 +99,9 @@ defmodule LAP2.Networking.UdpServer do
   Terminate the UDP server.
   """
   @spec terminate(any, map) :: :ok
-  def terminate(reason, %{udp_sock: nil}), do: Logger.error("UDP socket terminated unexpectedly. Reason: #{inspect reason}")
+  def terminate(reason, %{udp_sock: nil}) do
+    Logger.error("UDP socket terminated unexpectedly. Reason: #{inspect reason}")
+  end
   def terminate(_reason, %{udp_sock: udp_sock}) do
     :gen_udp.close(udp_sock)
   end

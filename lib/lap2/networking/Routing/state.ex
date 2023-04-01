@@ -70,12 +70,16 @@ defmodule LAP2.Networking.Routing.State do
   @doc """
   Get routing information from state
   """
-  @spec get_route(map, {binary, integer}, map) :: atom | {atom, {binary, integer} | pid}
+  @spec get_route(map, {binary, integer}, map) :: atom | {atom, {binary, integer} | pid | binary}
   def get_route(state, source, clove) do
     cond do
       drop?(state, source, clove) -> :drop
       true -> handle_clove(state, source, clove)
     end
+  end
+
+  def remove_neighbor(state, neighbor) do
+    Map.put(state, :rand_neighbors, List.delete(state.rand_neighbors, neighbor))
   end
 
   # ---- Private handler functions ----
@@ -148,11 +152,6 @@ defmodule LAP2.Networking.Routing.State do
 
   # ---- Misc functions ----
   # Select random neighbor
-  @spec random_neighbor(map) :: {binary, integer}
-  defp random_neighbor(_state) do
-    # TODO select random neighbor, set appropriate port
-    dest = {"127.0.0.1", 6666}
-    IO.puts("[+] Selected random neighbor #{inspect dest}")
-    dest
-  end
+  @spec random_neighbor(map) :: binary
+  defp random_neighbor(state), do: Enum.random(state.rand_neighbors)
 end

@@ -16,21 +16,12 @@ defmodule LAP2.Utils.CloveHelper do
   end
 
   @doc """
-  Calculate and add the checksum to the clove.
-  """
-  @spec set_checksum(map) :: map()
-  def set_checksum(%{seq_num: seq_num, drop_probab: drop_probab, data: data} = clove) do
-    # Compute and prepend checksum to clove
-    Map.put(clove, :checksum, CRC.crc_32(seq_num <> drop_probab <> data))
-  end
-
-  @doc """
   Build the clove from the headers and data.
   """
   @spec set_headers(binary, map) :: map()
   def set_headers(data, headers) do
     # Set the headers for the clove
-    Map.put(headers, :data, data)
+   %{data: data, headers: headers, checksum: CRC.crc_32(data)}
   end
 
   # ---- Clove handling functions ----

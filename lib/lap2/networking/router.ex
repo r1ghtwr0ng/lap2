@@ -12,8 +12,9 @@ defmodule LAP2.Networking.Router do
   @doc """
   Start the Router process.
   """
-  def start_link(config) do
-    GenServer.start_link(__MODULE__, config, name: {:global, :router})
+  @spec start_link(map) :: GenServer.on_start()
+  def start_link(%{router: %{name: name}} = config) do
+    GenServer.start_link(__MODULE__, config, name: name)
   end
 
   @doc """
@@ -25,18 +26,18 @@ defmodule LAP2.Networking.Router do
     IO.puts("Starting router")
     state = %{
       clove_cache: %{},
-      anon_pool: %{},
+      rand_neighbors: [],
       own_cloves: [],
       drop_rules: %{clove_seq: [], ip_addr: [], proxy_seq: []},
       relay_table: %{},
-      routing_table: %{config.lap2_addr => {:local, self()}},
+      routing_table: %{},
       config: %{
-        lap2_addr: config.lap2_addr,
+        lap2_addr: nil,
         clove_cache_size: config.clove_cache_size,
         clove_cache_ttl: config.clove_cache_ttl,
         relay_routes_size: config.relay_routes_size,
         relay_routes_ttl: config.relay_routes_ttl,
-        data_processor: config.data_processor,
+        data_processor: nil,
         proxy_policy: config.proxy_policy,
         proxy_limit: config.proxy_limit,
       }
@@ -45,6 +46,7 @@ defmodule LAP2.Networking.Router do
     {:ok, state}
   end
 
+  # TODO append data_processor, lap2_addr to the config
   # Handle received cloves
   @spec handle_info({atom, {binary, integer}, map}, map) :: {:noreply, map}
   def handle_info({:route_inbound, source, clove}, state) do
@@ -53,7 +55,7 @@ defmodule LAP2.Networking.Router do
     |> State.get_route(source, clove)
     |> case do
       # Proxy discovery
-      {:random_walk, dest} -> Remote.route_proxy_discovery(state, source, dest, clove)
+      {:random_walk, rand_neighbor} -> Remote.route_proxy_discovery(state, source, rand_neighbor, clove)
       # Proxy request
       :proxy_request-> Local.handle_proxy_request(state, source, clove)
       # Route discovery response to data processor
@@ -92,12 +94,16 @@ defmodule LAP2.Networking.Router do
     {:noreply, State.clean_state(state)}
   end
 
-  # Lookup routing information from state.
-  # Lookup is performed both in the routing table and the relay routes.
-  def handle_info({:lookup, dest}, state) do
-    # TODO
-    IO.puts("[+] DHT lookup for #{inspect dest}")
-    {:noreply, state}
+  # Update the router's configuration.
+  def handle_info({:update_config, config}, state), do: {:noreply, Map.put(state, :config, config)}
+
+  # Update the router's routing table.
+  def handle_info({:append_dht, lap2_addr, dest}, state) do
+    new_router = Map.put(state.router, lap2_addr, dest)
+    new_state = state
+    |> Map.put(:router, new_router)
+    |> Map.put(:random_neighbors, [lap2_addr | state.random_neighbors])
+    {:noreply, new_state}
   end
 
   @doc """
@@ -113,22 +119,52 @@ defmodule LAP2.Networking.Router do
   end
 
   # ---- Public functions ----
-  def route_inbound(source, clove) do
-    GenServer.cast({:global, :router}, {:route_inbound, source, clove})
+  @doc """
+  Route an inbound clove to the appropriate destination.
+  """
+  @spec route_inbound({binary, integer}, map, atom) :: :ok
+  def route_inbound(source, clove, name \\ :router) do
+    GenServer.cast({:global, name}, {:route_inbound, source, clove})
   end
 
-  def route_outbound(dest, proxy_seq, data) do
-    # TODO route outgoing clove via existing connection chain (not known by router)
-    # TODO essentially just send the clove via the nodes in the chain (known by the router by conn_chain identifiers)
+  @doc """
+  Route data to the appropriate destination.
+  """
+  @spec route_outbound({binary, integer}, binary, binary, atom) :: :ok
+  def route_outbound(dest, proxy_seq, data, name \\ :router) do
     IO.puts("[+] Routing outbound clove")
-    GenServer.cast({:global, :router}, {:route_outbound, dest, proxy_seq, data})
+    GenServer.cast({:global, name}, {:route_outbound, dest, proxy_seq, data})
   end
 
-  def accept_proxy(proxy_seq, node_1, node_2) do
-    GenServer.cast({:global, :router}, {:accept_proxy, proxy_seq, node_1, node_2})
+  @doc """
+  Accept and reply to a proxy request, update state accordingly.
+  """
+  @spec accept_proxy(binary, {binary, integer}, {binary, integer}, atom) :: :ok
+  def accept_proxy(proxy_seq, node_1, node_2, name \\ :router) do
+    GenServer.cast({:global, name}, {:accept_proxy, proxy_seq, node_1, node_2})
   end
 
-  def clean_state() do
-    GenServer.cast({:global, :router}, {:clean_state})
+  @doc """
+  Update the DHT with a new entry in the state
+  """
+  @spec append_dht(binary, {binary, integer}, atom) :: :ok
+  def append_dht(lap2_addr, dest, name \\ :router) do
+    GenServer.cast({:global, name}, {:append_dht, lap2_addr, dest})
+  end
+
+  @doc """
+  Update the configuration in the state
+  """
+  @spec update_config(map, atom) :: :ok
+  def update_config(config, name \\ :router) do
+    GenServer.cast({:global, name}, {:update_config, config})
+  end
+
+  @doc """
+  Delete outdated entries from state.
+  """
+  @spec clean_state(atom) :: :ok
+  def clean_state(name \\ :router) do
+    GenServer.cast({:global, name}, {:clean_state})
   end
 end
