@@ -36,7 +36,7 @@ defmodule LAP2.Networking.Routing.Local do
   def handle_proxy_request(state, source, %{clove_seq: cseq, hop_count: hops, data: data} = clove) do
     IO.puts("[+] Relaying via proxy request from #{inspect source}")
     prev_hop = state.clove_cache[cseq].prv_hop
-    proxy_seq = CloveHelper.gen_seq_num(8)
+    proxy_seq = CloveHelper.gen_seq_num()
     headers = %{clove_seq: cseq, proxy_seq: proxy_seq, hop_count: hops, relays: [source, prev_hop]}
     dest = state.config.data_processor
     new_state = state

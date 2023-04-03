@@ -5,9 +5,9 @@ message Clove {
     bytes data = 2;
 
     oneof headers {
-        ProxyDiscoveryHeader proxy_discovery_header = 3;
-        ProxyResponseHeader proxy_response_header = 4;
-        RegularProxyHeader regular_proxy_header = 5;
+        ProxyDiscoveryHeader proxy_discovery = 3;
+        ProxyResponseHeader proxy_response = 4;
+        RegularProxyHeader regular_proxy = 5;
     }
 }
 

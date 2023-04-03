@@ -30,8 +30,8 @@ defmodule LAP2 do
   Kill supervisor and its children
   """
   @spec kill :: :ok
-  def kill() do
-    Supervisor.stop(LAP2.Supervisor)
+  def kill(name \\ :lap2_main) do
+    Supervisor.stop(name)
   end
 
   # Load the config file and handle thrown errors (by dying lol)
@@ -53,11 +53,11 @@ defmodule LAP2 do
   end
 
   # Start the supervisor and spawns the children
-  @spec start_supervisor(map) :: {:ok, pid}
-  defp start_supervisor(%{name: name} = config) do
-    opts = [strategy: :one_for_one, name: name]
+  @spec start_supervisor(map) :: {:ok, pid} | {:error, any}
+  defp start_supervisor(config) do
+    opts = [strategy: :one_for_one, name: config.main_supervisor.name]
     children = [
-      {Task.Supervisor, [name: LAP2.TaskSupervisor, max_children: config.udp_server.max_dgram_handlers || 10]},
+      {Task.Supervisor, [name: config.task_supervisor.name, max_children: config.task_supervisor.max_children || 10]},
       {LAP2.Networking.UdpServer, config.udp_server},
       {LAP2.Networking.Router, config.router},
       #{LAP2.DataProcessor, config[:data_processor]} TODO
@@ -67,9 +67,7 @@ defmodule LAP2 do
   end
 
   # Get the config path based on the environment, default to DEBUG if not PROD
-  defp get_config_path("PROD") do
-    System.get_env("LAP2_PROD_CONFIG_PATH") || "./config/prod_config.json"
-  end
+  defp get_config_path("PROD"), do: System.get_env("LAP2_PROD_CONFIG_PATH") || "./config/prod_config.json"
   defp get_config_path(_), do: System.get_env("LAP2_DEBUG_CONFIG_PATH") || "./config/debug_config.json"
 
   # Set the log level based on the environment, default to debug if not PROD

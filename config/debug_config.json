@@ -1,6 +1,13 @@
 {
-    "name": "lap2_service",
+    "main_supervisor": {
+        "name": "lap2_deamon"
+    },
+    "task_supervisor": {
+        "name": "lap2_superv",
+        "max_children": 10
+    },
     "udp_server": {
+        "name": "udp_server",
         "udp_port": 1447,
         "req_timeout": 50000,
         "max_dgram_handlers": 10,
@@ -8,9 +15,9 @@
         "max_queue_size": 1000
     },
     "tcp_server": {
+        "name": "tcp_server",
         "tcp_port": 3001,
         "req_timeout": 50000,
-        "max_dgram_handlers": 10,
         "queue_interval": 100,
         "max_queue_size": 1000
     },

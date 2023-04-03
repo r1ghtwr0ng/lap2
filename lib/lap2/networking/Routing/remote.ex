@@ -51,7 +51,7 @@ defmodule LAP2.Networking.Routing.Remote do
   @spec route_outbound_discovery({binary, integer}, binary) :: :ok
   def route_outbound_discovery(dest, data) do
     IO.puts("[+] Routing outbound clove")
-    clove_seq = CloveHelper.gen_seq_num(4)
+    clove_seq = CloveHelper.gen_seq_num()
     drop_probab = CloveHelper.gen_drop_probab(0.7, 1.0)
     headers = %{clove_seq: clove_seq, drop_probab: drop_probab}
     route_clove(dest, [data], headers)

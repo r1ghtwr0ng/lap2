@@ -79,7 +79,7 @@ defmodule LAP2.Networking.Routing.State do
   end
 
   def remove_neighbor(state, neighbor) do
-    Map.put(state, :rand_neighbors, List.delete(state.rand_neighbors, neighbor))
+    Map.put(state, :random_neighbors, List.delete(state.random_neighbors, neighbor))
   end
 
   # ---- Private handler functions ----
@@ -129,9 +129,9 @@ defmodule LAP2.Networking.Routing.State do
 
   # Get rid of outdated clove cache entries
   @spec clean_relay_table(map) :: map
-  defp clean_relay_table(%{relay_routes: relay_routes, config: %{relay_routes_ttl: relay_ttl}} = state) do
+  defp clean_relay_table(%{relay_table: relay_table, config: %{relay_routes_ttl: relay_ttl}} = state) do
     IO.puts("[+] Deleting outdated relay table entries")
-    updated_relay_routes = relay_routes
+    updated_relay_routes = relay_table
     |> Enum.filter(fn {_relay_seq, %{timestamp: timestamp}} -> timestamp > :os.system_time(:millisecond) - relay_ttl; end)
     |> Map.new()
     Map.put(state, :relay_routes, updated_relay_routes)
@@ -153,5 +153,5 @@ defmodule LAP2.Networking.Routing.State do
   # ---- Misc functions ----
   # Select random neighbor
   @spec random_neighbor(map) :: binary
-  defp random_neighbor(state), do: Enum.random(state.rand_neighbors)
+  defp random_neighbor(state), do: Enum.random(state.random_neighbors)
 end

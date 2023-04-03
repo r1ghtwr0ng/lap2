@@ -12,6 +12,7 @@ defmodule LAP2.Utils.ConfigParser do
       |> File.read!()
       |> Jason.decode!()
       |> keys_to_atoms()
+      |> names_to_atoms()
     end
 
     @doc """
@@ -22,6 +23,14 @@ defmodule LAP2.Utils.ConfigParser do
       Enum.into(map, %{}, fn
         {k, v} when is_map(v) -> {String.to_atom(k), keys_to_atoms(v)}
         {k, v} -> {String.to_atom(k), v}
+      end)
+    end
+
+    def names_to_atoms(map) do
+      Enum.into(map, %{}, fn
+        {:name, v} -> {:name, String.to_atom(v)}
+        {k, v} when is_map(v) -> {k, names_to_atoms(v)}
+        {k, v} -> {k, v}
       end)
     end
 end

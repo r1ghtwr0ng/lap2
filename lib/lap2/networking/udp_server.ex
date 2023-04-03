@@ -10,7 +10,7 @@ defmodule LAP2.Networking.UdpServer do
   """
   @spec start_link(map) :: GenServer.on_start()
   def start_link(config) do
-    GenServer.start_link(__MODULE__, config, name: {:global, :udp_server})
+    GenServer.start_link(__MODULE__, config, name: config.name)
   end
 
   @spec init(map) :: {:ok, map} | {:stop, atom}

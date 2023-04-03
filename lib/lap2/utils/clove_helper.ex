@@ -18,7 +18,7 @@ defmodule LAP2.Utils.CloveHelper do
   @doc """
   Build the clove from the headers and data.
   """
-  @spec set_headers(binary, map) :: map()
+  @spec set_headers(binary, {atom, map}) :: map()
   def set_headers(data, headers) do
     # Set the headers for the clove
    %{data: data, headers: headers, checksum: CRC.crc_32(data)}
@@ -63,8 +63,8 @@ defmodule LAP2.Utils.CloveHelper do
   def verify_headers(_), do: true
 
   # ---- Header field generation functions ----
-  @spec gen_seq_num(integer) :: binary
-  def gen_seq_num(len), do: :crypto.strong_rand_bytes(len)
+  @spec gen_seq_num() :: integer
+  def gen_seq_num(), do: :crypto.strong_rand_bytes(8) |> :binary.decode_unsigned()
   @spec gen_drop_probab(float, float) :: float
   def gen_drop_probab(min, max), do: :rand.uniform() * (max - min) + min
 end
