@@ -11,7 +11,7 @@ defmodule LAP2.Networking.Resolver do
   """
   def build_query(addr) do
     # TODO build query
-    IO.puts("[+] Resolving #{addr}")
+    IO.puts("[+] Resolver: Resolving #{addr}")
   end
 
   # ---- Helper functions ----
