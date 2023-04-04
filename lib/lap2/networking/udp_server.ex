@@ -10,19 +10,20 @@ defmodule LAP2.Networking.UdpServer do
   """
   @spec start_link(map) :: GenServer.on_start()
   def start_link(config) do
-    GenServer.start_link(__MODULE__, config, name: config.name)
+    GenServer.start_link(__MODULE__, config, name: {:global, config.name})
   end
 
   @spec init(map) :: {:ok, map} | {:stop, atom}
   def init(config) do
     # Open UDP socket
-    IO.puts("Starting UDP server")
+    IO.puts("[i] UDP: Starting UDP server")
     # TODO test the default values
     state = %{
       port: config[:udp_port] || 1442,
       queue_interval: config[:queue_interval] || 100,
       max_queue_size: config[:max_queue_size] || 100,
       queue: :queue.new(),
+      registry_table: config[:registry_table],
       udp_sock: nil
     }
     case :gen_udp.open(config[:udp_port], [active: true]) do
@@ -33,24 +34,13 @@ defmodule LAP2.Networking.UdpServer do
     end
   end
 
-  # Send UDP datagrams
-  @spec handle_info({:send_datagram, {binary, integer}, binary}, map) :: {:noreply, map}
-  def handle_info({:send_dgram, {dest_ip, dest_port}, dgram}, state) do
-    case :gen_udp.send(state.udp_sock, dest_ip, dest_port, dgram) do
-      :ok ->
-        IO.puts("[+] Sent datagram successfully to #{dest_ip}:#{dest_port}") # Debug
-        {:noreply, state}
-      {:error, reason} ->
-        Logger.error("Error sending datagram: #{inspect reason}")
-        {:noreply, state}
-    end
-  end
-
   # Handle received UDP datagrams
-  @spec handle_info({:udp, any, binary, integer, binary}, map) :: {:noreply, map}
+  @spec handle_info({:udp, any, tuple, integer, list}, map) :: {:noreply, map}
   def handle_info({:udp, _socket, ip, port, dgram}, state) do
-    case Task.Supervisor.start_child(LAP2.TaskSupervisor, fn ->
-      LAP2Socket.parse_dgram({ip, port}, dgram) end) do
+    task_supervisor = {:global, state.registry_table.task_supervisor}
+    bin_dgram = :erlang.list_to_binary(dgram)
+    case Task.Supervisor.start_child(task_supervisor, fn ->
+      LAP2Socket.parse_dgram({ip, port}, bin_dgram, state.registry_table.router) end) do
       {:ok, _pid} ->
         #Logger.debug("Started task to parse datagram")
         {:noreply, state}
@@ -61,7 +51,7 @@ defmodule LAP2.Networking.UdpServer do
         cond do
           :queue.len(state.queue) < state.max_queue_size ->
             #Logger.debug("Adding datagram to queue")
-            {:noreply, %{state | queue: :queue.in({{ip, port}, dgram}, state.queue)}}
+            {:noreply, %{state | queue: :queue.in({{ip, port}, bin_dgram}, state.queue)}}
           true ->
             #Logger.debug("Queue full, dropping datagram")
             {:noreply, state}
@@ -73,13 +63,36 @@ defmodule LAP2.Networking.UdpServer do
     end
   end
 
+  # Send UDP datagrams
+  @spec handle_cast({:send_dgram, {String.t, integer}, binary}, map) :: {:noreply, map}
+  def handle_cast({:send_dgram, {dest_ip, dest_port}, dgram}, state) do
+    # Convert String IP to tuple
+    dest_ip
+    |> String.to_charlist()
+    |> :inet.parse_address()
+    |> case do
+      {:ok, ip_tuple} ->
+        case :gen_udp.send(state.udp_sock, ip_tuple, dest_port, dgram) do
+          :ok ->
+            IO.puts("[+] UDP: Sent datagram successfully to #{dest_ip}:#{dest_port}") # Debug
+            {:noreply, state}
+          {:error, reason} ->
+            Logger.error("Error sending datagram: #{inspect reason}")
+            {:noreply, state}
+        end
+      {:error, _reason} ->
+        Logger.error("Invalid IP address: #{dest_ip}")
+        {:noreply, state}
+    end
+  end
+
   # Function called by self() to check if there are any datagrams in the queue
   # and if so, start a task to parse them
-  @spec handle_info(:check_queue, map) :: {:noreply, map}
-  def handle_info(:check_queue, %{queue: {[], []}} = state), do: {:noreply, state}
-  def handle_info(:check_queue, %{queue: queue, queue_interval: queue_interval} = state) do
-    {{:value, {source, dgram}}, tail} = :queue.out(queue)
-    case Task.Supervisor.start_child(LAP2.TaskSupervisor, fn -> LAP2Socket.parse_dgram(source, dgram) end) do
+  @spec handle_cast(:check_queue, map) :: {:noreply, map}
+  def handle_cast(:check_queue, %{queue: {[], []}} = state), do: {:noreply, state}
+  def handle_cast(:check_queue, %{queue: queue, queue_interval: queue_interval} = state) do
+    {{:value, {source, bin_dgram}}, tail} = :queue.out(queue)
+    case Task.Supervisor.start_child(LAP2.TaskSupervisor, fn -> LAP2Socket.parse_dgram(source, bin_dgram, state.registry_table.router) end) do
       {:ok, _pid} ->
         #Logger.debug("Started task to parse datagrams")
         {:noreply, %{state | queue: tail}}
@@ -107,8 +120,8 @@ defmodule LAP2.Networking.UdpServer do
   end
 
   # ---- Public functions ----
-  @spec send_dgram(binary, {binary, integer}) :: :ok | {:error, atom}
-  def send_dgram(dgram, dest) do
-    GenServer.call({:global, :udp_server}, {:send_dgram, dest, dgram})
+  @spec send_dgram(atom, binary, {binary, integer}) :: :ok | {:error, atom}
+  def send_dgram(udp_name, dgram, dest) do
+    GenServer.cast({:global, udp_name}, {:send_dgram, dest, dgram})
   end
 end
