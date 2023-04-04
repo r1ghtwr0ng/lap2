@@ -11,9 +11,25 @@ defmodule LAP2.Networking.Routing.State do
   @spec clean_state(map) :: map
   def clean_state(state) do
     state
-    |> clean_clove_cache()
-    |> clean_relay_table()
+    #|> clean_clove_cache()
+    #|> clean_relay_table()
     #|> RoutingHelper.clean_anon_pool() #TODO implement, might as well refactor the cleaning process too
+  end
+
+  @doc """
+  Add clove to list of own cloves.
+  """
+  @spec add_own_clove(map, integer) :: map
+  def add_own_clove(state, clove_seq) do
+    Map.put(state, :own_cloves, [clove_seq | state.own_cloves])
+  end
+
+  @doc """
+  Remove a clove from the list of own cloves.
+  """
+  @spec delete_own_clove(map, integer) :: map
+  def delete_own_clove(state, clove_seq) do
+    Map.put(state, :own_cloves, List.delete(state.own_cloves, clove_seq))
   end
 
   @doc """
@@ -50,16 +66,15 @@ defmodule LAP2.Networking.Routing.State do
   @spec add_relay(map, binary, {binary, integer}, {binary, integer}, atom) :: map
   def add_relay(state, relay_seq, relay_1, relay_2, :proxy) do
     # TODO drop unused routes, based on priority values (first introduce priority values in the route struct)
-    IO.puts("[+] Added route #{inspect {relay_1, relay_2}} to relay table as proxy")
-    data_processor = state.config.data_processor
+    IO.puts("[+] State: Added route #{inspect {relay_1, relay_2}} to relay table as proxy")
     relay_entry = %{type: :proxy,
-      relays: %{relay_1 => data_processor, relay_2 => data_processor},
+      relays: %{relay_1 => :data_processor, relay_2 => :data_processor},
       timestamp: :os.system_time(:millisecond)}
     Map.put(state, :relay_routes, Map.put(state.relay_table, relay_seq, relay_entry)) # TODO check if this is correct
   end
   def add_relay(state, relay_seq, relay_1, relay_2, :relay) do
     # TODO drop unused routes, based on priority values (first introduce priority values in the route struct)
-    IO.puts("[+] Added route #{inspect {relay_1, relay_2}} to routing table as relay")
+    IO.puts("[+] State: Added route #{inspect {relay_1, relay_2}} to routing table as relay")
     relay_entry = %{type: :relay,
       relays: %{relay_1 => relay_2, relay_2 => relay_1},
       timestamp: :os.system_time(:millisecond)}
@@ -70,7 +85,7 @@ defmodule LAP2.Networking.Routing.State do
   @doc """
   Get routing information from state
   """
-  @spec get_route(map, {binary, integer}, map) :: atom | {atom, {binary, integer} | pid | binary}
+  @spec get_route(map, {binary, integer}, map) :: atom | {atom, {binary, integer} | atom | binary}
   def get_route(state, source, clove) do
     cond do
       drop?(state, source, clove) -> :drop
@@ -120,7 +135,7 @@ defmodule LAP2.Networking.Routing.State do
   # Get rid of outdated clove cache entries
   @spec clean_clove_cache(map) :: map
   defp clean_clove_cache(%{clove_cache: cache, config: %{clove_cache_ttl: cache_ttl}} = state) do
-    IO.puts("[+] Deleting outdated clove cache entries")
+    IO.puts("[+] State: Deleting outdated clove cache entries")
     updated_cache = cache
     |> Enum.filter(fn {_clove_seq, %{timestamp: timestamp}} -> timestamp > :os.system_time(:millisecond) - cache_ttl; end)
     |> Map.new()
@@ -130,7 +145,7 @@ defmodule LAP2.Networking.Routing.State do
   # Get rid of outdated clove cache entries
   @spec clean_relay_table(map) :: map
   defp clean_relay_table(%{relay_table: relay_table, config: %{relay_routes_ttl: relay_ttl}} = state) do
-    IO.puts("[+] Deleting outdated relay table entries")
+    IO.puts("[+] State: Deleting outdated relay table entries")
     updated_relay_routes = relay_table
     |> Enum.filter(fn {_relay_seq, %{timestamp: timestamp}} -> timestamp > :os.system_time(:millisecond) - relay_ttl; end)
     |> Map.new()
@@ -138,7 +153,7 @@ defmodule LAP2.Networking.Routing.State do
   end
 
   # ---- Clove drop rules ----
-  @spec drop?(map, {binary, integer}, map) :: boolean
+  @spec drop?(map, {String.t, integer}, map) :: boolean
   defp drop?(state, {ip_addr, _}, %{clove_seq: clove_seq, drop_probab: drop_probab}) do
     can_drop = clove_seq not in state.own_cloves or ip_addr in state.drop_rules.ip_addr
     can_drop and (clove_seq in state.drop_rules.clove_seq or drop_probab > :rand.uniform)
