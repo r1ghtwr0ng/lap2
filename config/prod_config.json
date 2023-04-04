@@ -6,8 +6,13 @@
         "name": "lap2_superv",
         "max_children": 10
     },
+    "data_processor": {
+        "name": "data_processor",
+        "registry_table": null
+    },
     "udp_server": {
         "name": "udp_server",
+        "registry_table": null,
         "udp_port": 1447,
         "req_timeout": 50000,
         "max_dgram_handlers": 10,
@@ -16,6 +21,7 @@
     },
     "tcp_server": {
         "name": "tcp_server",
+        "registry_table": null,
         "tcp_port": 3001,
         "req_timeout": 50000,
         "queue_interval": 100,
@@ -24,6 +30,7 @@
     "router": {
         "name": "router",
         "lap2_addr": "test",
+        "registry_table": null,
         "clove_cache_size": 1000,
         "clove_cache_ttl": 30000,
         "relay_routes_size": 5000,
