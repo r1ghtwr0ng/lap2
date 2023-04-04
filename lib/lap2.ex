@@ -2,8 +2,8 @@ defmodule LAP2 do
   @moduledoc """
   Documentation for `LAP2`.
   """
+  alias LAP2.Utils.ConfigParser
   require Logger
-
 
   @doc """
   Start the server without a config file.
@@ -15,8 +15,8 @@ defmodule LAP2 do
   @spec start :: {:error, any} | {:ok, pid}
   def start() do
     # Start server, load config from file
-    {:ok, config} = load_config()
-    start_supervisor(config)
+    load_config()
+    |> start_supervisor()
   end
   @doc """
   Start the server with a config map. This is useful for testing.
@@ -40,11 +40,10 @@ defmodule LAP2 do
     try do
       # Selects appropriate config for DEBUG or PROD environment
       env = System.get_env("LAP2_ENV") || "DEBUG"
-      config = env
-      |> get_config_path()
-      |> LAP2.Utils.ConfigParser.parse_json()
+      # Set logging level
       Logger.configure(level: config_log_level(env))
-      {:ok, config}
+      # Get coonfig
+      ConfigParser.get_config(env)
     rescue
       e in Jason.DecodeError -> Logger.error("Error parsing JSON config: #{inspect e}")
       e in File.Error -> Logger.error("Error opening config file: #{inspect e}")
@@ -55,20 +54,15 @@ defmodule LAP2 do
   # Start the supervisor and spawns the children
   @spec start_supervisor(map) :: {:ok, pid} | {:error, any}
   defp start_supervisor(config) do
-    opts = [strategy: :one_for_one, name: config.main_supervisor.name]
+    opts = [strategy: :one_for_one, name: {:global, config.main_supervisor.name}]
     children = [
-      {Task.Supervisor, [name: config.task_supervisor.name, max_children: config.task_supervisor.max_children || 10]},
+      {Task.Supervisor, [name: {:global, config.task_supervisor.name}, max_children: config.task_supervisor.max_children || 10]},
       {LAP2.Networking.UdpServer, config.udp_server},
       {LAP2.Networking.Router, config.router},
-      #{LAP2.DataProcessor, config[:data_processor]} TODO
-      #{LAP2.Networking.LAP2Socket, [config]} TODO
+      #{LAP2.DataProcessor, config.data_processor} TODO
     ]
     Supervisor.start_link(children, opts)
   end
-
-  # Get the config path based on the environment, default to DEBUG if not PROD
-  defp get_config_path("PROD"), do: System.get_env("LAP2_PROD_CONFIG_PATH") || "./config/prod_config.json"
-  defp get_config_path(_), do: System.get_env("LAP2_DEBUG_CONFIG_PATH") || "./config/debug_config.json"
 
   # Set the log level based on the environment, default to debug if not PROD
   defp config_log_level("PROD"), do: :info
