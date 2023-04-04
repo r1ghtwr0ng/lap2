@@ -10,35 +10,37 @@ defmodule LAP2.Utils.CloveHelper do
   Verify the checksum of the clove.
   """
   @spec verify_checksum(map) :: boolean
-  def verify_checksum(%{checksum: chksum, seq_num: seq_num, drop_probab: drop_probab, data: data}) do
+  def verify_checksum(%{checksum: chksum, data: data}) do
     # Verify the checksum
-    chksum == CRC.crc_32(seq_num <> drop_probab <> data)
+    chksum == CRC.crc_32(data)
   end
 
   @doc """
   Build the clove from the headers and data.
   """
-  @spec set_headers(binary, {atom, map}) :: map()
+  @spec set_headers(binary, map) :: map()
   def set_headers(data, headers) do
     # Set the headers for the clove
-   %{data: data, headers: headers, checksum: CRC.crc_32(data)}
+    %{data: data, headers: headers, checksum: CRC.crc_32(data)}
   end
 
   # ---- Clove handling functions ----
   @doc """
   Send out the deserialised clove for routing.
   """
-  @spec handle_deserialised_clove({binary, integer}, map) :: :ok | :err
-  def handle_deserialised_clove(source, clove) do
+  @spec handle_deserialised_clove({binary, integer}, map, atom) :: :ok | :err
+  def handle_deserialised_clove(source, clove, router_name) do
     # Verify clove validity
     cond do
       verify_clove(clove) ->
-        IO.puts("[+] Valid clove") # DEBUG
-        Task.async(fn -> Router.route_inbound(source, clove); end)
+        IO.puts("[+] CloveHelper: Valid clove") # DEBUG
+        IO.inspect(clove, label: "Clove: ") # DEBUG
+        # MAJOR TODO: Fix routing
+        #Task.async(fn -> Router.route_inbound(source, clove, router_name); end)
         :ok
 
       true ->
-        IO.puts("Invalid clove") # DEBUG
+        IO.puts("[-] CloveHelper: Invalid clove") # DEBUG
         :err
     end
   end
