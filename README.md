@@ -19,10 +19,10 @@
 ## *Networking*
 - [x] Efficient UDP datagram buffering and handling
 - [x] UDP communication module
-- [ ] ProtoBuff serialisation/deserialisation
+- [x] ProtoBuff serialisation/deserialisation
 - [ ] Peer connection and discovery
 - [ ] Distributeed hash table
-- [ ] Clove storage and relay
+- [x] Clove storage and relay
 - [ ] Introduction Points
 - [ ] Connection supervisor module
 ## *Garlic Cast*
