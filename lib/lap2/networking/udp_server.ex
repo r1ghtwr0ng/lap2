@@ -36,11 +36,15 @@ defmodule LAP2.Networking.UdpServer do
 
   # Handle received UDP datagrams
   @spec handle_info({:udp, any, tuple, integer, list}, map) :: {:noreply, map}
-  def handle_info({:udp, _socket, ip, port, dgram}, state) do
+  def handle_info({:udp, _socket, ip_tuple, src_port, dgram}, state) do
+    src_ip = ip_tuple
+    |> :inet.ntoa()
+    |> to_string()
+    source = {src_ip, src_port}
     task_supervisor = {:global, state.registry_table.task_supervisor}
     bin_dgram = :erlang.list_to_binary(dgram)
     case Task.Supervisor.start_child(task_supervisor, fn ->
-      LAP2Socket.parse_dgram({ip, port}, bin_dgram, state.registry_table.router) end) do
+      LAP2Socket.parse_dgram(source, bin_dgram, state.registry_table.router) end) do
       {:ok, _pid} ->
         #Logger.debug("Started task to parse datagram")
         {:noreply, state}
@@ -51,7 +55,7 @@ defmodule LAP2.Networking.UdpServer do
         cond do
           :queue.len(state.queue) < state.max_queue_size ->
             #Logger.debug("Adding datagram to queue")
-            {:noreply, %{state | queue: :queue.in({{ip, port}, bin_dgram}, state.queue)}}
+            {:noreply, %{state | queue: :queue.in({source, bin_dgram}, state.queue)}}
           true ->
             #Logger.debug("Queue full, dropping datagram")
             {:noreply, state}

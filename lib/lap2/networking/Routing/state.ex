@@ -11,8 +11,9 @@ defmodule LAP2.Networking.Routing.State do
   @spec clean_state(map) :: map
   def clean_state(state) do
     state
-    #|> clean_clove_cache()
-    #|> clean_relay_table()
+    |> IO.inspect(label: "[i] Debug: State before cleaning")
+    |> clean_clove_cache()
+    |> clean_relay_table()
     #|> RoutingHelper.clean_anon_pool() #TODO implement, might as well refactor the cleaning process too
   end
 
@@ -52,13 +53,13 @@ defmodule LAP2.Networking.Routing.State do
   Add a clove to the local cache.
   """
   @spec cache_clove(map, {binary, integer}, {binary, integer}, map) :: map
-  def cache_clove(%{clove_cache: cache} = state, source, dest, %{seq_num: seq_num, data: data}) do
-    cache_entry = %{hash: :erlang.phash2(data), # TODO use xxHash NIF
+  def cache_clove(%{clove_cache: cache} = state, source, dest, %Clove{data: data, headers: {:proxy_discovery, %ProxyDiscoveryHeader{clove_seq: clove_seq}}}) do
+    cache_entry = %{hash: :erlang.phash2(data),
       data: data,
       prev_hop: source,
       next_hop: dest,
       timestamp: :os.system_time(:millisecond)}
-    new_cache = Map.put(cache, seq_num, cache_entry)
+    new_cache = Map.put(cache, clove_seq, cache_entry)
     Map.put(state, :clove_cache, new_cache)
   end
 
@@ -91,6 +92,7 @@ defmodule LAP2.Networking.Routing.State do
       drop?(state, source, clove) -> :drop
       true -> handle_clove(state, source, clove)
     end
+    |> IO.inspect(label: "[+] State: get_route response")
   end
 
   def remove_neighbor(state, neighbor) do
@@ -100,14 +102,18 @@ defmodule LAP2.Networking.Routing.State do
   # ---- Private handler functions ----
   # Handle proxy discovery clove
   @spec handle_clove(map, {binary, integer}, map) :: atom | {atom, any}
-  defp handle_clove(state, _source, %{clove_seq: clove_seq, drop_probab: _, data: data}) do
+  defp handle_clove(state, _source, %Clove{data: data, headers:
+  {:proxy_discovery, %ProxyDiscoveryHeader{clove_seq: clove_seq}}}) do
+    IO.puts("[+] State: Received proxy discovery clove [#{clove_seq}")
     case Map.get(state.clove_cache, clove_seq) do
       nil -> {:random_walk, random_neighbor(state)}
       cached_clove -> handle_clove_cache_hit(:erlang.phash2(data), cached_clove)
     end
   end
   # Handle proxy discovery response clove
-  defp handle_clove(state, _source, %{clove_seq: clove_seq,  proxy_seq: _, hop_count: _}) do
+  defp handle_clove(state, _source, %Clove{headers:
+  {:proxy_response, %ProxyResponseHeader{clove_seq: clove_seq}}}) do
+    IO.puts("[+] State: Received proxy response clove [#{clove_seq}")
     cond do
       clove_seq in state.own_cloves -> :recv_discovery
       true ->
@@ -118,7 +124,9 @@ defmodule LAP2.Networking.Routing.State do
     end
   end
   # Handle proxy relay clove
-  defp handle_clove(state, source, %{proxy_seq: proxy_seq}) do
+  defp handle_clove(state, source, %Clove{headers:
+  {:proxy_response, %ProxyResponseHeader{proxy_seq: proxy_seq}}}) do
+    IO.puts("[+] State: Received regular proxy clove [#{proxy_seq}")
     case Map.get(state.relay_table, proxy_seq) do
       nil -> :drop
       relay_route -> {:relay, relay_route.relays[source]}
@@ -153,20 +161,33 @@ defmodule LAP2.Networking.Routing.State do
   end
 
   # ---- Clove drop rules ----
+  # Drop rules for proxy discovery cloves
   @spec drop?(map, {String.t, integer}, map) :: boolean
-  defp drop?(state, {ip_addr, _}, %{clove_seq: clove_seq, drop_probab: drop_probab}) do
+  defp drop?(state, {ip_addr, _}, %Clove{headers:
+  {:proxy_discovery, %ProxyDiscoveryHeader{clove_seq: clove_seq, drop_probab: drop_probab}}}) do
+    IO.puts("[+] State: Checking drop rules for proxy discovery clove [#{clove_seq}]")
     can_drop = clove_seq not in state.own_cloves or ip_addr in state.drop_rules.ip_addr
-    can_drop and (clove_seq in state.drop_rules.clove_seq or drop_probab > :rand.uniform)
+    can_drop and (clove_seq in state.drop_rules.clove_seq or drop_probab < :rand.uniform)
+    |> IO.inspect(label: "[i] Drop result")
   end
-  defp drop?(state, {ip_addr, _}, %{clove_seq: _clove_seq, proxy_seq: proxy_seq}) do
+  # Drop rules for proxy discovery response cloves
+  defp drop?(state, {ip_addr, _}, %Clove{headers:
+  {:proxy_response, %ProxyResponseHeader{proxy_seq: proxy_seq}}}) do
+    IO.puts("[+] State: Checking drop rules for proxy response clove [#{proxy_seq}]")
     proxy_seq in state.drop_rules.proxy_seq or ip_addr in state.drop_rules.ip_addr
+    |> IO.inspect(label: "[i] Drop result")
   end
-  defp drop?(state, {ip_addr, _}, %{proxy_seq: proxy_seq}) do
+  # Drop rules for proxy relay cloves
+  defp drop?(state, {ip_addr, _}, %Clove{headers:
+  {:regular_proxy, %RegularProxyHeader{proxy_seq: proxy_seq}}}) do
+    IO.puts("[+] State: Checking drop rules for regular proxy clove [#{proxy_seq}]")
     proxy_seq in state.drop_rules.proxy_seq or ip_addr in state.drop_rules.ip_addr
+    |> IO.inspect(label: "[i] Drop result")
   end
 
   # ---- Misc functions ----
   # Select random neighbor
   @spec random_neighbor(map) :: binary
-  defp random_neighbor(state), do: Enum.random(state.random_neighbors)
+  defp random_neighbor(%{random_neighbors: []}), do: nil
+  defp random_neighbor(%{random_neighbors: random_neighbors}), do: Enum.random(random_neighbors)
 end
