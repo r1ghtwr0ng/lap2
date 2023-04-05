@@ -19,7 +19,6 @@ defmodule LAP2.Networking.ProtoBuf do
   @spec deserialise(binary, atom) :: {:error, any} | {:ok, struct}
   def deserialise(data, spec \\ Clove) do
     Protox.decode(data, spec)
-    |> IO.inspect(label: "Deserialised clove: ")
   end
 
   # Build clove object

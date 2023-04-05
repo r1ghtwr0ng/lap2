@@ -85,7 +85,7 @@ config = %{
 # Spawn and bootstrap process
 IO.puts("[+] Starting LAP2 daemon")
 {:ok, _pid} = LAP2.start(config)
-Router.update_config(config, config.router.name)
+Router.update_config(config.router, config.router.name)
 Router.append_dht(bstrp_addr, {bstrp_ip, bstrp_port}, config.router.name)
 
 # Packet serialisation

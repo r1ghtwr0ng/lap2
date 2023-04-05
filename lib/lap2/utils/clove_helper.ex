@@ -36,7 +36,7 @@ defmodule LAP2.Utils.CloveHelper do
         IO.puts("[+] CloveHelper: Valid clove") # DEBUG
         IO.inspect(clove, label: "Clove: ") # DEBUG
         # MAJOR TODO: Fix routing
-        #Task.async(fn -> Router.route_inbound(source, clove, router_name); end)
+        Task.async(fn -> Router.route_inbound(source, clove, router_name); end)
         :ok
 
       true ->

@@ -30,7 +30,7 @@ defmodule LAP2 do
   Kill supervisor and its children
   """
   @spec kill :: :ok
-  def kill(name \\ :lap2_main) do
+  def kill(name \\ :lap2_daemon) do
     Supervisor.stop(name)
   end
 

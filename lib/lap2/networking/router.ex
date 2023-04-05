@@ -42,6 +42,7 @@ defmodule LAP2.Networking.Router do
         proxy_limit: config.proxy_limit,
       }
     }
+    |> IO.inspect(label: "[i] Debug: Initial state")
     # TODO fix config to load from file
     {:ok, state}
   end
@@ -55,6 +56,8 @@ defmodule LAP2.Networking.Router do
     |> State.get_route(source, clove)
     |> case do
       # Proxy discovery
+      {:random_walk, nil} -> IO.puts("No random neighbor found")
+        {:noreply, state}
       {:random_walk, rand_neighbor} -> Remote.relay_proxy_discovery(state, source, rand_neighbor, clove)
       # Proxy request
       :proxy_request-> Local.handle_proxy_request(state, source, clove)
