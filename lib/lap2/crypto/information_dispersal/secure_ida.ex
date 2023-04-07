@@ -7,6 +7,7 @@ defmodule LAP2.Crypto.InformationDispersal.SecureIDA do
 
   require Logger
   alias LAP2.Crypto.Padding.PKCS7
+  alias LAP2.Crypto.InformationDispersal.RabinIDA
 
   # ---- Public Functions ----
   @doc """
@@ -15,43 +16,82 @@ defmodule LAP2.Crypto.InformationDispersal.SecureIDA do
   n is the number of shares to split the data into.
   """
   @spec disperse(binary, integer, integer) :: {:ok, list}
-  def disperse(data, m, n) do
-    padded = PKCS7.pad(data, @block_size)
-    aes_key = :crypto.strong_rand_bytes(32)
+  def disperse(data, n, m) do
+    # Generate and split an ephemeral AES key and IV
+    # Split the key and IV with Shamir's Secret Sharing
+    # Create a key share struct for each key share
     iv = :crypto.strong_rand_bytes(16)
-    ct = :crypto.crypto_one_time(:aes_256_cbc, aes_key, iv, padded, true)
+    iv_shares = KeyX.Shamir.split_secret(m, n, iv)
+    aes_key = :crypto.strong_rand_bytes(32)
+    key_shares = KeyX.Shamir.split_secret(m, n, aes_key)
+    |> Enum.zip(iv_shares)
+    |> Enum.map(fn {key_share, iv_share} ->
+      %KeyShare{
+        aes_key: key_share,
+        iv: iv_share
+      }
+    end)
 
-    # Encrypt data with AES and a random key
+    # Pad and encrypt data with AES and the ephemeral key
     # Split encrypted data with Rabin's IDA
-    # Split key with Shamir's Secret Sharing
     # Add key share, data share, share number, share threshold and total shares to a share struct
-    x = 1
-    key_share = %KeyShare{
-      aes_key: aes_key,
-      iv: iv
-    }
-
-    share = %Share{total_shares: n,
-      share_num: x,
-      share_threshold: m,
-      key_share: key_share,
-      ciphertext: ct
-    }
-
-    {:ok, [share]}
+    data
+    |> encrypt(aes_key, iv)
+    |> RabinIDA.split(n, m)
+    |> Enum.zip(key_shares)
+    |> Enum.map(fn {d_share, key_share} ->
+      %Share{total_shares: n,
+        share_id: d_share.share_id,
+        share_threshold: m,
+        key_share: key_share,
+        data: d_share.data
+      }
+    end)
   end
 
   @doc """
   Reconstruct the data from the given shares.
   m is the number of shares required to reconstruct the data (threshold).
   """
-  @spec reconstruct(list, integer) :: {:ok, binary}
-  def reconstruct(_shares, _m) do
+  @spec reconstruct(list) :: {:ok, binary}
+  def reconstruct(shares) do
     # Extract key and data shares from share structs
-    # Reconstruct key with Shamir's Secret Sharing
-    # Reconstruct encrypted data with Rabin's IDA
-    # Decrypt data with the reconstructed AES key
+    {aes_key, iv} = shares
+    |> Enum.map(fn share -> share.key_share; end)
+    |> recover_aes_data()
 
-    {:ok, ""}
+    # Reconstruct data with Rabin's IDA
+    {:ok, data} = RabinIDA.reconstruct(shares)
+
+    # Decrypt data with AES and the ephemeral key
+    {:ok, decrypt(data, aes_key, iv)}
+  end
+
+  # ---- Private Functions ----
+  # Reconstruct the AES key and IV from the given key shares
+  @spec recover_aes_data(list) :: {binary, binary}
+  defp recover_aes_data(key_shares) do
+    # Extract key and data shares from share structs
+    # Recover Key and IV with Shamir's Secret Sharing
+    {aes_keys, iv_shares} = key_shares
+    |> Enum.map(fn key_share -> {key_share.aes_key, key_share.iv}; end)
+    |> Enum.unzip()
+    aes_key = KeyX.Shamir.recover_secret(aes_keys)
+    iv = KeyX.Shamir.recover_secret(iv_shares)
+    {aes_key, iv}
+  end
+
+  # Pad and encrypt data with AES and the ephemeral key
+  @spec encrypt(binary, binary, binary) :: binary
+  defp encrypt(data, aes_key, iv) do
+    padded = PKCS7.pad(data, @block_size)
+    :crypto.crypto_one_time(:aes_256_cbc, aes_key, iv, padded, true)
+  end
+
+  # Decrypt data with AES and the ephemeral key
+  @spec decrypt(binary, binary, binary) :: binary
+  defp decrypt(data, aes_key, iv) do
+    :crypto.crypto_one_time(:aes_256_cbc, aes_key, iv, data, false)
+    |> PKCS7.unpad()
   end
 end
