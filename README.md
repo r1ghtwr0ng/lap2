@@ -26,7 +26,8 @@
 - [ ] Introduction Points
 - [ ] Connection supervisor module
 ## *Garlic Cast*
-- [ ] Information Dispersal Algorithm
+- [x] Rabin's IDA
+- [x] Security Enchansed IDA
 - [ ] Dynamic proxy discovery
 
 ## *Crypto*
@@ -35,8 +36,12 @@
 - [ ] RSDAKE - Random Oracle
 - [ ] RSDAKE - Claimability
 
+## *Math*
+- [x] Matrix module
+
 ## *Bonus*
 - [ ] Sybil guard
+- [ ] Rewrite matrix module as NIF
 - [ ] Contribution verification
 - [ ] Removing bad nodes
 - [ ] Phoenix frontend
