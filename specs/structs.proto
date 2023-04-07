@@ -28,10 +28,10 @@ message RegularProxyHeader {
 
 message Share {
     uint32 total_shares = 1;
-    uint32 share_num = 2;
+    uint32 share_id = 2;
     uint32 share_threshold = 3;
     KeyShare key_share = 4;
-    bytes ciphertext = 5;
+    bytes data = 5;
 }
 
 message KeyShare {

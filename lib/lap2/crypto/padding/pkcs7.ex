@@ -7,7 +7,6 @@ defmodule LAP2.Crypto.Padding.PKCS7 do
   Pad the given data to the block size of 16.
   """
   @spec pad(binary, non_neg_integer) :: binary
-  def pad(data, len) when rem(byte_size(data), len) == 0, do: data
   def pad(data, len) do
     padding_length = len - rem(byte_size(data), len)
     padding = String.duplicate(<<padding_length>>, padding_length)
