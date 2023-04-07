@@ -19,6 +19,27 @@ defmodule LAP2.Math.Matrix do
   end
 
   @doc """
+  Perform matrix multiplication of two matrices, ensuring the result is within the finite field.
+  """
+  @spec matrix_product(list, list, non_neg_integer) :: non_neg_integer
+  def matrix_product(a, b, field_limit) do
+    # TODO verify that a and b are the same length
+    Enum.reduce(0..length(a)-1, [], fn i, result ->
+      res_row = Enum.reduce(0..length(Enum.at(b, 0))-1, [], fn j, row ->
+        res = Enum.reduce(0..length(Enum.at(a, 0))-1, 0, fn k, ans ->
+          elem_a = Enum.at(Enum.at(a, i), k)
+          elem_b = Enum.at(Enum.at(b, k), j)
+          Integer.mod(ans + (elem_a * elem_b), field_limit)
+        end)
+        [res | row]
+      end)
+      |> Enum.reverse()
+      [res_row | result]
+    end)
+    |> Enum.reverse()
+  end
+
+  @doc """
   Generate Vandermonde matrix of size n x m
   """
   @spec gen_vandermonde_matrix(non_neg_integer, non_neg_integer, non_neg_integer) :: list
