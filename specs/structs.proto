@@ -25,3 +25,16 @@ message ProxyResponseHeader {
 message RegularProxyHeader {
     uint64 proxy_seq = 1;
 }
+
+message Share {
+    uint32 total_shares = 1;
+    uint32 share_num = 2;
+    uint32 share_threshold = 3;
+    KeyShare key_share = 4;
+    bytes ciphertext = 5;
+}
+
+message KeyShare {
+    bytes aes_key = 1;
+    bytes iv = 2;
+}

@@ -1,6 +1,6 @@
 defmodule LAP2.Networking.ProtoBuf do
   use Protox,
-  files: ["./specs/message.proto"],
+  files: ["./specs/structs.proto"],
   path: ["./specs"]
 
   @doc """

@@ -13,7 +13,7 @@ defmodule LAP2.Networking.LAP2Socket do
     # DEBUG: Sleep for 1 second to simulate (unrealistically large) processing time
     # Process.sleep(1000)
     # Deserialise dgram
-    with {:ok, clove} <- ProtoBuf.deserialise(dgram) do
+    with {:ok, clove} <- ProtoBuf.deserialise(dgram, Clove) do
       CloveHelper.handle_deserialised_clove(source, clove, router_name)
     else
       {:error, reason} ->
