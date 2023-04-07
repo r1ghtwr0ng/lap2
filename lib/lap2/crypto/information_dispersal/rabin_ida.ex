@@ -1,4 +1,4 @@
-defmodule LAP2.Crypto.InformationDispersal.Rabin do
+defmodule LAP2.Crypto.InformationDispersal.RabinIDA do
   @moduledoc """
   Rabin's Information Dispersal Algorithm, used to split and reconstruct data.
   """
@@ -27,26 +27,34 @@ defmodule LAP2.Crypto.InformationDispersal.Rabin do
 
     # Calculate the shares
     Matrix.matrix_dot_product(vand_matrix, byte_chunks, @prime)
-    |> Enum.with_index(fn chunk, idx -> %{data: :erlang.list_to_binary(chunk), id: idx + 1}; end)
+    |> Enum.with_index(fn chunk, idx -> %{data: :erlang.list_to_binary(chunk), share_id: idx + 1}; end)
   end
 
   @doc """
   Reconstruct the data from the given shares.
-  Generates the reassembly matrix and performs matrix multiplication with the data in the shares.
+  Generates the reassembly matrix and performs matrix multiplication with the dat
+  a in the shares.
   Finally, the data is un-padded and returned.
   """
   @spec reconstruct(list(map)) :: binary
   def reconstruct(shares) do
+    IO.inspect(shares, label: "shares")
     # Fetch the data from the shares
     byte_chunks = Enum.map(shares, fn share -> :erlang.binary_to_list(share.data); end)
 
     # Fetch the ids from the shares and use them to generate the reassembly matrix
-    Enum.map(shares, fn share -> share.id; end)
-    |> Matrix.vandermonde_inverse(@prime)
-    |> Matrix.matrix_product(byte_chunks, @prime)
-    |> Matrix.transpose()
-    |> Enum.concat()
-    |> :erlang.list_to_binary()
-    |> PKCS7.unpad()
+    try do
+      reconstructed = Enum.map(shares, fn share -> share.share_id; end)
+      |> Matrix.vandermonde_inverse(@prime)
+      |> Matrix.matrix_product(byte_chunks, @prime)
+      |> Matrix.transpose()
+      |> Enum.concat()
+      |> :erlang.list_to_binary()
+      |> PKCS7.unpad()
+      {:ok, reconstructed}
+    rescue
+      # If the shares are not enough to reconstruct the data, return nil
+      ArgumentError -> {:err, nil}
+    end
   end
 end
