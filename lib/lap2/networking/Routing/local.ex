@@ -5,6 +5,7 @@ defmodule LAP2.Networking.Routing.Local do
   require Logger
   alias LAP2.Utils.CloveHelper
   alias LAP2.Networking.Routing.State
+  alias LAP2.Main.DataProcessor
 
   # ---- Public functions ----
   @doc """
@@ -15,7 +16,7 @@ defmodule LAP2.Networking.Routing.Local do
   {:regular_proxy, %RegularProxyHeader{proxy_seq: pseq}}}) do
     IO.puts("[+] Local: Relaying clove to data processor") # Debug
     processor_name = state.config.registry_table.data_processor
-    route_clove(processor_name, [data], %{proxy_seq: pseq}, :clove_recv)
+    route_clove(processor_name, [data], %{proxy_seq: pseq}, :regular_proxy)
     {:noreply, state}
   end
 
@@ -28,7 +29,7 @@ defmodule LAP2.Networking.Routing.Local do
     IO.puts("[+] Local: Relaying discovery response to data processor")
     processor_name = state.config.registry_table.data_processor
     headers = %{clove_seq: cseq, proxy_seq: pseq, hop_count: hops, relays: [source]}
-    route_clove(processor_name, [data], headers, :discovery_response)
+    route_clove(processor_name, [data], headers, :proxy_response)
     {:noreply, state}
   end
 
@@ -47,7 +48,7 @@ defmodule LAP2.Networking.Routing.Local do
     new_state = state
     |> State.evict_clove(cseq)
     |> State.ban_clove(cseq)
-    route_clove(processor_name, [data], headers, :proxy_request)
+    route_clove(processor_name, [data], headers, :proxy_discovery)
     {:noreply, new_state}
   end
 
@@ -59,9 +60,7 @@ defmodule LAP2.Networking.Routing.Local do
   def route_clove(processor_name, [data | tail], headers, req_type) do
     IO.puts("[+] Local: Delivering to data processor")
     IO.inspect(data, label: "LOCAL - RECEIVED:")
-    # TODO lookup global process naming rather than PID (in case of crash)
-    # TODO implement DataProcessor.deliver
-    # Task.async(fn -> DataProcessor.deliver(processor_name, req_type, data, headers); end)
+    Task.async(fn -> DataProcessor.deliver(req_type, data, headers, processor_name); end)
     route_clove(processor_name, tail, headers, req_type)
   end
 end

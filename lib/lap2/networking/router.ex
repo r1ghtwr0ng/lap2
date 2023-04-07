@@ -40,10 +40,8 @@ defmodule LAP2.Networking.Router do
         relay_routes_ttl: config.relay_routes_ttl,
         proxy_policy: config.proxy_policy,
         proxy_limit: config.proxy_limit,
-      }
+      } # TODO replace with config: config, this is just for debugging
     }
-    |> IO.inspect(label: "[i] Debug: Initial state")
-    # TODO fix config to load from file
     {:ok, state}
   end
 
