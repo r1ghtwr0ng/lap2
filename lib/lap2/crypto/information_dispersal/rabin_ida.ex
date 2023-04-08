@@ -27,6 +27,7 @@ defmodule LAP2.Crypto.InformationDispersal.RabinIDA do
 
     # Calculate the shares
     Matrix.matrix_dot_product(vand_matrix, byte_chunks, @prime)
+    |> Enum.map(&encode_double_byte/1)
     |> Enum.with_index(fn chunk, idx -> %{data: :erlang.list_to_binary(chunk), share_id: idx + 1}; end)
   end
 
@@ -40,7 +41,10 @@ defmodule LAP2.Crypto.InformationDispersal.RabinIDA do
   def reconstruct(shares) do
     IO.inspect(shares, label: "shares")
     # Fetch the data from the shares
-    byte_chunks = Enum.map(shares, fn share -> :erlang.binary_to_list(share.data); end)
+    byte_chunks = Enum.map(shares, fn share ->
+      :erlang.binary_to_list(share.data)
+      |> decode_double_byte()
+    end)
 
     # Fetch the ids from the shares and use them to generate the reassembly matrix
     try do
@@ -56,5 +60,31 @@ defmodule LAP2.Crypto.InformationDispersal.RabinIDA do
       # If the shares are not enough to reconstruct the data, return nil
       ArgumentError -> {:err, nil}
     end
+  end
+
+  # ---- Private Functions ----
+
+  # ---- Private Functions ----
+  @spec encode_double_byte(list(non_neg_integer)) :: list(non_neg_integer)
+  def encode_double_byte(bytes) do
+    Enum.flat_map(bytes, fn
+      255 -> [255, 0]
+      256 -> [255, 1]
+      byte -> [byte]
+    end)
+  end
+
+  @spec decode_double_byte(list(non_neg_integer)) :: list(non_neg_integer)
+  def decode_double_byte(bytes) do
+    {decoded_bytes, _skip_next} = Enum.reduce(bytes, {[], false}, fn byte, {acc, skip_next} ->
+      case {byte, skip_next} do
+        {255, false} -> {acc, true}
+        {0, true} -> {acc ++ [255], false}
+        {1, true} -> {acc ++ [256], false}
+        {_, true} -> {acc, false}
+        {other, false} -> {acc ++ [other], false}
+      end
+    end)
+    decoded_bytes
   end
 end
