@@ -35,7 +35,7 @@ defmodule LAP2.Networking.UdpServer do
   end
 
   # Handle received UDP datagrams
-  @spec handle_info({:udp, any, tuple, integer, list}, map) :: {:noreply, map}
+  @spec handle_info({:udp, any, tuple, non_neg_integer, list}, map) :: {:noreply, map}
   def handle_info({:udp, _socket, ip_tuple, src_port, dgram}, state) do
     src_ip = ip_tuple
     |> :inet.ntoa()
@@ -68,7 +68,7 @@ defmodule LAP2.Networking.UdpServer do
   end
 
   # Send UDP datagrams
-  @spec handle_cast({:send_dgram, {String.t, integer}, binary}, map) :: {:noreply, map}
+  @spec handle_cast({:send_dgram, {String.t, non_neg_integer}, binary}, map) :: {:noreply, map}
   def handle_cast({:send_dgram, {dest_ip, dest_port}, dgram}, state) do
     # Convert String IP to tuple
     dest_ip
@@ -124,7 +124,7 @@ defmodule LAP2.Networking.UdpServer do
   end
 
   # ---- Public functions ----
-  @spec send_dgram(atom, binary, {binary, integer}) :: :ok | {:error, atom}
+  @spec send_dgram(atom, binary, {binary, non_neg_integer}) :: :ok | {:error, atom}
   def send_dgram(udp_name, dgram, dest) do
     GenServer.cast({:global, udp_name}, {:send_dgram, dest, dgram})
   end

@@ -7,7 +7,7 @@ defmodule LAP2.Networking.LAP2Socket do
   @doc """
   Parse a received datagram.
   """
-  @spec parse_dgram({binary, integer}, binary, atom) :: :ok | :err
+  @spec parse_dgram({String.t, non_neg_integer}, binary, atom) :: :ok | :err
   def parse_dgram(source, dgram, router_name) do
     IO.puts("[+] LAP2Socket: Received datagram #{inspect dgram}")
     # DEBUG: Sleep for 1 second to simulate (unrealistically large) processing time
@@ -25,7 +25,7 @@ defmodule LAP2.Networking.LAP2Socket do
   @doc """
   Send a clove to a destination address and port.
   """
-  @spec send_clove({binary, integer}, binary, map, atom, atom) :: :ok | :err
+  @spec send_clove({String.t, non_neg_integer}, binary, map, atom, atom) :: :ok | :err
   def send_clove({dest_addr, port}, data, headers, udp_name, clove_type \\ :regular_proxy) do
     data
     |> CloveHelper.set_headers(headers)

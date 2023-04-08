@@ -64,7 +64,7 @@ defmodule LAP2.Networking.Routing.State do
   end
 
   # Add entry to relay table
-  @spec add_relay(map, binary, {binary, integer}, {binary, integer}, atom) :: map
+  @spec add_relay(map, non_neg_integer, {binary, integer}, {binary, integer}, atom) :: map
   def add_relay(state, relay_seq, relay_1, relay_2, :proxy) do
     # TODO drop unused routes, based on priority values (first introduce priority values in the route struct)
     IO.puts("[+] State: Added route #{inspect {relay_1, relay_2}} to relay table as proxy")
@@ -76,6 +76,7 @@ defmodule LAP2.Networking.Routing.State do
   def add_relay(state, relay_seq, relay_1, relay_2, :relay) do
     # TODO drop unused routes, based on priority values (first introduce priority values in the route struct)
     IO.puts("[+] State: Added route #{inspect {relay_1, relay_2}} to routing table as relay")
+    # TODO fix relay lookup
     relay_entry = %{type: :relay,
       relays: %{relay_1 => relay_2, relay_2 => relay_1},
       timestamp: :os.system_time(:millisecond)}
@@ -86,7 +87,7 @@ defmodule LAP2.Networking.Routing.State do
   @doc """
   Get routing information from state
   """
-  @spec get_route(map, {binary, integer}, map) :: atom | {atom, {binary, integer} | atom | binary}
+  @spec get_route(map, {String.t, non_neg_integer}, map) :: atom | {atom, {String.t, non_neg_integer} | atom | binary}
   def get_route(state, source, clove) do
     cond do
       drop?(state, source, clove) -> :drop
@@ -95,13 +96,17 @@ defmodule LAP2.Networking.Routing.State do
     |> IO.inspect(label: "[+] State: get_route response")
   end
 
+  @doc """
+  Remove a neighbor from the list of random neighbors.
+  """
+  @spec remove_neighbor(map, String.t) :: map
   def remove_neighbor(state, neighbor) do
     Map.put(state, :random_neighbors, List.delete(state.random_neighbors, neighbor))
   end
 
   # ---- Private handler functions ----
   # Handle proxy discovery clove
-  @spec handle_clove(map, {binary, integer}, map) :: atom | {atom, any}
+  @spec handle_clove(map, {Strint.t, non_neg_integer}, map) :: atom | {atom, any}
   defp handle_clove(state, _source, %Clove{data: data, headers:
   {:proxy_discovery, %ProxyDiscoveryHeader{clove_seq: clove_seq}}}) do
     IO.puts("[+] State: Received proxy discovery clove [#{clove_seq}")
@@ -162,7 +167,7 @@ defmodule LAP2.Networking.Routing.State do
 
   # ---- Clove drop rules ----
   # Drop rules for proxy discovery cloves
-  @spec drop?(map, {String.t, integer}, map) :: boolean
+  @spec drop?(map, {String.t, non_neg_integer}, map) :: boolean
   defp drop?(state, {ip_addr, _}, %Clove{headers:
   {:proxy_discovery, %ProxyDiscoveryHeader{clove_seq: clove_seq, drop_probab: drop_probab}}}) do
     IO.puts("[+] State: Checking drop rules for proxy discovery clove [#{clove_seq}]")
