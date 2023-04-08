@@ -34,8 +34,6 @@ defmodule LAP2.Utils.CloveHelper do
     cond do
       verify_clove(clove) ->
         IO.puts("[+] CloveHelper: Valid clove") # DEBUG
-        IO.inspect(clove, label: "Clove: ") # DEBUG
-        # MAJOR TODO: Fix routing
         Task.async(fn -> Router.route_inbound(source, clove, router_name); end)
         :ok
 
@@ -50,19 +48,18 @@ defmodule LAP2.Utils.CloveHelper do
   """
   @spec verify_clove(map) :: boolean
   def verify_clove(clove) do
-    # Verify the checksum
-    # TODO verify the data length
-    verify_checksum(clove) && verify_headers(clove)
+    # Verify the checksum and header format
+    verify_checksum(clove) && verify_headers(clove.headers)
   end
 
   @doc """
   Verify the clove's headers.
   """
   @spec verify_headers(map) :: boolean
-  def verify_headers(%{drop_probab: drop_probab}) do
-    drop_probab > 0.0 && drop_probab <= 1.0
-  end
-  def verify_headers(_), do: true
+  def verify_headers(%{clove_seq: _, drop_probab: drop_probab}), do: drop_probab > 0.0 && drop_probab <= 1.0
+  def verify_headers(%{clove_seq: _, proxy_seq: _, hop_count: _}), do: true
+  def verify_headers(%{proxy_seq: _}), do: true
+  def verify_headers(_), do: false
 
   # ---- Header field generation functions ----
   @spec gen_seq_num() :: integer
