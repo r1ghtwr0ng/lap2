@@ -27,11 +27,18 @@ defmodule LAP2 do
   end
 
   @doc """
+  Kill the child task
+  """
+  def terminaste_child(supervisor_name, pid) do
+    Task.Supervisor.terminate_child({:global, supervisor_name}, pid)
+  end
+
+  @doc """
   Kill supervisor and its children
   """
   @spec kill :: :ok
   def kill(name \\ :lap2_daemon) do
-    Supervisor.stop(name)
+    Supervisor.stop({:global, name})
   end
 
   # Load the config file and handle thrown errors (by dying lol)
