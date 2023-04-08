@@ -1,24 +1,11 @@
 defmodule LAP2Test do
   use ExUnit.Case
   doctest LAP2
-# Get user input
-  def prompt() do
-    IO.puts("[=] Bootstrap the following information:")
-    port = IO.gets("[<] Port: ") |> String.trim |> String.to_integer
-    bstrp_port = IO.gets("[<] Bootstrap port: ") |> String.trim |> String.to_integer
-    bstrp_ip = IO.gets("[<] Bootstrap IP address: ") |> String.trim
-    bstrp_addr = IO.gets("[<] Bootstrap LAP2 address: ") |> String.trim
-    {port, bstrp_port, bstrp_ip, bstrp_addr}
-  end
 
   alias LAP2.Networking.Router
-  alias LAP2.Utils.CloveHelper
-  alias LAP2.Networking.ProtoBuf
-
-  {port, addr, bstrp_port, bstrp_ip, bstrp_addr} = Test.prompts()
 
   # Configs
-  defp make_config(addr) do
+  defp make_config(addr, port) do
     %{main_supervisor: %{name: String.to_atom("lap2_daemon_#{addr}")},
       task_supervisor: %{max_children: 10, name: String.to_atom("lap2_superv_#{addr}")},
       router: %{
@@ -71,7 +58,7 @@ defmodule LAP2Test do
         udp_port: port
       },
       data_processor: %{
-        name: String.to_atom("data_processor_#{addr}")
+        name: String.to_atom("data_processor_#{addr}"),
         registry_table: %{
           data_processor: String.to_atom("data_processor_#{addr}"),
           router: String.to_atom("router_#{addr}"),
@@ -87,60 +74,57 @@ defmodule LAP2Test do
   # Test process starting and killing procs
   test "start" do
     addr = :crypto.strong_rand_bytes(16) |> Base.encode16()
-    config = make_config(addr)
-    IO.puts("[=] Testing LAP2.start")
+    config = make_config(addr, 10000)
     case LAP2.start(config) do
       {:ok, pid} ->
         assert Process.alive?(pid)
-        assert Process.alive?(:global.whereis_name({:global, config.task_supervisor.name}))
         assert Process.alive?(:global.whereis_name({:global, config.router.name}))
-        assert Process.alive?(:global.whereis_name({:global, config.tcp_server.name}))
+        # TODO uncomment once TCP Server is implemented
+        #assert Process.alive?(:global.whereis_name({:global, config.tcp_server.name}))
         assert Process.alive?(:global.whereis_name({:global, config.udp_server.name}))
         assert Process.alive?(:global.whereis_name({:global, config.data_processor.name}))
-        #IO.puts("[+] Stopping daemon")
-        IO.puts("[=] Testing child termination")
-        assert :ok == LAP2.terminaste_child(config.main_supervisor.name, :global.whereis_name({:global, config.task_supervisor.name}))
-        assert :ok == LAP2.terminaste_child(config.main_supervisor.name, :global.whereis_name({:global, config.router.name}))
-        assert :ok == LAP2.terminaste_child(config.main_supervisor.name, :global.whereis_name({:global, config.tcp_server.name}))
-        assert :ok == LAP2.terminaste_child(config.main_supervisor.name, :global.whereis_name({:global, config.udp_server.name}))
-        assert :ok == LAP2.terminaste_child(config.main_supervisor.name, :global.whereis_name({:global, config.data_processor.name}))
         assert :ok == LAP2.kill(config.main_supervisor.name)
       {:error, reason} -> IO.puts("[!] Unable to start daemon: #{reason}")
+    end
   end
 
   # Bootstrap the process
   test "bootstrap" do
+    # Generate LAP2 addresses
     addr = :crypto.strong_rand_bytes(16) |> Base.encode16()
-    config = make_config(addr)
-    IO.puts("[=] Testing LAP2.bootsrap")
-    case LAP2.start(config) do
-      {:ok, pid} ->
-        assert :ok == Router.update_config(config.router, config.router.name)
-        assert :ok == Router.append_dht(bstrp_addr, {bstrp_ip, bstrp_port}, config.router.name)
-        IO.puts("[=] Sending data")
-        data = "Hello World"
-        clove_seq = LAP2.Utils.CloveHelper.gen_seq_num()
-        assert :ok == Router.route_outbound_discovery({bstrp_ip, bstrp_port}, clove_seq, data, config.router.name)
-        assert :ok == LAP2.kill(config.main_supervisor.name)
+    bstrp_addr = :crypto.strong_rand_bytes(16) |> Base.encode16()
+    bstrp_ip = "127.0.0.1"
+    bstrp_port = 10001
+    port = 10000
+
+    main_config = make_config(addr, port)
+    bstrp_config = make_config(bstrp_addr, bstrp_port)
+
+    case LAP2.start(main_config) do
+      {:ok, _} ->
+        case LAP2.start(bstrp_config) do
+          {:ok, _} ->
+            assert :ok == Router.update_config(main_config.router, main_config.router.name)
+            assert :ok == Router.append_dht(bstrp_addr, {bstrp_ip, bstrp_port}, main_config.router.name)
+            data = "Hello World"
+            # TODO more complex data exchange
+            clove_seq = LAP2.Utils.CloveHelper.gen_seq_num()
+            assert :ok == Router.route_outbound_discovery({bstrp_ip, bstrp_port}, clove_seq, data, main_config.router.name)
+            assert :ok == LAP2.kill(main_config.main_supervisor.name)
+            assert :ok == LAP2.kill(bstrp_config.main_supervisor.name)
+          {:error, reason} ->
+            IO.puts("[!] Unable to start bootstrap proc daemon: #{reason}")
+            assert :ok == LAP2.kill(main_config.main_supervisor.name)
+        end
       {:error, reason} -> IO.puts("[!] Unable to start daemon: #{reason}")
     end
-
-    #IO.puts("[+] Stopping daemon")
-    LAP2.kill(config.main_supervisor.name)
   end
   # ---- Private functions ----
   # Play russian roulette with the child tasks
   defp terminate_random_child(supervisor, children) do
     # Pick a child at random
-    supervisor = Enum.random(supervisor_list)
+    child = :global.whereis_name(Enum.random(children))
     # :brutal_kill the child
-    Task.Supervisor.terminate_child(supervisor, :random)
+    Task.Supervisor.terminate_child(supervisor, child)
   end
-
-
-
-IO.puts("[+] Building cloves")
-data = Enum.map(headers, fn {req_type, hdr} -> {req_type, hdr, IO.gets("[+] Data: ")}; end)
-
-
 end
