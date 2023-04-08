@@ -39,7 +39,6 @@ defmodule LAP2.Crypto.InformationDispersal.RabinIDA do
   """
   @spec reconstruct(list(map)) :: binary
   def reconstruct(shares) do
-    IO.inspect(shares, label: "shares")
     # Fetch the data from the shares
     byte_chunks = Enum.map(shares, fn share ->
       :erlang.binary_to_list(share.data)
