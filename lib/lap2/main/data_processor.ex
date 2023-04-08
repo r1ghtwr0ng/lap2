@@ -10,7 +10,9 @@ defmodule LAP2.Main.DataProcessor do
   """
   @spec start_link(map) :: GenServer.on_start()
   def start_link(config) do
-    GenServer.start_link(__MODULE__, config, name: {:global, config.name})
+    {:ok, pid} = GenServer.start_link(__MODULE__, config, name: {:global, config.name})
+    :global.re_register_name({:global, config.name}, pid)
+    {:ok, pid}
   end
 
   @doc """
@@ -19,11 +21,10 @@ defmodule LAP2.Main.DataProcessor do
   @spec init(map) :: {:ok, map}
   def init(config) do
     # Initialise data handler state
-    IO.puts("[i] Router: Starting router")
+    IO.puts("[i] Data Processor: Starting GenServer")
     state = %{
       config: config
     }
-    |> IO.inspect(label: "[i] Debug: Initial state")
     {:ok, state}
   end
 

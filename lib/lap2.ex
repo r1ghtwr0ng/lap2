@@ -29,7 +29,7 @@ defmodule LAP2 do
   @doc """
   Kill the child task
   """
-  def terminaste_child(supervisor_name, pid) do
+  def terminate_child(supervisor_name, pid) do
     Task.Supervisor.terminate_child({:global, supervisor_name}, pid)
   end
 
@@ -66,7 +66,7 @@ defmodule LAP2 do
       {Task.Supervisor, [name: {:global, config.task_supervisor.name}, max_children: config.task_supervisor.max_children || 10]},
       {LAP2.Networking.UdpServer, config.udp_server},
       {LAP2.Networking.Router, config.router},
-      #{LAP2.DataProcessor, config.data_processor} TODO
+      {LAP2.Main.DataProcessor, config.data_processor}
     ]
     Supervisor.start_link(children, opts)
   end
