@@ -1,7 +1,7 @@
 defmodule LAP2.Crypto.InformationDispersal.SecureIDATest do
-  alias LAP2.Crypto.InformationDispersal.SecureIDA
-  alias String.Tokenizer.Security
+
   use ExUnit.Case
+  alias LAP2.Crypto.InformationDispersal.SecureIDA
   doctest LAP2.Crypto.InformationDispersal.SecureIDA
 
   test "disperse and reconstruct" do

@@ -22,7 +22,6 @@ defmodule LAP2.Networking.ProtoBuf do
   end
 
   # Build clove object
-  # TODO add hop count, proxy_seq
   # Build clove object
   @spec build(map, atom) :: map
   defp build(clove, clove_type) do
