@@ -56,8 +56,8 @@ defmodule LAP2.Networking.Routing.Local do
   # MAJOR TODO: Update timestamps whenever accessed to prevent deletion
   # Deliver the clove to the appropriate receiver, either local or remote
   @spec route_clove(atom, list, map, atom) :: :ok
-  def route_clove(_receiver, [], _headers, _req_type), do: :ok
-  def route_clove(processor_name, [data | tail], headers, req_type) do
+  defp route_clove(_receiver, [], _headers, _req_type), do: :ok
+  defp route_clove(processor_name, [data | tail], headers, req_type) do
     IO.puts("[+] Local: Delivering to data processor")
     IO.inspect(data, label: "LOCAL - RECEIVED:")
     Task.async(fn -> DataProcessor.deliver(req_type, data, headers, processor_name); end)

@@ -23,8 +23,8 @@ defmodule LAP2Test do
           tcp_server: String.to_atom("tcp_server_#{addr}"),
           udp_server: String.to_atom("udp_server_#{addr}")
         },
-        relay_routes_size: 5000,
-        relay_routes_ttl: 1800000
+        relay_table_size: 5000,
+        relay_table_ttl: 1800000
       },
       tcp_server: %{
         max_queue_size: 1000,
