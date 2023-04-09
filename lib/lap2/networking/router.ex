@@ -114,10 +114,9 @@ defmodule LAP2.Networking.Router do
     {:noreply, new_state}
   end
 
-  @spec handle_cast({:debug}, map) :: {:noreply, map}
-  def handle_cast({:debug}, state) do
-    IO.inspect(state, label: "[i] Debug: Router state")
-    {:noreply, state}
+  @spec handle_call({:debug}, pid, map) :: {:noreply, map}
+  def handle_call({:debug}, _from, state) do
+    {:reply, state, state}
   end
 
   @spec handle_info(any, map) :: {:noreply, map}
@@ -196,6 +195,6 @@ defmodule LAP2.Networking.Router do
   """
   @spec debug(atom) :: :ok
   def debug(name \\ :router) do
-    GenServer.cast({:global, name}, {:debug})
+    GenServer.call({:global, name}, {:debug})
   end
 end
