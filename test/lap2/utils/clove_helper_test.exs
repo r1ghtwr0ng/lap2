@@ -3,14 +3,14 @@ defmodule LAP2.Utils.CloveHelperTest do
 
   alias LAP2.Utils.CloveHelper
 
-  test "verify_checksum" do
+  test "verify_checksum/1" do
     data = "TEST_DATA"
     checksum = CRC.crc_32(data)
     assert CloveHelper.verify_checksum(%{data: data, checksum: checksum}) == true
     assert CloveHelper.verify_checksum(%{data: data, checksum: checksum + 1}) == false
   end
 
-  test "set_headers" do
+  test "set_headers/2" do
     data = "TEST_DATA"
 
     # Different types of headers
@@ -31,7 +31,7 @@ defmodule LAP2.Utils.CloveHelperTest do
     assert result_3 == clove_3
   end
 
-  test "handle_deserialised_clove" do
+  test "handle_deserialised_clove/3" do
     data = "TEST DATA"
     valid_clove = %{
       data: data,
@@ -55,7 +55,7 @@ defmodule LAP2.Utils.CloveHelperTest do
     assert CloveHelper.handle_deserialised_clove({"127.0.0.1", 1234}, invalid_clove, :router) == :err
   end
 
-  test "verify_clove" do
+  test "verify_clove/1" do
     data = "TEST_DATA"
     valid_clove = %{
       data: data,
@@ -99,7 +99,7 @@ defmodule LAP2.Utils.CloveHelperTest do
     assert CloveHelper.verify_clove(invalid_clove) == false
   end
 
-  test "verify_headers" do
+  test "verify_headers/1" do
     valid_headers_1 = %{clove_seq: 1, drop_probab: 0.5}
     valid_headers_2 = %{clove_seq: 1, proxy_seq: 1, hop_count: 0}
     valid_headers_3 = %{proxy_seq: 1}
@@ -115,12 +115,12 @@ defmodule LAP2.Utils.CloveHelperTest do
     assert CloveHelper.verify_headers(no_headers) == false
   end
 
-  test "gen_seq_num" do
+  test "gen_seq_num/0" do
     seq_num = CloveHelper.gen_seq_num()
     assert is_integer(seq_num)
   end
 
-  test "gen_drop_probab" do
+  test "gen_drop_probab/2" do
     min = 0.3
     max = 0.8
     drop_probab = CloveHelper.gen_drop_probab(min, max)

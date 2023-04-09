@@ -3,7 +3,7 @@ defmodule LAP2.Crypto.Padding.PKCS7Test do
   use ExUnit.Case
   doctest LAP2.Crypto.Padding.PKCS7
 
-  test "pad" do
+  test "pad/2" do
     string_1 = "Test string"
     string_2 = <<1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 255, 255, 255, 255, 255, 255>>
     string_3 = "0123456789abcdef"
@@ -20,7 +20,7 @@ defmodule LAP2.Crypto.Padding.PKCS7Test do
     assert padded_3 == PKCS7.pad(string_3, len_3)
   end
 
-  test "unpad" do
+  test "unpad/1" do
     # Padded binaries
     padded_1 = <<84, 101, 115, 116, 32, 115, 116, 114, 105, 110, 103, 5, 5, 5, 5, 5>>
     padded_2 = <<1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 255, 255, 255, 255, 255, 255, 8, 8, 8, 8, 8, 8, 8, 8>>

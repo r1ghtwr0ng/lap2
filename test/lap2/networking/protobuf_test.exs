@@ -5,7 +5,7 @@ defmodule LAP2.Networking.ProtoBufTest do
   use ExUnit.Case
   doctest LAP2.Networking.ProtoBuf
 
-  test "serialise" do
+  test "serialise/2" do
     data = "TEST_DATA"
 
     # Packet serialisation
@@ -34,7 +34,7 @@ defmodule LAP2.Networking.ProtoBufTest do
     #assert {:errir, _} == ProtoBuf.serialise(%{}, :invalid_type)
   end
 
-  test "deserialise" do
+  test "deserialise/1" do
     # Packet serialisation
     serial_1 = ""
     serial_2 = ""
