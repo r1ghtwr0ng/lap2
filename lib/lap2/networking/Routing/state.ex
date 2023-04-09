@@ -172,21 +172,18 @@ defmodule LAP2.Networking.Routing.State do
     IO.puts("[+] State: Checking drop rules for proxy discovery clove [#{clove_seq}]")
     can_drop = clove_seq not in state.own_cloves
     can_drop and (clove_seq in state.drop_rules.clove_seq or ip_addr in state.drop_rules.ip_addr or drop_probab < :rand.uniform)
-    |> IO.inspect(label: "[i] Drop result")
   end
   # Drop rules for proxy discovery response cloves
   defp drop?(state, {ip_addr, _}, %Clove{headers:
   {:proxy_response, %ProxyResponseHeader{proxy_seq: proxy_seq}}}) do
     IO.puts("[+] State: Checking drop rules for proxy response clove [#{proxy_seq}]")
     proxy_seq in state.drop_rules.proxy_seq or ip_addr in state.drop_rules.ip_addr
-    |> IO.inspect(label: "[i] Drop result")
   end
   # Drop rules for proxy relay cloves
   defp drop?(state, {ip_addr, _}, %Clove{headers:
   {:regular_proxy, %RegularProxyHeader{proxy_seq: proxy_seq}}}) do
     IO.puts("[+] State: Checking drop rules for regular proxy clove [#{proxy_seq}]")
     proxy_seq in state.drop_rules.proxy_seq or ip_addr in state.drop_rules.ip_addr
-    |> IO.inspect(label: "[i] Drop result")
   end
 
   # ---- Misc functions ----

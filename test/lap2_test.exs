@@ -5,7 +5,7 @@ defmodule LAP2Test do
   alias LAP2.Networking.Router
 
   # Configs
-  defp make_config(addr, port) do
+  defp make_config(addr, udp_port) do
     %{main_supervisor: %{name: String.to_atom("lap2_daemon_#{addr}")},
       task_supervisor: %{max_children: 10, name: String.to_atom("lap2_superv_#{addr}")},
       router: %{
@@ -55,7 +55,7 @@ defmodule LAP2Test do
           udp_server: String.to_atom("udp_server_#{addr}")
         },
         req_timeout: 50000,
-        udp_port: port
+        udp_port: udp_port
       },
       data_processor: %{
         name: String.to_atom("data_processor_#{addr}"),
@@ -90,7 +90,7 @@ defmodule LAP2Test do
   describe "start/1" do
     test "Test starting from custom config map" do
       addr = :crypto.strong_rand_bytes(16) |> Base.encode16()
-      config = make_config(addr, 44987)
+      config = make_config(addr, 0)
       case LAP2.start(config) do
         {:ok, pid} ->
           assert Process.alive?(pid)
@@ -111,8 +111,8 @@ defmodule LAP2Test do
       addr = :crypto.strong_rand_bytes(16) |> Base.encode16()
       bstrp_addr = :crypto.strong_rand_bytes(16) |> Base.encode16()
       bstrp_ip = "127.0.0.1"
-      bstrp_port = 44988
-      port = 44987
+      bstrp_port = 0
+      port = 0
 
       main_config = make_config(addr, port)
       bstrp_config = make_config(bstrp_addr, bstrp_port)
