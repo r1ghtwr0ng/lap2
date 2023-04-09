@@ -18,10 +18,11 @@ defmodule LAP2.Utils.CloveHelper do
   @doc """
   Build the clove from the headers and data.
   """
-  @spec set_headers(binary, map) :: map()
-  def set_headers(data, headers) do
+  @spec create_clove(binary, map, atom) :: map()
+  def create_clove(data, headers, clove_type) do
     # Set the headers for the clove
-    %{data: data, headers: headers, checksum: CRC.crc_32(data)}
+    clove_map = %{data: data, headers: headers, checksum: CRC.crc_32(data)}
+    build_clove(clove_map, clove_type)
   end
 
   # ---- Clove handling functions ----
@@ -66,4 +67,23 @@ defmodule LAP2.Utils.CloveHelper do
   def gen_seq_num(), do: :crypto.strong_rand_bytes(8) |> :binary.decode_unsigned()
   @spec gen_drop_probab(float, float) :: float
   def gen_drop_probab(min, max), do: :rand.uniform() * (max - min) + min
+
+  # ---- Private Functions ----
+  # Build Clove struct
+  @spec build_clove(map, atom) :: map
+  defp build_clove(clove, clove_type) do
+    %Clove{checksum: clove.checksum, headers: build_header(clove_type, clove.headers), data: clove.data}
+  end
+
+  # Build Header struct
+  @spec build_header(atom, map) :: map
+  defp build_header(:proxy_discovery, %{clove_seq: clove_seq, drop_probab: drop_probab}) do
+    {:proxy_discovery, %ProxyDiscoveryHeader{clove_seq: clove_seq, drop_probab: drop_probab}}
+  end
+  defp build_header(:proxy_response, %{proxy_seq: proxy_seq, clove_seq: clove_seq, hop_count: hop_count}) do
+    {:proxy_response, %ProxyResponseHeader{proxy_seq: proxy_seq, clove_seq: clove_seq, hop_count: hop_count}}
+  end
+  defp build_header(:regular_proxy, %{proxy_seq: proxy_seq}) do
+    {:regular_proxy, %RegularProxyHeader{proxy_seq: proxy_seq}}
+  end
 end

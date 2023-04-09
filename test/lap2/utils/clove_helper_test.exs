@@ -17,26 +17,44 @@ defmodule LAP2.Utils.CloveHelperTest do
     end
   end
 
-  describe "set_headers/2" do
-    test "Test setting headers" do
+  describe "create_clove/3" do
+    test "Test proxy discovery clove creation" do
       data = "TEST_DATA"
 
       # Different types of headers
-      hdr_1 = %{clove_seq: CloveHelper.gen_seq_num(), drop_probab: CloveHelper.gen_drop_probab(0.7, 1.0)}
-      hdr_2 = %{clove_seq: CloveHelper.gen_seq_num(), proxy_seq: CloveHelper.gen_seq_num(), hop_count: 0}
-      hdr_3 = %{proxy_seq: CloveHelper.gen_seq_num()}
-      # How the cloves should look like
-      clove_1 = %{data: data, headers: hdr_1, checksum: CRC.crc_32(data)}
-      clove_2 = %{data: data, headers: hdr_2, checksum: CRC.crc_32(data)}
-      clove_3 = %{data: data, headers: hdr_3, checksum: CRC.crc_32(data)}
+      hdr = %ProxyDiscoveryHeader{clove_seq: CloveHelper.gen_seq_num(), drop_probab: CloveHelper.gen_drop_probab(0.7, 1.0)}
+      # How the clove should look like
+      clove = %Clove{data: data, headers: {:proxy_discovery, hdr}, checksum: CRC.crc_32(data)}
       # Set headers
-      result_1 = CloveHelper.set_headers(data, hdr_1)
-      result_2 = CloveHelper.set_headers(data, hdr_2)
-      result_3 = CloveHelper.set_headers(data, hdr_3)
-      # Check if the cloves are correct
-      assert result_1 == clove_1
-      assert result_2 == clove_2
-      assert result_3 == clove_3
+      result = CloveHelper.create_clove(data, hdr, :proxy_discovery)
+      # Check if the clove is correct
+      assert result == clove
+    end
+
+    test "Test proxy response clove creation" do
+      data = "TEST_DATA"
+
+      # Different types of headers
+      hdr = %ProxyResponseHeader{clove_seq: CloveHelper.gen_seq_num(), proxy_seq: CloveHelper.gen_seq_num(), hop_count: 0}
+      # How the clove should look like
+      clove = %Clove{data: data, headers: {:proxy_response, hdr}, checksum: CRC.crc_32(data)}
+      # Set headers
+      result = CloveHelper.create_clove(data, hdr, :proxy_response)
+      # Check if the clove is correct
+      assert result == clove
+    end
+
+    test "Test regular proxy clove creation" do
+      data = "TEST_DATA"
+
+      # Different types of headers
+      hdr = %RegularProxyHeader{proxy_seq: CloveHelper.gen_seq_num()}
+      # How the clove should look like
+      clove = %Clove{data: data, headers: {:regular_proxy, hdr}, checksum: CRC.crc_32(data)}
+      # Set headers
+      result = CloveHelper.create_clove(data, hdr, :regular_proxy)
+      # Check if the clove is correct
+      assert result == clove
     end
   end
 

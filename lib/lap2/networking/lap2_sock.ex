@@ -28,8 +28,8 @@ defmodule LAP2.Networking.LAP2Socket do
   @spec send_clove({String.t, non_neg_integer}, binary, map, atom, atom) :: :ok | :err
   def send_clove({dest_addr, port}, data, headers, udp_name, clove_type \\ :regular_proxy) do
     data
-    |> CloveHelper.set_headers(headers)
-    |> ProtoBuf.serialise(clove_type)
+    |> CloveHelper.create_clove(headers, clove_type)
+    |> ProtoBuf.serialise()
     |> IO.inspect(label: "Serialised clove: ")
     |> case do
       {:ok, dgram} -> UdpServer.send_dgram(udp_name, IO.iodata_to_binary(dgram), {dest_addr, port}); :ok # TODO fix errors

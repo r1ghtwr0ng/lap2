@@ -11,12 +11,12 @@ defmodule LAP2.Networking.ProtoBufTest do
       # Packet serialisation
       hdr = %{clove_seq: 1, drop_probab: 0.7}
       # Create the clove
-      clove = CloveHelper.set_headers(data, hdr)
+      clove = CloveHelper.create_clove(data, hdr, :proxy_discovery)
       # Expected serial outputs
       serial = [[[[], "\x1A", ["\a", "\b\x01\x15333?"]], "\b", ["\xC7", ["\xD0", ["\xA7", ["\xEC", "\x02"]]]]],
       "\x12", ["\t", "TEST_DATA"]]
       # Serialise the cloves
-      assert {:ok, serial} == ProtoBuf.serialise(clove, :proxy_discovery)
+      assert {:ok, serial} == ProtoBuf.serialise(clove)
     end
 
     test "Test proxy response serialisation" do
@@ -24,12 +24,12 @@ defmodule LAP2.Networking.ProtoBufTest do
       # Packet serialisation
       hdr = %{clove_seq: 2, hop_count: 0, proxy_seq: 4}
       # Create the clove
-      clove = CloveHelper.set_headers(data, hdr)
+      clove = CloveHelper.create_clove(data, hdr, :proxy_response)
       # Expected serial outputs
       serial = [[[[], "\"", [<<4>>, <<8, 4, 16, 2>>]], "\b", [<<199>>, [<<208>>, [<<167>>, [<<236>>, <<2>>]]]]],
       <<18>>, ["\t", "TEST_DATA"]]
       # Serialise the cloves
-      assert {:ok, serial} == ProtoBuf.serialise(clove, :proxy_response)
+      assert {:ok, serial} == ProtoBuf.serialise(clove)
     end
 
     test "Test regular proxy serialisation" do
@@ -37,12 +37,12 @@ defmodule LAP2.Networking.ProtoBufTest do
       # Packet serialisation
       hdr = %{proxy_seq: 3}
       # Create the clove
-      clove = CloveHelper.set_headers(data, hdr)
+      clove = CloveHelper.create_clove(data, hdr, :regular_proxy)
       # Expected serial outputs
       serial = [[[[], "*", [<<2>>, <<8, 3>>]], "\b", [<<199>>, [<<208>>, [<<167>>, [<<236>>, <<2>>]]]]],
       <<18>>, ["\t", "TEST_DATA"]]
       # Serialise the cloves
-      assert {:ok, serial} == ProtoBuf.serialise(clove, :regular_proxy)
+      assert {:ok, serial} == ProtoBuf.serialise(clove)
     end
   end
 
