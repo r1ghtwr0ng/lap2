@@ -72,18 +72,33 @@ defmodule LAP2Test do
   end
 
   # Test process starting and killing procs
-  test "start" do
+  test "start/0" do
+    case LAP2.start() do
+      {:ok, pid} ->
+        assert Process.alive?(pid)
+        assert Process.alive?(GenServer.whereis({:global, :router}))
+        # TODO uncomment once TCP Server is implemented
+        #assert Process.alive?(GenServer.whereis({:global, config.tcp_server.name}))
+        assert Process.alive?(GenServer.whereis({:global, :udp_server}))
+        assert Process.alive?(GenServer.whereis({:global, :data_processor}))
+        assert :ok == Supervisor.stop(pid)
+      {:error, reason} -> IO.puts("[!] Unable to start daemon: #{reason}")
+    end
+  end
+
+  # Test process starting and killing procs
+  test "start/1" do
     addr = :crypto.strong_rand_bytes(16) |> Base.encode16()
-    config = make_config(addr, 10000)
+    config = make_config(addr, 44987)
     case LAP2.start(config) do
       {:ok, pid} ->
         assert Process.alive?(pid)
-        assert Process.alive?(:global.whereis_name({:global, config.router.name}))
+        assert Process.alive?(GenServer.whereis({:global, config.router.name}))
         # TODO uncomment once TCP Server is implemented
-        #assert Process.alive?(:global.whereis_name({:global, config.tcp_server.name}))
-        assert Process.alive?(:global.whereis_name({:global, config.udp_server.name}))
-        assert Process.alive?(:global.whereis_name({:global, config.data_processor.name}))
-        assert :ok == LAP2.kill(config.main_supervisor.name)
+        #assert Process.alive?(GenServer.whereis({:global, config.tcp_server.name}))
+        assert Process.alive?(GenServer.whereis({:global, config.udp_server.name}))
+        assert Process.alive?(GenServer.whereis({:global, config.data_processor.name}))
+        assert :ok == Supervisor.stop(pid)
       {:error, reason} -> IO.puts("[!] Unable to start daemon: #{reason}")
     end
   end
@@ -94,37 +109,54 @@ defmodule LAP2Test do
     addr = :crypto.strong_rand_bytes(16) |> Base.encode16()
     bstrp_addr = :crypto.strong_rand_bytes(16) |> Base.encode16()
     bstrp_ip = "127.0.0.1"
-    bstrp_port = 10001
-    port = 10000
+    bstrp_port = 44988
+    port = 44987
 
     main_config = make_config(addr, port)
     bstrp_config = make_config(bstrp_addr, bstrp_port)
 
     case LAP2.start(main_config) do
-      {:ok, _} ->
+      {:ok, main_pid} ->
         case LAP2.start(bstrp_config) do
-          {:ok, _} ->
+          {:ok, bstrp_pid} ->
             assert :ok == Router.update_config(main_config.router, main_config.router.name)
             assert :ok == Router.append_dht(bstrp_addr, {bstrp_ip, bstrp_port}, main_config.router.name)
             data = "Hello World"
             # TODO more complex data exchange
             clove_seq = LAP2.Utils.CloveHelper.gen_seq_num()
             assert :ok == Router.route_outbound_discovery({bstrp_ip, bstrp_port}, clove_seq, data, main_config.router.name)
-            assert :ok == LAP2.kill(main_config.main_supervisor.name)
-            assert :ok == LAP2.kill(bstrp_config.main_supervisor.name)
+            assert :ok == Supervisor.stop(main_pid)
+            assert :ok == Supervisor.stop(bstrp_pid)
           {:error, reason} ->
             IO.puts("[!] Unable to start bootstrap proc daemon: #{reason}")
-            assert :ok == LAP2.kill(main_config.main_supervisor.name)
+            assert :ok == Supervisor.stop(main_pid)
         end
       {:error, reason} -> IO.puts("[!] Unable to start daemon: #{reason}")
     end
   end
-  # ---- Private functions ----
-  # Play russian roulette with the child tasks
-  defp terminate_random_child(supervisor, children) do
-    # Pick a child at random
-    child = :global.whereis_name(Enum.random(children))
-    # :brutal_kill the child
-    Task.Supervisor.terminate_child(supervisor, child)
+
+  test "server restart" do
+    case LAP2.start() do
+      {:ok, pid} ->
+        assert Process.alive?(pid)
+        # Test Router restart
+        assert Process.exit(GenServer.whereis({:global, :router}), :brutal_kill)
+        :timer.sleep(50) # Wait for the process to restart
+        assert Process.alive?(GenServer.whereis({:global, :router}))
+        # Test UDP server restart
+        assert Process.exit(GenServer.whereis({:global, :udp_server}), :brutal_kill)
+        :timer.sleep(50)
+        assert Process.alive?(GenServer.whereis({:global, :udp_server}))
+        # Test Data Processor restart
+        assert Process.exit(GenServer.whereis({:global, :data_processor}), :brutal_kill)
+        :timer.sleep(50)
+        assert Process.alive?(GenServer.whereis({:global, :data_processor}))
+        # TODO Test TCP server restart
+        #assert Process.exit(GenServer.whereis({:global, :tcp_server}), :brutal_kill)
+        #:timer.sleep(100) # Wait for the process to restart
+        #assert Process.alive?(GenServer.whereis({:global, :tcp_server}))
+        assert :ok == Supervisor.stop(pid)
+      {:error, reason} -> IO.puts("[!] Unable to start daemon: #{reason}")
+    end
   end
 end
