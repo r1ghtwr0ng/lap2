@@ -10,10 +10,7 @@ defmodule LAP2.Networking.UdpServer do
   """
   @spec start_link(map) :: GenServer.on_start()
   def start_link(config) do
-    {:ok, pid} = GenServer.start_link(__MODULE__, config, name: {:global, config.name})
-    :global.re_register_name({:global, config.name}, pid)
-    |> IO.inspect(label: "REGISTERED UDP SERVER")
-    {:ok, pid}
+    GenServer.start_link(__MODULE__, config, name: {:global, config.name})
   end
 
   @spec init(map) :: {:ok, map} | {:stop, atom}
@@ -123,6 +120,7 @@ defmodule LAP2.Networking.UdpServer do
     Logger.error("UDP socket terminated unexpectedly. Reason: #{inspect reason}")
   end
   def terminate(_reason, %{udp_sock: udp_sock}) do
+    IO.puts("[i] UDP: Stopping UDP server")
     :gen_udp.close(udp_sock)
   end
 

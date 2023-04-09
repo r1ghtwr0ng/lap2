@@ -14,9 +14,7 @@ defmodule LAP2.Networking.Router do
   """
   @spec start_link(map) :: GenServer.on_start()
   def start_link(config) do
-    {:ok, pid} = GenServer.start_link(__MODULE__, config, name: {:global, config.name})
-    :global.re_register_name({:global, config.name}, pid)
-    {:ok, pid}
+    GenServer.start_link(__MODULE__, config, name: {:global, config.name})
   end
 
   @doc """

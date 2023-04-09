@@ -62,10 +62,8 @@ defmodule LAP2.Crypto.InformationDispersal.RabinIDA do
   end
 
   # ---- Private Functions ----
-
-  # ---- Private Functions ----
   @spec encode_double_byte(list(non_neg_integer)) :: list(non_neg_integer)
-  def encode_double_byte(bytes) do
+  defp encode_double_byte(bytes) do
     Enum.flat_map(bytes, fn
       255 -> [255, 0]
       256 -> [255, 1]
@@ -74,7 +72,7 @@ defmodule LAP2.Crypto.InformationDispersal.RabinIDA do
   end
 
   @spec decode_double_byte(list(non_neg_integer)) :: list(non_neg_integer)
-  def decode_double_byte(bytes) do
+  defp decode_double_byte(bytes) do
     {decoded_bytes, _skip_next} = Enum.reduce(bytes, {[], false}, fn byte, {acc, skip_next} ->
       case {byte, skip_next} do
         {255, false} -> {acc, true}

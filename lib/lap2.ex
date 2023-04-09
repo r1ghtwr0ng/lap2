@@ -36,10 +36,8 @@ defmodule LAP2 do
   @doc """
   Kill supervisor and its children
   """
-  @spec kill :: :ok
-  def kill(name \\ :lap2_daemon) do
-    Supervisor.stop({:global, name})
-  end
+  @spec kill(pid) :: :ok
+  def kill(pid), do: Supervisor.stop(pid)
 
   # Load the config file and handle thrown errors (by dying lol)
   @spec load_config :: {:ok, map} | :init.stop()
