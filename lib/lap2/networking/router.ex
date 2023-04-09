@@ -36,8 +36,8 @@ defmodule LAP2.Networking.Router do
         registry_table: config.registry_table,
         clove_cache_size: config.clove_cache_size,
         clove_cache_ttl: config.clove_cache_ttl,
-        relay_routes_size: config.relay_routes_size,
-        relay_routes_ttl: config.relay_routes_ttl,
+        relay_table_size: config.relay_table_size,
+        relay_table_ttl: config.relay_table_ttl,
         proxy_policy: config.proxy_policy,
         proxy_limit: config.proxy_limit,
       } # TODO replace with config: config, this is just for debugging
@@ -93,7 +93,7 @@ defmodule LAP2.Networking.Router do
     {:noreply, new_state}
   end
 
-  # Remove outdated entries from state (clove_cache, relay_routes) based on timestamps.
+  # Remove outdated entries from state (clove_cache, relay_table) based on timestamps.
   # Routing table is updated by DHT, which is a seperate mechanism.
   @spec handle_cast({:clean_state}, map) :: {:noreply, map}
   def handle_cast({:clean_state}, state) do

@@ -11,7 +11,6 @@ defmodule LAP2.Networking.Routing.State do
   @spec clean_state(map) :: map
   def clean_state(state) do
     state
-    |> IO.inspect(label: "[i] Debug: State before cleaning")
     |> clean_clove_cache()
     |> clean_relay_table()
     #|> RoutingHelper.clean_anon_pool() #TODO implement, might as well refactor the cleaning process too
@@ -46,7 +45,7 @@ defmodule LAP2.Networking.Routing.State do
   """
   @spec ban_clove(map, binary) :: map
   def ban_clove(state, clove_seq) do
-    Map.put(state, :drop_rules, Map.put(state.drop_rules, :clove_seq, {clove_seq, :os.system_time(:millisecond)}))
+    Map.put(state, :drop_rules, Map.put(state.drop_rules, :clove_seq, [clove_seq | state.drop_rules.clove_seq]))
   end
 
   @doc """
@@ -71,7 +70,7 @@ defmodule LAP2.Networking.Routing.State do
     relay_entry = %{type: :proxy,
       relays: %{relay_1 => :data_processor, relay_2 => :data_processor},
       timestamp: :os.system_time(:millisecond)}
-    Map.put(state, :relay_routes, Map.put(state.relay_table, relay_seq, relay_entry)) # TODO check if this is correct
+    Map.put(state, :relay_table, Map.put(state.relay_table, relay_seq, relay_entry)) # TODO check if this is correct
   end
   def add_relay(state, relay_seq, relay_1, relay_2, :relay) do
     # TODO drop unused routes, based on priority values (first introduce priority values in the route struct)
@@ -81,7 +80,7 @@ defmodule LAP2.Networking.Routing.State do
       relays: %{relay_1 => relay_2, relay_2 => relay_1},
       timestamp: :os.system_time(:millisecond)}
     updated_relays = Map.put(state.relay_table, relay_seq, relay_entry)
-    Map.put(state, :relay_routes, updated_relays) # TODO check if this is correct
+    Map.put(state, :relay_table, updated_relays) # TODO check if this is correct
   end
 
   @doc """
@@ -157,12 +156,12 @@ defmodule LAP2.Networking.Routing.State do
 
   # Get rid of outdated clove cache entries
   @spec clean_relay_table(map) :: map
-  defp clean_relay_table(%{relay_table: relay_table, config: %{relay_routes_ttl: relay_ttl}} = state) do
+  defp clean_relay_table(%{relay_table: relay_table, config: %{relay_table_ttl: relay_ttl}} = state) do
     IO.puts("[+] State: Deleting outdated relay table entries")
-    updated_relay_routes = relay_table
+    updated_relay_table = relay_table
     |> Enum.filter(fn {_relay_seq, %{timestamp: timestamp}} -> timestamp > :os.system_time(:millisecond) - relay_ttl; end)
     |> Map.new()
-    Map.put(state, :relay_routes, updated_relay_routes)
+    Map.put(state, :relay_table, updated_relay_table)
   end
 
   # ---- Clove drop rules ----
