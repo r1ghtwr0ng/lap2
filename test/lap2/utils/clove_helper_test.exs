@@ -63,10 +63,10 @@ defmodule LAP2.Utils.CloveHelperTest do
       data = "TEST DATA"
       valid_clove = %{
         data: data,
-        headers: %{
+        headers: {:proxy_discovery, %ProxyDiscoveryHeader{
           clove_seq: 1,
           drop_probab: 0.8
-        },
+        }},
         checksum: CRC.crc_32(data)
       }
 
@@ -77,10 +77,10 @@ defmodule LAP2.Utils.CloveHelperTest do
       data = "TEST DATA"
       invalid_clove = %{
         data: data,
-        headers: %{
+        headers: {:proxy_discovery, %ProxyDiscoveryHeader{
           clove_seq: 2,
           drop_probab: 1.5
-        },
+        }},
         checksum: CRC.crc_32(data)
       }
 
@@ -93,10 +93,10 @@ defmodule LAP2.Utils.CloveHelperTest do
       data = "TEST_DATA"
       valid_clove = %{
         data: data,
-        headers: %{
+        headers: {:proxy_discovery, %ProxyDiscoveryHeader{
           drop_probab: 0.5,
           clove_seq: 1
-        },
+        }},
         checksum: CRC.crc_32(data)
       }
 
@@ -107,28 +107,28 @@ defmodule LAP2.Utils.CloveHelperTest do
       data = "TEST DATA"
       invalid_clove_probab = %{
         data: data,
-        headers: %{
+        headers: {:proxy_discovery, %ProxyDiscoveryHeader{
           drop_probab: 1.5,
           clove_seq: 1
-        },
+        }},
         checksum: CRC.crc_32(data)
       }
 
       invalid_clove_checksum = %{
         data: data,
-        headers: %{
+        headers: {:proxy_discovery, %ProxyDiscoveryHeader{
           drop_probab: 0.5,
           clove_seq: 1
-        },
+        }},
         checksum: CRC.crc_32(data) + 1
       }
 
       invalid_clove = %{
         data: data,
-        headers: %{
+        headers: {:proxy_discovery, %ProxyDiscoveryHeader{
           drop_probab: 1.5,
           clove_seq: 1
-        },
+        }},
         checksum: CRC.crc_32(data) + 1
       }
 
@@ -140,9 +140,9 @@ defmodule LAP2.Utils.CloveHelperTest do
 
   describe "verify_headers/1" do
     test "Valid headers" do
-      valid_headers_1 = %{clove_seq: 1, drop_probab: 0.5}
-      valid_headers_2 = %{clove_seq: 1, proxy_seq: 1, hop_count: 0}
-      valid_headers_3 = %{proxy_seq: 1}
+      valid_headers_1 = {:proxy_discovery, %ProxyDiscoveryHeader{clove_seq: 1, drop_probab: 0.5}}
+      valid_headers_2 = {:proxy_response, %ProxyResponseHeader{clove_seq: 1, proxy_seq: 1, hop_count: 0}}
+      valid_headers_3 = {:regular_proxy, %RegularProxyHeader{proxy_seq: 1}}
 
       assert CloveHelper.verify_headers(valid_headers_1)
       assert CloveHelper.verify_headers(valid_headers_2)

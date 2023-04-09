@@ -57,9 +57,9 @@ defmodule LAP2.Utils.CloveHelper do
   Verify the clove's headers.
   """
   @spec verify_headers(map) :: boolean
-  def verify_headers(%{clove_seq: _, drop_probab: drop_probab}), do: drop_probab > 0.0 && drop_probab <= 1.0
-  def verify_headers(%{clove_seq: _, proxy_seq: _, hop_count: _}), do: true
-  def verify_headers(%{proxy_seq: _}), do: true
+  def verify_headers({:proxy_discovery, %ProxyDiscoveryHeader{clove_seq: _, drop_probab: drop_probab}}), do: drop_probab > 0.0 && drop_probab <= 1.0
+  def verify_headers({:proxy_response, %ProxyResponseHeader{clove_seq: _, proxy_seq: _, hop_count: _}}), do: true
+  def verify_headers({:regular_proxy, %RegularProxyHeader{proxy_seq: _}}), do: true
   def verify_headers(_), do: false
 
   # ---- Header field generation functions ----
