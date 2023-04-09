@@ -19,7 +19,7 @@ defmodule LAP2.Networking.Routing.State do
   @doc """
   Add clove to list of own cloves.
   """
-  @spec add_own_clove(map, integer) :: map
+  @spec add_own_clove(map, non_neg_integer) :: map
   def add_own_clove(state, clove_seq) do
     Map.put(state, :own_cloves, [clove_seq | state.own_cloves])
   end
@@ -27,7 +27,7 @@ defmodule LAP2.Networking.Routing.State do
   @doc """
   Remove a clove from the list of own cloves.
   """
-  @spec delete_own_clove(map, integer) :: map
+  @spec delete_own_clove(map, non_neg_integer) :: map
   def delete_own_clove(state, clove_seq) do
     Map.put(state, :own_cloves, List.delete(state.own_cloves, clove_seq))
   end
@@ -35,7 +35,7 @@ defmodule LAP2.Networking.Routing.State do
   @doc """
   Evict a clove from the cache.
   """
-  @spec evict_clove(map, binary) :: map
+  @spec evict_clove(map, non_neg_integer) :: map
   def evict_clove(state, clove_seq) do
     Map.put(state, :clove_cache, Map.delete(state.clove_cache, clove_seq))
   end
@@ -43,7 +43,7 @@ defmodule LAP2.Networking.Routing.State do
   @doc """
   Add a drop rule for the clove_Seq.
   """
-  @spec ban_clove(map, binary) :: map
+  @spec ban_clove(map, non_neg_integer) :: map
   def ban_clove(state, clove_seq) do
     Map.put(state, :drop_rules, Map.put(state.drop_rules, :clove_seq, [clove_seq | state.drop_rules.clove_seq]))
   end
@@ -51,7 +51,7 @@ defmodule LAP2.Networking.Routing.State do
   @doc """
   Add a clove to the local cache.
   """
-  @spec cache_clove(map, {binary, integer}, {binary, integer}, map) :: map
+  @spec cache_clove(map, {binary, integer}, {binary, integer}, Clove) :: map
   def cache_clove(%{clove_cache: cache} = state, source, dest, %Clove{data: data, headers: {:proxy_discovery, %ProxyDiscoveryHeader{clove_seq: clove_seq}}}) do
     cache_entry = %{hash: :erlang.phash2(data),
       data: data,
@@ -86,7 +86,7 @@ defmodule LAP2.Networking.Routing.State do
   @doc """
   Get routing information from state
   """
-  @spec get_route(map, {String.t, non_neg_integer}, map) :: atom | {atom, {String.t, non_neg_integer} | atom | binary}
+  @spec get_route(map, {String.t, non_neg_integer}, Clove) :: atom | {atom, {String.t, non_neg_integer} | atom | binary}
   def get_route(state, source, clove) do
     cond do
       drop?(state, source, clove) -> :drop
@@ -105,7 +105,7 @@ defmodule LAP2.Networking.Routing.State do
 
   # ---- Private handler functions ----
   # Handle proxy discovery clove
-  @spec handle_clove(map, {Strint.t, non_neg_integer}, map) :: atom | {atom, any}
+  @spec handle_clove(map, {Strint.t, non_neg_integer}, Clove) :: atom | {atom, any}
   defp handle_clove(state, _source, %Clove{data: data, headers:
   {:proxy_discovery, %ProxyDiscoveryHeader{clove_seq: clove_seq}}}) do
     IO.puts("[+] State: Received proxy discovery clove [#{clove_seq}")
@@ -129,7 +129,7 @@ defmodule LAP2.Networking.Routing.State do
   end
   # Handle proxy relay clove
   defp handle_clove(state, source, %Clove{headers:
-  {:proxy_response, %ProxyResponseHeader{proxy_seq: proxy_seq}}}) do
+  {:regular_proxy, %RegularProxyHeader{proxy_seq: proxy_seq}}}) do
     IO.puts("[+] State: Received regular proxy clove [#{proxy_seq}")
     case Map.get(state.relay_table, proxy_seq) do
       nil -> :drop
@@ -166,12 +166,12 @@ defmodule LAP2.Networking.Routing.State do
 
   # ---- Clove drop rules ----
   # Drop rules for proxy discovery cloves
-  @spec drop?(map, {String.t, non_neg_integer}, map) :: boolean
+  @spec drop?(map, {String.t, non_neg_integer}, Clove) :: boolean
   defp drop?(state, {ip_addr, _}, %Clove{headers:
   {:proxy_discovery, %ProxyDiscoveryHeader{clove_seq: clove_seq, drop_probab: drop_probab}}}) do
     IO.puts("[+] State: Checking drop rules for proxy discovery clove [#{clove_seq}]")
-    can_drop = clove_seq not in state.own_cloves or ip_addr in state.drop_rules.ip_addr
-    can_drop and (clove_seq in state.drop_rules.clove_seq or drop_probab < :rand.uniform)
+    can_drop = clove_seq not in state.own_cloves
+    can_drop and (clove_seq in state.drop_rules.clove_seq or ip_addr in state.drop_rules.ip_addr or drop_probab < :rand.uniform)
     |> IO.inspect(label: "[i] Drop result")
   end
   # Drop rules for proxy discovery response cloves

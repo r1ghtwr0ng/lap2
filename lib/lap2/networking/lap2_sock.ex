@@ -32,7 +32,7 @@ defmodule LAP2.Networking.LAP2Socket do
     |> ProtoBuf.serialise()
     |> IO.inspect(label: "Serialised clove: ")
     |> case do
-      {:ok, dgram} -> UdpServer.send_dgram(udp_name, IO.iodata_to_binary(dgram), {dest_addr, port}); :ok # TODO fix errors
+      {:ok, dgram} -> UdpServer.send_dgram(udp_name, IO.iodata_to_binary(dgram), {dest_addr, port}); :ok
       {:error, reason} -> IO.puts("[!] LAP2Socket: Error serialising clove: #{inspect reason}"); :err
     end
   end

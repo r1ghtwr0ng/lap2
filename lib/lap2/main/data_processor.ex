@@ -27,18 +27,18 @@ defmodule LAP2.Main.DataProcessor do
   end
 
   # ---- GenServer Callbacks ----
-  def handle_cast({:deliver, :proxy_discovery, data, headers}, state) do
-
+  def handle_cast({:deliver, :proxy_discovery, _data, _headers}, state) do
+    # TODO send data for parsing
     {:noreply, state}
   end
 
-  def handle_cast({:deliver, :proxy_response, data, headers}, state) do
-
+  def handle_cast({:deliver, :proxy_response, _data, _headers}, state) do
+    # TODO send data for parsing
     {:noreply, state}
   end
 
-  def handle_cast({:deliver, :regular_proxy, data, headers}, state) do
-
+  def handle_cast({:deliver, :regular_proxy, _data, _headers}, state) do
+    # TODO send data for parsing
     {:noreply, state}
   end
 

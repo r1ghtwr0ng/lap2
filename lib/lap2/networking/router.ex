@@ -47,7 +47,7 @@ defmodule LAP2.Networking.Router do
 
   # TODO append lap2_addr to the config
   # Handle received cloves
-  @spec handle_cast({:route_inbound, {String.t, non_neg_integer}, map}, map) :: {:noreply, map}
+  @spec handle_cast({:route_inbound, {String.t, non_neg_integer}, Clove}, map) :: {:noreply, map}
   def handle_cast({:route_inbound, source, clove}, state) do
     state
     |> State.clean_state()
@@ -139,7 +139,7 @@ defmodule LAP2.Networking.Router do
   @doc """
   Route an inbound clove to the appropriate destination.
   """
-  @spec route_inbound({String.t, non_neg_integer}, map, atom) :: :ok
+  @spec route_inbound({String.t, non_neg_integer}, Clove, atom) :: :ok
   def route_inbound(source, clove, name \\ :router) do
     GenServer.cast({:global, name}, {:route_inbound, source, clove})
   end
