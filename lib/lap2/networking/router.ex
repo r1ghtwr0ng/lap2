@@ -59,12 +59,12 @@ defmodule LAP2.Networking.Router do
       {:random_walk, rand_neighbor} -> Remote.relay_proxy_discovery(state, source, rand_neighbor, clove)
       # Proxy request
       :proxy_request-> Local.handle_proxy_request(state, source, clove)
-      # Route discovery response to data processor
+      # Route discovery response to share handler
       :recv_discovery -> Local.receive_discovery_response(state, source, clove)
       # Route discovery response
       {:discovery_response, ^source} -> Remote.relay_discovery_response(state, source, clove)
       # Relay clove to local
-      {:relay, :data_processor} -> Local.relay_clove(state, clove)
+      {:relay, :share_handler} -> Local.relay_clove(state, clove)
       # Relay clove to remote
       {:relay, dest} when is_tuple(dest) -> Remote.relay_clove(state, dest, clove)
       # Drop clove

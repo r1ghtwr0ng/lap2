@@ -5,8 +5,8 @@ defmodule LAP2.Utils.ConfigParserTest do
 
   describe "get_config/1" do
     test "Read config from file" do
-      expected_config = %{data_processor: %{name: :data_processor,
-        registry_table: %{data_processor: :data_processor,
+      expected_config = %{share_handler: %{name: :share_handler,
+        registry_table: %{share_handler: :share_handler,
           main_supervisor: :lap2_deamon,
           router: :router,
           task_supervisor: :lap2_superv,
@@ -19,7 +19,7 @@ defmodule LAP2.Utils.ConfigParserTest do
         name: :router,
         proxy_limit: 20,
         proxy_policy: true,
-        registry_table: %{data_processor: :data_processor,
+        registry_table: %{share_handler: :share_handler,
           main_supervisor: :lap2_deamon,
           router: :router,
           task_supervisor: :lap2_superv,
@@ -31,7 +31,7 @@ defmodule LAP2.Utils.ConfigParserTest do
       tcp_server: %{max_queue_size: 1000,
         name: :tcp_server,
         queue_interval: 100,
-        registry_table: %{data_processor: :data_processor,
+        registry_table: %{share_handler: :share_handler,
           main_supervisor: :lap2_deamon,
           router: :router,
           task_supervisor: :lap2_superv,
@@ -43,7 +43,7 @@ defmodule LAP2.Utils.ConfigParserTest do
         max_queue_size: 1000,
         name: :udp_server,
         queue_interval: 100,
-        registry_table: %{data_processor: :data_processor,
+        registry_table: %{share_handler: :share_handler,
           main_supervisor: :lap2_deamon,
           router: :router,
           task_supervisor: :lap2_superv,

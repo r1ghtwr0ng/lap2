@@ -16,7 +16,7 @@ defmodule LAP2Test do
         proxy_limit: 20,
         proxy_policy: true,
         registry_table: %{
-          data_processor: String.to_atom("data_processor_#{addr}"),
+          share_handler: String.to_atom("share_handler_#{addr}"),
           router: String.to_atom("router_#{addr}"),
           main_supervisor: String.to_atom("lap2_daemon_#{addr}"),
           task_supervisor: String.to_atom("lap2_superv_#{addr}"),
@@ -31,7 +31,7 @@ defmodule LAP2Test do
         name: :tcp_server,
         queue_interval: 100,
         registry_table: %{
-          data_processor: String.to_atom("data_processor_#{addr}"),
+          share_handler: String.to_atom("share_handler_#{addr}"),
           router: String.to_atom("router_#{addr}"),
           main_supervisor: String.to_atom("lap2_daemon_#{addr}"),
           task_supervisor: String.to_atom("lap2_superv_#{addr}"),
@@ -47,7 +47,7 @@ defmodule LAP2Test do
         name: String.to_atom("udp_server_#{addr}"),
         queue_interval: 100,
         registry_table: %{
-          data_processor: String.to_atom("data_processor_#{addr}"),
+          share_handler: String.to_atom("share_handler_#{addr}"),
           router: String.to_atom("router_#{addr}"),
           main_supervisor: String.to_atom("lap2_daemon_#{addr}"),
           task_supervisor: String.to_atom("lap2_superv_#{addr}"),
@@ -57,10 +57,10 @@ defmodule LAP2Test do
         req_timeout: 50000,
         udp_port: udp_port
       },
-      data_processor: %{
-        name: String.to_atom("data_processor_#{addr}"),
+      share_handler: %{
+        name: String.to_atom("share_handler_#{addr}"),
         registry_table: %{
-          data_processor: String.to_atom("data_processor_#{addr}"),
+          share_handler: String.to_atom("share_handler_#{addr}"),
           router: String.to_atom("router_#{addr}"),
           main_supervisor: String.to_atom("lap2_daemon_#{addr}"),
           task_supervisor: String.to_atom("lap2_superv_#{addr}"),
@@ -80,7 +80,7 @@ defmodule LAP2Test do
           # TODO uncomment once TCP Server is implemented
           #assert Process.alive?(GenServer.whereis({:global, config.tcp_server.name}))
           assert Process.alive?(GenServer.whereis({:global, :udp_server}))
-          assert Process.alive?(GenServer.whereis({:global, :data_processor}))
+          assert Process.alive?(GenServer.whereis({:global, :share_handler}))
           assert :ok == Supervisor.stop(pid)
         {:error, reason} -> IO.puts("[!] Unable to start daemon: #{reason}")
       end
@@ -98,7 +98,7 @@ defmodule LAP2Test do
           # TODO uncomment once TCP Server is implemented
           #assert Process.alive?(GenServer.whereis({:global, config.tcp_server.name}))
           assert Process.alive?(GenServer.whereis({:global, config.udp_server.name}))
-          assert Process.alive?(GenServer.whereis({:global, config.data_processor.name}))
+          assert Process.alive?(GenServer.whereis({:global, config.share_handler.name}))
           assert :ok == Supervisor.stop(pid)
         {:error, reason} -> IO.puts("[!] Unable to start daemon: #{reason}")
       end
@@ -151,10 +151,10 @@ defmodule LAP2Test do
           assert Process.exit(GenServer.whereis({:global, :udp_server}), :brutal_kill)
           :timer.sleep(50)
           assert Process.alive?(GenServer.whereis({:global, :udp_server}))
-          # Test Data Processor restart
-          assert Process.exit(GenServer.whereis({:global, :data_processor}), :brutal_kill)
+          # Test Share Handler restart
+          assert Process.exit(GenServer.whereis({:global, :share_handler}), :brutal_kill)
           :timer.sleep(50)
-          assert Process.alive?(GenServer.whereis({:global, :data_processor}))
+          assert Process.alive?(GenServer.whereis({:global, :share_handler}))
           # TODO Test TCP server restart
           #assert Process.exit(GenServer.whereis({:global, :tcp_server}), :brutal_kill)
           #:timer.sleep(100) # Wait for the process to restart

@@ -64,7 +64,7 @@ defmodule LAP2 do
       {Task.Supervisor, [name: {:global, config.task_supervisor.name}, max_children: config.task_supervisor.max_children || 10]},
       {LAP2.Networking.UdpServer, config.udp_server},
       {LAP2.Networking.Router, config.router},
-      {LAP2.Main.DataProcessor, config.data_processor}
+      {LAP2.Main.ShareHandler, config.share_handler}
     ]
     Supervisor.start_link(children, opts)
   end

@@ -68,7 +68,7 @@ defmodule LAP2.Networking.Routing.State do
     # TODO drop unused routes, based on priority values (first introduce priority values in the route struct)
     IO.puts("[+] State: Added route #{inspect {relay_1, relay_2}} to relay table as proxy")
     relay_entry = %{type: :proxy,
-      relays: %{relay_1 => :data_processor, relay_2 => :data_processor},
+      relays: %{relay_1 => :share_handler, relay_2 => :share_handler},
       timestamp: :os.system_time(:millisecond)}
     Map.put(state, :relay_table, Map.put(state.relay_table, relay_seq, relay_entry)) # TODO check if this is correct
   end

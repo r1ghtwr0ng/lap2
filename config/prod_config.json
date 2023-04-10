@@ -6,8 +6,8 @@
         "name": "lap2_superv",
         "max_children": 10
     },
-    "data_processor": {
-        "name": "data_processor",
+    "share_handler": {
+        "name": "share_handler",
         "registry_table": null
     },
     "udp_server": {

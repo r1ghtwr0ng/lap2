@@ -6,7 +6,7 @@ defmodule LAP2.Networking.Routing.StateTest do
     own_cloves: [],
     clove_cache: %{},
     drop_rules: %{clove_seq: [], ip_addr: [], proxy_seq: []},
-    relay_table: %{2 => %{relays: %{{"1.2.3.4", 1234} => :data_processor, {"1.1.1.1", 4444} => :data_processor}}, timestamp: :os.system_time(:millisecond), type: :proxy},
+    relay_table: %{2 => %{relays: %{{"1.2.3.4", 1234} => :share_handler, {"1.1.1.1", 4444} => :share_handler}}, timestamp: :os.system_time(:millisecond), type: :proxy},
     random_neighbors: [],
     config: %{
       clove_cache_ttl: 60_000,
@@ -28,7 +28,7 @@ defmodule LAP2.Networking.Routing.StateTest do
       outdated_state = %{
         @valid_state |
         clove_cache: %{1 => %{timestamp: :os.system_time(:millisecond) - 61_000}},
-        relay_table: %{1 =>%{relays: %{{"1.2.3.4", 1234} => :data_processor, {"1.1.1.1", 4444} => :data_processor},
+        relay_table: %{1 =>%{relays: %{{"1.2.3.4", 1234} => :share_handler, {"1.1.1.1", 4444} => :share_handler},
           timestamp: :os.system_time(:millisecond) - 61_000, type: :proxy}}
       }
 
@@ -43,7 +43,7 @@ defmodule LAP2.Networking.Routing.StateTest do
       valid_state = %{
         @valid_state |
         clove_cache: %{2 => %{timestamp: :os.system_time(:millisecond)}},
-        relay_table: %{2 => %{relays: %{{"1.2.3.4", 1234} => :data_processor, {"1.1.1.1", 4444} => :data_processor},
+        relay_table: %{2 => %{relays: %{{"1.2.3.4", 1234} => :share_handler, {"1.1.1.1", 4444} => :share_handler},
           timestamp: :os.system_time(:millisecond), type: :proxy}}
       }
 
@@ -111,7 +111,7 @@ defmodule LAP2.Networking.Routing.StateTest do
 
       assert is_map_key(new_state.relay_table, relay_seq)
       assert new_state.relay_table[relay_seq].type == :proxy
-      assert new_state.relay_table[relay_seq].relays == %{relay_1 => :data_processor, relay_2 => :data_processor}
+      assert new_state.relay_table[relay_seq].relays == %{relay_1 => :share_handler, relay_2 => :share_handler}
     end
 
     test "Add a relay route as relay" do
