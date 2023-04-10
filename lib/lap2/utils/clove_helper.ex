@@ -1,10 +1,36 @@
 defmodule LAP2.Utils.CloveHelper do
   @moduledoc """
   Helper functions for generating clove information, checksums, splitting and reconstructing cloves, padding, etc.
+  Handles serialising and deserialising cloves (simplifies serial data types).
   """
   require CRC
   alias LAP2.Networking.Router
+  alias LAP2.Networking.ProtoBuf
 
+  # ---- ProtoBuf wrappers ----
+  @doc """
+  Deserialise a clove.
+  """
+  @spec deserialise(binary) :: {:ok, map} | {:error, any}
+  def deserialise(dgram) do
+    # Deserialise the clove
+    case ProtoBuf.deserialise(dgram, Clove) do
+      {:ok, clove} -> {:ok, clove}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  @doc """
+  Serialise a clove.
+  """
+  @spec serialise(Clove) :: {:ok, binary} | {:error, any}
+  def serialise(clove) do
+    # Serialise the clove
+    case ProtoBuf.serialise(clove) do
+      {:ok, dgram} -> {:ok, IO.iodata_to_binary(dgram)}
+      {:error, reason} -> {:error, reason}
+    end
+  end
   # ---- Checksum functions ----
   @doc """
   Verify the checksum of the clove.

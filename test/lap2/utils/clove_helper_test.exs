@@ -177,4 +177,71 @@ defmodule LAP2.Utils.CloveHelperTest do
       assert drop_probab <= max
     end
   end
+
+  describe "serialise/1" do
+    test "Test proxy discovery serialisation" do
+      data = "TEST_DATA"
+      # Packet serialisation
+      hdr = %{clove_seq: 1, drop_probab: 0.7}
+      # Create the clove
+      clove = CloveHelper.create_clove(data, hdr, :proxy_discovery)
+      # Expected serial outputs
+      serial = <<26, 7, 8, 1, 21, 51, 51, 51, 63, 8, 199, 208, 167, 236, 2, 18, 9, 84, 69, 83, 84, 95, 68, 65, 84, 65>>
+      # Serialise the cloves
+      assert {:ok, serial} == CloveHelper.serialise(clove)
+    end
+
+    test "Test proxy response serialisation" do
+      data = "TEST_DATA"
+      # Packet serialisation
+      hdr = %{clove_seq: 2, hop_count: 0, proxy_seq: 4}
+      # Create the clove
+      clove = CloveHelper.create_clove(data, hdr, :proxy_response)
+      # Expected serial outputs
+      serial = <<34, 4, 8, 4, 16, 2, 8, 199, 208, 167, 236, 2, 18, 9, 84, 69, 83, 84, 95, 68, 65, 84, 65>>
+      # Serialise the cloves
+      assert {:ok, serial} == CloveHelper.serialise(clove)
+    end
+
+    test "Test regular proxy serialisation" do
+      data = "TEST_DATA"
+      # Packet serialisation
+      hdr = %{proxy_seq: 3}
+      # Create the clove
+      clove = CloveHelper.create_clove(data, hdr, :regular_proxy)
+      # Expected serial outputs
+      serial = <<42, 2, 8, 3, 8, 199, 208, 167, 236, 2, 18, 9, 84, 69, 83, 84, 95, 68, 65, 84, 65>>
+      # Serialise the cloves
+      assert {:ok, serial} == CloveHelper.serialise(clove)
+    end
+  end
+
+  describe "deserialise/1" do
+    test "Test proxy discovery deserialisation" do
+      # Serial data
+      serial = <<26, 5, 21, 51, 51, 51, 63, 18, 9, 84, 69, 83, 84, 95, 68, 65, 84, 65>>
+      # Expected deserial outputs
+      clove = %Clove{data: "TEST_DATA", headers: {:proxy_discovery, %ProxyDiscoveryHeader{clove_seq: 0, drop_probab: 0.699999988079071}}, checksum: 0}
+      # Deserialise the cloves
+      assert {:ok, clove} == CloveHelper.deserialise(serial)
+    end
+
+    test "Test proxy response deserialisation" do
+      # Serial data
+      serial = <<34, 4, 8, 4, 16, 2, 18, 9, 84, 69, 83, 84, 95, 68, 65, 84, 65>>
+      # Expected deserial outputs
+      clove = %Clove{data: "TEST_DATA", headers: {:proxy_response, %ProxyResponseHeader{proxy_seq: 4, clove_seq: 2, hop_count: 0, __uf__: []}}, checksum: 0}
+      # Deserialise the cloves
+      assert {:ok, clove} == CloveHelper.deserialise(serial)
+    end
+
+    test "Test regular proxy deserialisation" do
+      # Serial data
+      serial = <<42, 2, 8, 3, 18, 9, 84, 69, 83, 84, 95, 68, 65, 84, 65>>
+      # Expected deserial outputs
+      clove = %Clove{data: "TEST_DATA", headers: {:regular_proxy, %RegularProxyHeader{proxy_seq: 3}}, checksum: 0}
+      # Deserialise the cloves
+      assert {:ok, clove} == CloveHelper.deserialise(serial)
+    end
+  end
 end

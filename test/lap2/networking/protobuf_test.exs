@@ -5,7 +5,7 @@ defmodule LAP2.Networking.ProtoBufTest do
   use ExUnit.Case
   doctest LAP2.Networking.ProtoBuf
 
-  describe "serialise/2" do
+  describe "serialise/1" do
     test "Test proxy discovery serialisation" do
       data = "TEST_DATA"
       # Packet serialisation
@@ -46,7 +46,7 @@ defmodule LAP2.Networking.ProtoBufTest do
     end
   end
 
-  describe "deserialise/1" do
+  describe "deserialise/2" do
     test "Test proxy discovery deserialisation" do
       # Serial data
       serial = <<26, 5, 21, 51, 51, 51, 63, 18, 9, 84, 69, 83, 84, 95, 68, 65, 84, 65>>

@@ -1,6 +1,5 @@
 defmodule LAP2.Networking.LAP2Socket do
   alias LAP2.Utils.CloveHelper
-  alias LAP2.Networking.ProtoBuf
   alias LAP2.Networking.UdpServer
 
   # ---- Public functions ----
@@ -13,7 +12,7 @@ defmodule LAP2.Networking.LAP2Socket do
     # DEBUG: Sleep for 1 second to simulate (unrealistically large) processing time
     # Process.sleep(1000)
     # Deserialise dgram
-    with {:ok, clove} <- ProtoBuf.deserialise(dgram, Clove) do
+    with {:ok, clove} <- CloveHelper.deserialise(dgram) do
       CloveHelper.handle_deserialised_clove(source, clove, router_name)
     else
       {:error, reason} ->
@@ -29,10 +28,9 @@ defmodule LAP2.Networking.LAP2Socket do
   def send_clove({dest_addr, port}, data, headers, udp_name, clove_type \\ :regular_proxy) do
     data
     |> CloveHelper.create_clove(headers, clove_type)
-    |> ProtoBuf.serialise()
-    |> IO.inspect(label: "Serialised clove: ")
+    |> CloveHelper.serialise()
     |> case do
-      {:ok, dgram} -> UdpServer.send_dgram(udp_name, IO.iodata_to_binary(dgram), {dest_addr, port}); :ok
+      {:ok, dgram} -> UdpServer.send_dgram(udp_name, dgram, {dest_addr, port}); :ok
       {:error, reason} -> IO.puts("[!] LAP2Socket: Error serialising clove: #{inspect reason}"); :err
     end
   end
