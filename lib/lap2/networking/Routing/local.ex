@@ -13,12 +13,13 @@ defmodule LAP2.Networking.Routing.Local do
   """
   @spec relay_clove(map, map) :: {:noreply, map}
   def relay_clove(state, %Clove{data: data, headers:
-  {:regular_proxy, %RegularProxyHeader{proxy_seq: _pseq}}}) do
+  {:regular_proxy, %RegularProxyHeader{proxy_seq: pseq}}}) do
     IO.puts("[+] Local: Relaying clove to share handler") # Debug
     aux_data = %{request_type: :regular_proxy}
     processor_name = state.config.registry_table.share_handler
     route_clove(processor_name, [data], aux_data)
-    {:noreply, state}
+    new_state = State.update_relay_timestamp(state, pseq)
+    {:noreply, new_state}
   end
 
   @doc """
@@ -45,7 +46,6 @@ defmodule LAP2.Networking.Routing.Local do
   @spec handle_proxy_request(map, {binary, integer}, map) :: {:noreply, map}
   def handle_proxy_request(state, source, %Clove{data: data, headers:
   {:proxy_response, %ProxyResponseHeader{clove_seq: cseq}}}) do
-    # MAJOR-ish TODO: make this work
     IO.puts("[+] Local: Relaying via proxy request from #{inspect source}")
     prev_hop = state.clove_cache[cseq].prv_hop
     proxy_seq = CloveHelper.gen_seq_num()
@@ -64,7 +64,6 @@ defmodule LAP2.Networking.Routing.Local do
   end
 
   # ---- Private functions ----
-  # MAJOR TODO: Update timestamps whenever accessed to prevent deletion
   # Deliver the clove to the appropriate receiver, either local or remote
   @spec route_clove(atom, list, map) :: :ok
   defp route_clove(_receiver, [], _aux_data), do: :ok

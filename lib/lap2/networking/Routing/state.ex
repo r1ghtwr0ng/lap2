@@ -17,6 +17,24 @@ defmodule LAP2.Networking.Routing.State do
   end
 
   @doc """
+  Update the cache entry timestamp.
+  """
+  @spec update_clove_timestamp(map, non_neg_integer) :: map
+  def update_clove_timestamp(state, clove_seq) do
+    new_cache = Map.update(state.clove_cache, clove_seq, nil, fn entry -> Map.put(entry, :timestamp, :os.system_time(:millisecond)) end)
+    Map.put(state, :clove_cache, new_cache)
+  end
+
+  @doc """
+  Update the relay table entry timestamp.
+  """
+  @spec update_relay_timestamp(map, non_neg_integer) :: map
+  def update_relay_timestamp(state, proxy_seq) do
+    new_table = Map.update(state.relay_table, proxy_seq, nil, fn entry -> Map.put(entry, :timestamp, :os.system_time(:millisecond)) end)
+    Map.put(state, :relay_table, new_table)
+  end
+
+  @doc """
   Add clove to list of own cloves.
   """
   @spec add_own_clove(map, non_neg_integer) :: map

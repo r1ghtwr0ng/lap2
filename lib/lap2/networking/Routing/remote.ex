@@ -48,7 +48,8 @@ defmodule LAP2.Networking.Routing.Remote do
     IO.puts("[+] Remote: Relaying clove to #{inspect dest}") # Debug
     udp_name = state.config.registry_table.udp_server
     route_clove(dest, [data], %{proxy_seq: pseq}, udp_name, :regular_proxy)
-    {:noreply, state}
+    new_state = State.update_relay_timestamp(state, pseq)
+    {:noreply, new_state}
   end
 
   # ---- Public outbound routing functions ----
