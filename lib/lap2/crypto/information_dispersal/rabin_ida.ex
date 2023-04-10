@@ -28,7 +28,7 @@ defmodule LAP2.Crypto.InformationDispersal.RabinIDA do
     # Calculate the shares
     Matrix.matrix_dot_product(vand_matrix, byte_chunks, @prime)
     |> Enum.map(&encode_double_byte/1)
-    |> Enum.with_index(fn chunk, idx -> %{data: :erlang.list_to_binary(chunk), share_id: idx + 1}; end)
+    |> Enum.with_index(fn chunk, idx -> %{data: :erlang.list_to_binary(chunk), share_idx: idx + 1}; end)
   end
 
   @doc """
@@ -47,7 +47,7 @@ defmodule LAP2.Crypto.InformationDispersal.RabinIDA do
 
     # Fetch the ids from the shares and use them to generate the reassembly matrix
     try do
-      reconstructed = Enum.map(shares, fn share -> share.share_id; end)
+      reconstructed = Enum.map(shares, fn share -> share.share_idx; end)
       |> Matrix.vandermonde_inverse(@prime)
       |> Matrix.matrix_product(byte_chunks, @prime)
       |> Matrix.transpose()

@@ -27,7 +27,7 @@ defmodule LAP2.Main.ShareHandler do
     state = %{
       ets: :ets.new(:clove_ets, [:set, :private]),
       share_info: %{},
-      config: config
+      config: %{share_ttl: config.share_ttl}
     }
     {:ok, state}
   end
@@ -64,19 +64,19 @@ defmodule LAP2.Main.ShareHandler do
 
   # ---- Private Functions ----
   @spec add_or_update(map, non_neg_integer, non_neg_integer, non_neg_integer) :: map
-  defp add_or_update(state, msg_sequence, share_id, threshold) when is_map_key(state.share_info, msg_sequence) do
+  defp add_or_update(state, msg_sequence, share_idx, threshold) when is_map_key(state.share_info, msg_sequence) do
     current_entry = Map.get(state.share_info, msg_sequence)
     new_entry = %{current_entry |
-      share_ids: [share_id | current_entry.share_ids],
+      share_idxs: [share_idx | current_entry.share_idxs],
       timestamp: :os.system_time(:millisecond)
     }
     new_share_info = Map.put(state.share_info, msg_sequence, new_entry)
     %{state | share_info: new_share_info}
   end
-  defp add_or_update(state, msg_sequence, share_id, threshold) do
+  defp add_or_update(state, msg_sequence, share_idx, threshold) do
     new_entry = %{
       threshold: threshold,
-      share_ids: [share_id],
+      share_idxs: [share_idx],
       timestamp: :os.system_time(:millisecond)
     }
     new_share_info = Map.put(state.sharet_info, msg_sequence, new_entry)
