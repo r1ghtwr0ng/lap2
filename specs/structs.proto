@@ -27,11 +27,12 @@ message RegularProxyHeader {
 }
 
 message Share {
-    uint32 total_shares = 1;
-    uint32 share_id = 2;
-    uint32 share_threshold = 3;
-    KeyShare key_share = 4;
-    bytes data = 5;
+    uint64 message_id = 1;
+    uint32 total_shares = 2;
+    uint32 share_id = 3;
+    uint32 share_threshold = 4;
+    KeyShare key_share = 5;
+    bytes data = 6;
 }
 
 message KeyShare {
