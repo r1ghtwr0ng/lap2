@@ -1,6 +1,6 @@
-defmodule LAP2.Networking.LAP2Socket do
-  alias LAP2.Utils.CloveHelper
-  alias LAP2.Networking.UdpServer
+defmodule LAP2.Networking.Sockets.Lap2Socket do
+  alias LAP2.Networking.Sockets.UdpServer
+  alias LAP2.Utils.ProtoBuf.CloveHelper
 
   # ---- Public functions ----
   @doc """
@@ -8,7 +8,7 @@ defmodule LAP2.Networking.LAP2Socket do
   """
   @spec parse_dgram({String.t, non_neg_integer}, binary, atom) :: :ok | :err
   def parse_dgram(source, dgram, router_name) do
-    IO.puts("[+] LAP2Socket: Received datagram #{inspect dgram}")
+    IO.puts("[+] Lap2Socket: Received datagram #{inspect dgram}")
     # DEBUG: Sleep for 1 second to simulate (unrealistically large) processing time
     # Process.sleep(1000)
     # Deserialise dgram
@@ -16,7 +16,7 @@ defmodule LAP2.Networking.LAP2Socket do
       CloveHelper.handle_deserialised_clove(source, clove, router_name)
     else
       {:error, reason} ->
-        IO.puts("[!] LAP2Socket: Error deserialising datagram: #{inspect reason}")
+        IO.puts("[!] Lap2Socket: Error deserialising datagram: #{inspect reason}")
         :err
     end
   end
@@ -31,7 +31,7 @@ defmodule LAP2.Networking.LAP2Socket do
     |> CloveHelper.serialise()
     |> case do
       {:ok, dgram} -> UdpServer.send_dgram(udp_name, dgram, {dest_addr, port}); :ok
-      {:error, reason} -> IO.puts("[!] LAP2Socket: Error serialising clove: #{inspect reason}"); :err
+      {:error, reason} -> IO.puts("[!] Lap2Socket: Error serialising clove: #{inspect reason}"); :err
     end
   end
 end

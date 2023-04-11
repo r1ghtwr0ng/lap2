@@ -3,7 +3,7 @@ defmodule LAP2.Main.Helpers.ProcessorState do
   Helper functions for processing the share handler state.
   """
 
-  alias LAP2.Utils.ShareHelper
+  alias LAP2.Utils.ProtoBuf.ShareHelper
 
   @doc """
   Route a share to the appropriate processing stage.

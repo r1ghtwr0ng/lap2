@@ -1,8 +1,8 @@
-defmodule LAP2.Networking.UdpServer do
+defmodule LAP2.Networking.Sockets.UdpServer do
   # Wrapper around basic UDP socket, adding checksum, sequence number, etc.
   use GenServer
   require Logger
-  alias LAP2.Networking.LAP2Socket
+  alias LAP2.Networking.Sockets.Lap2Socket
 
   # ---- GenServer callbacks ----
   @doc """
@@ -44,7 +44,7 @@ defmodule LAP2.Networking.UdpServer do
     task_supervisor = {:global, state.registry_table.task_supervisor}
     bin_dgram = :erlang.list_to_binary(dgram)
     case Task.Supervisor.start_child(task_supervisor, fn ->
-      LAP2Socket.parse_dgram(source, bin_dgram, state.registry_table.router) end) do
+      Lap2Socket.parse_dgram(source, bin_dgram, state.registry_table.router) end) do
       {:ok, _pid} ->
         #Logger.debug("Started task to parse datagram")
         {:noreply, state}
@@ -96,7 +96,7 @@ defmodule LAP2.Networking.UdpServer do
   def handle_cast(:check_queue, %{queue: {[], []}} = state), do: {:noreply, state}
   def handle_cast(:check_queue, %{queue: queue, queue_interval: queue_interval} = state) do
     {{:value, {source, bin_dgram}}, tail} = :queue.out(queue)
-    case Task.Supervisor.start_child(LAP2.TaskSupervisor, fn -> LAP2Socket.parse_dgram(source, bin_dgram, state.registry_table.router) end) do
+    case Task.Supervisor.start_child(LAP2.TaskSupervisor, fn -> Lap2Socket.parse_dgram(source, bin_dgram, state.registry_table.router) end) do
       {:ok, _pid} ->
         #Logger.debug("Started task to parse datagrams")
         {:noreply, %{state | queue: tail}}

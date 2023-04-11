@@ -3,8 +3,8 @@ defmodule LAP2.Networking.Routing.Remote do
   Module for routing cloves to remote destinations.
   """
   require Logger
-  alias LAP2.Utils.CloveHelper
-  alias LAP2.Networking.LAP2Socket
+  alias LAP2.Utils.ProtoBuf.CloveHelper
+  alias LAP2.Networking.Sockets.Lap2Socket
   alias LAP2.Networking.Routing.State
 
   # ---- Public inbound routing functions ----
@@ -86,7 +86,7 @@ defmodule LAP2.Networking.Routing.Remote do
   defp route_clove( _receiver, [], _headers), do: :ok
   defp route_clove(dest, [data | tail], headers, udp_name, clove_type) do
     IO.puts("[+] Remote: Delivering to remote")
-    Task.async(fn -> LAP2Socket.send_clove(dest, data, headers, udp_name, clove_type); end)
+    Task.async(fn -> Lap2Socket.send_clove(dest, data, headers, udp_name, clove_type); end)
     route_clove(dest, tail, headers)
   end
 end

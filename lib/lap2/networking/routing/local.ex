@@ -3,7 +3,7 @@ defmodule LAP2.Networking.Routing.Local do
   Module for routing cloves to the local share handler.
   """
   require Logger
-  alias LAP2.Utils.CloveHelper
+  alias LAP2.Utils.ProtoBuf.CloveHelper
   alias LAP2.Networking.Routing.State
   alias LAP2.Main.ShareHandler
 

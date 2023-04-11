@@ -1,6 +1,6 @@
 defmodule LAP2.Networking.ProtoBufTest do
   alias LAP2.Networking.ProtoBuf
-  alias LAP2.Utils.CloveHelper
+  alias LAP2.Utils.ProtoBuf.CloveHelper
 
   use ExUnit.Case
   doctest LAP2.Networking.ProtoBuf

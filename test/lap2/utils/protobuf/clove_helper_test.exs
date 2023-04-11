@@ -1,7 +1,7 @@
-defmodule LAP2.Utils.CloveHelperTest do
+defmodule LAP2.Utils.ProtoBuf.CloveHelperTest do
   use ExUnit.Case
 
-  alias LAP2.Utils.CloveHelper
+  alias LAP2.Utils.ProtoBuf.CloveHelper
 
   describe "verify_checksum/1" do
     test "Test valid checksum" do

@@ -1,4 +1,4 @@
-defmodule LAP2.Utils.ShareHelper do
+defmodule LAP2.Utils.ProtoBuf.ShareHelper do
   @moduledoc """
   Helper functions for processing IDA Shares.
   Verifies integrity, serves as interface for serialising/deserialising with ProtoBuf.

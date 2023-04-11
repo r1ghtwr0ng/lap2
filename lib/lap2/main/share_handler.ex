@@ -4,7 +4,7 @@ defmodule LAP2.Main.ShareHandler do
   """
   use GenServer
   require Logger
-  alias LAP2.Utils.ShareHelper
+  alias LAP2.Utils.ProtoBuf.ShareHelper
   alias LAP2.Main.Helpers.ProcessorState
 
   @doc """

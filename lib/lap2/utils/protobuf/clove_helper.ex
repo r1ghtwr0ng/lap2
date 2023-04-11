@@ -1,4 +1,4 @@
-defmodule LAP2.Utils.CloveHelper do
+defmodule LAP2.Utils.ProtoBuf.CloveHelper do
   @moduledoc """
   Helper functions for generating clove information, checksums, splitting and reconstructing cloves, padding, etc.
   Handles serialising and deserialising cloves (simplifies serial data types).

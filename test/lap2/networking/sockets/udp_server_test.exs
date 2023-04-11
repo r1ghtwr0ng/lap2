@@ -1,6 +1,6 @@
-defmodule LAP2.Networking.UdpServerTest do
+defmodule LAP2.Networking.Sockets.UdpServerTest do
   use ExUnit.Case, async: true
-  alias LAP2.Networking.UdpServer
+  alias LAP2.Networking.Sockets.UdpServer
 
   setup do
     config = %{
@@ -11,7 +11,7 @@ defmodule LAP2.Networking.UdpServerTest do
     opts = [strategy: :one_for_one, name: {:global, :test_supervisor}]
     children = [
       {Task.Supervisor, [name: {:global, :test_task_supervisor}, max_children: 2]},
-      {LAP2.Networking.UdpServer, config}
+      {LAP2.Networking.Sockets.UdpServer, config}
     ]
     Supervisor.start_link(children, opts)
 

@@ -126,7 +126,7 @@ defmodule LAP2Test do
               assert :ok == Router.append_dht(bstrp_addr, {bstrp_ip, bstrp_port}, main_config.router.name)
               data = "Hello World"
               # TODO more complex data exchange
-              clove_seq = LAP2.Utils.CloveHelper.gen_seq_num()
+              clove_seq = LAP2.Utils.ProtoBuf.CloveHelper.gen_seq_num()
               assert :ok == Router.route_outbound_discovery({bstrp_ip, bstrp_port}, clove_seq, data, main_config.router.name)
               assert :ok == Supervisor.stop(main_pid)
               assert :ok == Supervisor.stop(bstrp_pid)
