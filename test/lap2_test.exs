@@ -66,7 +66,8 @@ defmodule LAP2Test do
           task_supervisor: String.to_atom("lap2_superv_#{addr}"),
           tcp_server: String.to_atom("tcp_server_#{addr}"),
           udp_server: String.to_atom("udp_server_#{addr}")
-        }
+        },
+        share_ttl: 60000
       }
     }
   end
