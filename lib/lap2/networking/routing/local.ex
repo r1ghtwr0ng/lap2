@@ -5,7 +5,7 @@ defmodule LAP2.Networking.Routing.Local do
   require Logger
   alias LAP2.Utils.ProtoBuf.CloveHelper
   alias LAP2.Networking.Routing.State
-  alias LAP2.Main.ShareHandler
+  alias LAP2.Main.StructHandlers.ShareHandler
 
   # ---- Public functions ----
   @doc """
@@ -53,7 +53,7 @@ defmodule LAP2.Networking.Routing.Local do
   @spec handle_proxy_request(map, {binary, integer}, map) :: {:noreply, map}
   def handle_proxy_request(state, source, %Clove{
         data: data,
-        headers: {:proxy_response, %ProxyResponseHeader{clove_seq: cseq}}
+        headers: {:proxy_discovery, %ProxyDiscoveryHeader{clove_seq: cseq}}
       }) do
     IO.puts("[+] Local: Relaying via proxy request from #{inspect(source)}")
     prev_hop = state.clove_cache[cseq].prv_hop
@@ -61,9 +61,8 @@ defmodule LAP2.Networking.Routing.Local do
 
     aux_data = %{
       request_type: :proxy_request,
-      proxy_seq: proxy_seq,
-      prv_hop: source,
-      nxt_hop: prev_hop
+      clove_seq: cseq,
+      relay: source,
     }
 
     processor_name = state.config.registry_table.share_handler

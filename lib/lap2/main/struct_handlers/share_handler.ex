@@ -1,4 +1,4 @@
-defmodule LAP2.Main.ShareHandler do
+defmodule LAP2.Main.StructHandlers.ShareHandler do
   @moduledoc """
   Handle managing, sending and receiving data from the network.
   """
@@ -6,6 +6,7 @@ defmodule LAP2.Main.ShareHandler do
   require Logger
   alias LAP2.Utils.ProtoBuf.ShareHelper
   alias LAP2.Main.Helpers.ProcessorState
+  alias LAP2.Main.StructHandlers.RequestHandler
 
   @doc """
   Start the Router process.
@@ -43,14 +44,21 @@ defmodule LAP2.Main.ShareHandler do
 
     case ProcessorState.route_share(state, share) do
       :reassemble ->
-        ets_shares = ProcessorState.get_share_from_ets(state.ets, share.message_id)
+        ets_struct = ProcessorState.get_share_from_ets(state.ets, share.message_id)
         ProcessorState.delete_share_from_ets(state.ets, share.message_id)
-        all_shares = [share | ets_shares]
+        all_shares = [share | ets_struct.shares]
 
         case ShareHelper.reconstruct(all_shares) do
           {:ok, reconstructed} ->
-            # TODO send to other handler
-            IO.puts("Reconstructed: #{reconstructed}")
+            # Verify and format the auxiliary data
+            case ShareHelper.format_aux_data([aux_data | ets_struct.aux_data]) do
+              {:ok, formatted_aux_data} ->
+                Task.async(fn -> RequestHandler.handle_request(reconstructed, formatted_aux_data); end)
+                IO.puts("Reconstructed: #{reconstructed}")
+
+              {:error, reason} ->
+                IO.puts("Reconstruction failed #{inspect reason}}")
+            end
 
           {:error, _} ->
             IO.puts("Reconstruction failed")
