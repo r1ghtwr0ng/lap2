@@ -23,14 +23,16 @@ defmodule LAP2.Crypto.InformationDispersal.SecureIDA do
     iv = :crypto.strong_rand_bytes(16)
     iv_shares = KeyX.Shamir.split_secret(m, n, iv)
     aes_key = :crypto.strong_rand_bytes(32)
-    key_shares = KeyX.Shamir.split_secret(m, n, aes_key)
-    |> Enum.zip(iv_shares)
-    |> Enum.map(fn {key_share, iv_share} ->
-      %KeyShare{
-        aes_key: key_share,
-        iv: iv_share
-      }
-    end)
+
+    key_shares =
+      KeyX.Shamir.split_secret(m, n, aes_key)
+      |> Enum.zip(iv_shares)
+      |> Enum.map(fn {key_share, iv_share} ->
+        %KeyShare{
+          aes_key: key_share,
+          iv: iv_share
+        }
+      end)
 
     # Pad and encrypt data with AES and the ephemeral key
     # Split encrypted data with Rabin's IDA
@@ -40,7 +42,8 @@ defmodule LAP2.Crypto.InformationDispersal.SecureIDA do
     |> RabinIDA.split(n, m)
     |> Enum.zip(key_shares)
     |> Enum.map(fn {d_share, key_share} ->
-      %Share{total_shares: n,
+      %Share{
+        total_shares: n,
         message_id: message_id,
         share_idx: d_share.share_idx,
         share_threshold: m,
@@ -58,9 +61,14 @@ defmodule LAP2.Crypto.InformationDispersal.SecureIDA do
   def reconstruct(shares) do
     # Check that there are enough shares to reconstruct the data
     threshold = Enum.at(shares, 0).share_threshold
+
     cond do
-      length(shares) == threshold -> {:ok, reconstruct_data(shares)}
-      length(shares) < threshold -> {:error, "Not enough shares to reconstruct data"}
+      length(shares) == threshold ->
+        {:ok, reconstruct_data(shares)}
+
+      length(shares) < threshold ->
+        {:error, "Not enough shares to reconstruct data"}
+
       length(shares) > threshold ->
         shares = Enum.take_random(shares, threshold)
         {:ok, reconstruct_data(shares)}
@@ -71,9 +79,10 @@ defmodule LAP2.Crypto.InformationDispersal.SecureIDA do
   @spec reconstruct_data(list(Share)) :: binary
   defp reconstruct_data(shares) do
     # Extract key and data shares from share structs
-    {aes_key, iv} = shares
-    |> Enum.map(fn share -> share.key_share; end)
-    |> recover_aes_data()
+    {aes_key, iv} =
+      shares
+      |> Enum.map(fn share -> share.key_share end)
+      |> recover_aes_data()
 
     # Reconstruct data with Rabin's IDA
     {:ok, data} = RabinIDA.reconstruct(shares)
@@ -87,9 +96,11 @@ defmodule LAP2.Crypto.InformationDispersal.SecureIDA do
   defp recover_aes_data(key_shares) do
     # Extract key and data shares from share structs
     # Recover Key and IV with Shamir's Secret Sharing
-    {aes_keys, iv_shares} = key_shares
-    |> Enum.map(fn key_share -> {key_share.aes_key, key_share.iv}; end)
-    |> Enum.unzip()
+    {aes_keys, iv_shares} =
+      key_shares
+      |> Enum.map(fn key_share -> {key_share.aes_key, key_share.iv} end)
+      |> Enum.unzip()
+
     aes_key = KeyX.Shamir.recover_secret(aes_keys)
     iv = KeyX.Shamir.recover_secret(iv_shares)
     {aes_key, iv}

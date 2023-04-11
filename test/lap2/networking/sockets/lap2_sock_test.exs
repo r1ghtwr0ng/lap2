@@ -12,7 +12,9 @@ defmodule LAP2.Networking.Sockets.Lap2SocketTest do
 
   describe "parse_dgram/3" do
     test "Successfully parse and processes a received datagram", context do
-      dgram = <<42, 2, 8, 1, 8, 145, 216, 228, 143, 5, 18, 9, 84, 101, 115, 116, 32, 100, 97, 116, 97>>
+      dgram =
+        <<42, 2, 8, 1, 8, 145, 216, 228, 143, 5, 18, 9, 84, 101, 115, 116, 32, 100, 97, 116, 97>>
+
       source = {"127.0.0.1", 8080}
 
       assert Lap2Socket.parse_dgram(source, dgram, context.router_name) == :ok

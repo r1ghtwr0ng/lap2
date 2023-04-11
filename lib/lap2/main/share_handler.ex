@@ -24,12 +24,14 @@ defmodule LAP2.Main.ShareHandler do
     Process.flag(:trap_exit, true)
     # Initialise data handler state
     IO.puts("[i] Share Handler: Starting GenServer")
+
     state = %{
       ets: :ets.new(:clove_ets, [:set, :private]),
       share_info: %{},
       drop_list: [],
       config: %{share_ttl: config.share_ttl}
     }
+
     {:ok, state}
   end
 
@@ -38,25 +40,36 @@ defmodule LAP2.Main.ShareHandler do
   def handle_cast({:deliver, data, aux_data}, state) do
     # TODO send data for parsing
     share = ShareHelper.deserialise(data)
+
     case ProcessorState.route_share(state, share) do
       :reassemble ->
         ets_shares = ProcessorState.get_share_from_ets(state.ets, share.message_id)
         ProcessorState.delete_share_from_ets(state.ets, share.message_id)
         all_shares = [share | ets_shares]
+
         case ShareHelper.reconstruct(all_shares) do
           {:ok, reconstructed} ->
-            IO.puts("Reconstructed: #{reconstructed}") # TODO send to other handler
-          {:error, _} -> IO.puts("Reconstruction failed")
+            # TODO send to other handler
+            IO.puts("Reconstructed: #{reconstructed}")
+
+          {:error, _} ->
+            IO.puts("Reconstruction failed")
         end
-        new_state = state
-        |> ProcessorState.delete_from_cache(share.message_id)
-        |> ProcessorState.add_to_drop_list(share.message_id)
+
+        new_state =
+          state
+          |> ProcessorState.delete_from_cache(share.message_id)
+          |> ProcessorState.add_to_drop_list(share.message_id)
+
         {:noreply, new_state}
+
       :cache ->
         new_state = ProcessorState.cache_share(state, share)
         ProcessorState.add_share_to_ets(state.ets, share, aux_data)
         {:noreply, new_state}
-      :drop -> {:noreply, state}
+
+      :drop ->
+        {:noreply, state}
     end
   end
 

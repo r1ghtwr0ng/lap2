@@ -31,6 +31,7 @@ defmodule LAP2.Utils.ProtoBuf.CloveHelper do
       {:error, reason} -> {:error, reason}
     end
   end
+
   # ---- Checksum functions ----
   @doc """
   Verify the checksum of the clove.
@@ -60,12 +61,14 @@ defmodule LAP2.Utils.ProtoBuf.CloveHelper do
     # Verify clove validity
     cond do
       verify_clove(clove) ->
-        IO.puts("[+] CloveHelper: Valid clove") # DEBUG
-        Task.async(fn -> Router.route_inbound(source, clove, router_name); end)
+        # DEBUG
+        IO.puts("[+] CloveHelper: Valid clove")
+        Task.async(fn -> Router.route_inbound(source, clove, router_name) end)
         :ok
 
       true ->
-        IO.puts("[-] CloveHelper: Invalid clove") # DEBUG
+        # DEBUG
+        IO.puts("[-] CloveHelper: Invalid clove")
         :err
     end
   end
@@ -83,8 +86,16 @@ defmodule LAP2.Utils.ProtoBuf.CloveHelper do
   Verify the clove's headers.
   """
   @spec verify_headers(map) :: boolean
-  def verify_headers({:proxy_discovery, %ProxyDiscoveryHeader{clove_seq: _, drop_probab: drop_probab}}), do: drop_probab > 0.0 && drop_probab <= 1.0
-  def verify_headers({:proxy_response, %ProxyResponseHeader{clove_seq: _, proxy_seq: _, hop_count: _}}), do: true
+  def verify_headers(
+        {:proxy_discovery, %ProxyDiscoveryHeader{clove_seq: _, drop_probab: drop_probab}}
+      ),
+      do: drop_probab > 0.0 && drop_probab <= 1.0
+
+  def verify_headers(
+        {:proxy_response, %ProxyResponseHeader{clove_seq: _, proxy_seq: _, hop_count: _}}
+      ),
+      do: true
+
   def verify_headers({:regular_proxy, %RegularProxyHeader{proxy_seq: _}}), do: true
   def verify_headers(_), do: false
 
@@ -98,7 +109,11 @@ defmodule LAP2.Utils.ProtoBuf.CloveHelper do
   # Build Clove struct
   @spec build_clove(map, atom) :: map
   defp build_clove(clove, clove_type) do
-    %Clove{checksum: clove.checksum, headers: build_header(clove_type, clove.headers), data: clove.data}
+    %Clove{
+      checksum: clove.checksum,
+      headers: build_header(clove_type, clove.headers),
+      data: clove.data
+    }
   end
 
   # Build Header struct
@@ -106,9 +121,16 @@ defmodule LAP2.Utils.ProtoBuf.CloveHelper do
   defp build_header(:proxy_discovery, %{clove_seq: clove_seq, drop_probab: drop_probab}) do
     {:proxy_discovery, %ProxyDiscoveryHeader{clove_seq: clove_seq, drop_probab: drop_probab}}
   end
-  defp build_header(:proxy_response, %{proxy_seq: proxy_seq, clove_seq: clove_seq, hop_count: hop_count}) do
-    {:proxy_response, %ProxyResponseHeader{proxy_seq: proxy_seq, clove_seq: clove_seq, hop_count: hop_count}}
+
+  defp build_header(:proxy_response, %{
+         proxy_seq: proxy_seq,
+         clove_seq: clove_seq,
+         hop_count: hop_count
+       }) do
+    {:proxy_response,
+     %ProxyResponseHeader{proxy_seq: proxy_seq, clove_seq: clove_seq, hop_count: hop_count}}
   end
+
   defp build_header(:regular_proxy, %{proxy_seq: proxy_seq}) do
     {:regular_proxy, %RegularProxyHeader{proxy_seq: proxy_seq}}
   end

@@ -1,5 +1,4 @@
 defmodule LAP2.Crypto.InformationDispersal.SecureIDATest do
-
   use ExUnit.Case
   alias LAP2.Crypto.InformationDispersal.SecureIDA
   doctest LAP2.Crypto.InformationDispersal.SecureIDA

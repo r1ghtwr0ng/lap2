@@ -18,6 +18,7 @@ defmodule LAP2 do
     load_config()
     |> start_supervisor()
   end
+
   @doc """
   Start the server with a config map. This is useful for testing.
   """
@@ -50,9 +51,12 @@ defmodule LAP2 do
       # Get coonfig
       ConfigParser.get_config(env)
     rescue
-      e in Jason.DecodeError -> Logger.error("Error parsing JSON config: #{inspect e}")
-      e in File.Error -> Logger.error("Error opening config file: #{inspect e}")
-      :init.stop()
+      e in Jason.DecodeError ->
+        Logger.error("Error parsing JSON config: #{inspect(e)}")
+
+      e in File.Error ->
+        Logger.error("Error opening config file: #{inspect(e)}")
+        :init.stop()
     end
   end
 
@@ -60,12 +64,18 @@ defmodule LAP2 do
   @spec start_supervisor(map) :: {:ok, pid} | {:error, any}
   defp start_supervisor(config) do
     opts = [strategy: :one_for_one, name: {:global, config.main_supervisor.name}]
+
     children = [
-      {Task.Supervisor, [name: {:global, config.task_supervisor.name}, max_children: config.task_supervisor.max_children || 10]},
+      {Task.Supervisor,
+       [
+         name: {:global, config.task_supervisor.name},
+         max_children: config.task_supervisor.max_children || 10
+       ]},
       {LAP2.Networking.Sockets.UdpServer, config.udp_server},
       {LAP2.Networking.Router, config.router},
       {LAP2.Main.ShareHandler, config.share_handler}
     ]
+
     Supervisor.start_link(children, opts)
   end
 

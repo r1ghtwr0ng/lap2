@@ -6,7 +6,11 @@ defmodule LAP2.Networking.Routing.StateTest do
     own_cloves: [],
     clove_cache: %{},
     drop_rules: %{clove_seq: [], ip_addr: [], proxy_seq: []},
-    relay_table: %{2 => %{relays: %{{"1.2.3.4", 1234} => :share_handler, {"1.1.1.1", 4444} => :share_handler}}, timestamp: :os.system_time(:millisecond), type: :proxy},
+    relay_table: %{
+      2 => %{relays: %{{"1.2.3.4", 1234} => :share_handler, {"1.1.1.1", 4444} => :share_handler}},
+      timestamp: :os.system_time(:millisecond),
+      type: :proxy
+    },
     random_neighbors: [],
     config: %{
       clove_cache_ttl: 60_000,
@@ -26,10 +30,15 @@ defmodule LAP2.Networking.Routing.StateTest do
     test "Remove outdated entries from state" do
       # Set up an outdated state
       outdated_state = %{
-        @valid_state |
-        clove_cache: %{1 => %{timestamp: :os.system_time(:millisecond) - 61_000}},
-        relay_table: %{1 =>%{relays: %{{"1.2.3.4", 1234} => :share_handler, {"1.1.1.1", 4444} => :share_handler},
-          timestamp: :os.system_time(:millisecond) - 61_000, type: :proxy}}
+        @valid_state
+        | clove_cache: %{1 => %{timestamp: :os.system_time(:millisecond) - 61_000}},
+          relay_table: %{
+            1 => %{
+              relays: %{{"1.2.3.4", 1234} => :share_handler, {"1.1.1.1", 4444} => :share_handler},
+              timestamp: :os.system_time(:millisecond) - 61_000,
+              type: :proxy
+            }
+          }
       }
 
       cleaned_state = State.clean_state(outdated_state)
@@ -41,10 +50,15 @@ defmodule LAP2.Networking.Routing.StateTest do
     test "Leave valid entries in state" do
       # Set up a valid state
       valid_state = %{
-        @valid_state |
-        clove_cache: %{2 => %{timestamp: :os.system_time(:millisecond)}},
-        relay_table: %{2 => %{relays: %{{"1.2.3.4", 1234} => :share_handler, {"1.1.1.1", 4444} => :share_handler},
-          timestamp: :os.system_time(:millisecond), type: :proxy}}
+        @valid_state
+        | clove_cache: %{2 => %{timestamp: :os.system_time(:millisecond)}},
+          relay_table: %{
+            2 => %{
+              relays: %{{"1.2.3.4", 1234} => :share_handler, {"1.1.1.1", 4444} => :share_handler},
+              timestamp: :os.system_time(:millisecond),
+              type: :proxy
+            }
+          }
       }
 
       cleaned_state = State.clean_state(valid_state)
@@ -64,12 +78,19 @@ defmodule LAP2.Networking.Routing.StateTest do
 
   describe "evict_clove/2" do
     test "Remove a clove from the cache" do
-      state = %{@valid_state |
-      clove_cache: %{2 => %{hash: :erlang.phash2("Test data"),
-      data: "Test data",
-      prev_hop: {"10.10.10.1", 1111},
-      next_hop: {"10.10.10.2", 2222},
-      timestamp: :os.system_time(:millisecond)}}}
+      state = %{
+        @valid_state
+        | clove_cache: %{
+            2 => %{
+              hash: :erlang.phash2("Test data"),
+              data: "Test data",
+              prev_hop: {"10.10.10.1", 1111},
+              next_hop: {"10.10.10.2", 2222},
+              timestamp: :os.system_time(:millisecond)
+            }
+          }
+      }
+
       clove_seq = 2
       new_state = State.evict_clove(state, clove_seq)
       assert new_state.clove_cache == %{}
@@ -111,7 +132,11 @@ defmodule LAP2.Networking.Routing.StateTest do
 
       assert is_map_key(new_state.relay_table, relay_seq)
       assert new_state.relay_table[relay_seq].type == :proxy
-      assert new_state.relay_table[relay_seq].relays == %{relay_1 => :share_handler, relay_2 => :share_handler}
+
+      assert new_state.relay_table[relay_seq].relays == %{
+               relay_1 => :share_handler,
+               relay_2 => :share_handler
+             }
     end
 
     test "Add a relay route as relay" do
@@ -128,8 +153,7 @@ defmodule LAP2.Networking.Routing.StateTest do
 
   describe "get_route/3" do
     test "Return random walk" do
-      state = %{@valid_state |
-      random_neighbors: ["NEIGHBOR_ADDR"]}
+      state = %{@valid_state | random_neighbors: ["NEIGHBOR_ADDR"]}
       source = {"127.0.0.1", 1234}
       data = "data"
       clove_seq = 1
@@ -140,12 +164,19 @@ defmodule LAP2.Networking.Routing.StateTest do
     end
 
     test "Return proxy request" do
-      state = %{@valid_state |
-      clove_cache: %{1 => %{hash: :erlang.phash2("Test data"),
-        data: "Test data",
-        prev_hop: {"10.10.10.1", 1111},
-        next_hop: {"10.10.10.2", 2222},
-        timestamp: :os.system_time(:millisecond)}}}
+      state = %{
+        @valid_state
+        | clove_cache: %{
+            1 => %{
+              hash: :erlang.phash2("Test data"),
+              data: "Test data",
+              prev_hop: {"10.10.10.1", 1111},
+              next_hop: {"10.10.10.2", 2222},
+              timestamp: :os.system_time(:millisecond)
+            }
+          }
+      }
+
       source = {"1.2.3.4", 1234}
       data = "Non-duplicate data"
       clove_seq = 1
@@ -156,8 +187,7 @@ defmodule LAP2.Networking.Routing.StateTest do
     end
 
     test "Return proxy response" do
-      state = %{@valid_state |
-      own_cloves: [2]}
+      state = %{@valid_state | own_cloves: [2]}
       source = {"1.2.3.4", 1234}
       data = "data"
       clove_seq = 2
@@ -168,12 +198,19 @@ defmodule LAP2.Networking.Routing.StateTest do
     end
 
     test "Return proxy response relay" do
-      state = %{@valid_state |
-        clove_cache: %{2 => %{hash: :erlang.phash2("Test data"),
-        data: "Test data",
-        prev_hop: {"10.10.10.1", 1111},
-        next_hop: {"10.10.10.2", 2222},
-        timestamp: :os.system_time(:millisecond)}}}
+      state = %{
+        @valid_state
+        | clove_cache: %{
+            2 => %{
+              hash: :erlang.phash2("Test data"),
+              data: "Test data",
+              prev_hop: {"10.10.10.1", 1111},
+              next_hop: {"10.10.10.2", 2222},
+              timestamp: :os.system_time(:millisecond)
+            }
+          }
+      }
+
       source = {"10.10.10.2", 2222}
       data = "data"
       clove_seq = 2
@@ -185,11 +222,20 @@ defmodule LAP2.Networking.Routing.StateTest do
     end
 
     test "Return relay table entry" do
-      state = %{@valid_state |
-      relay_table: %{2 => %{type: :proxy,
-      relays: %{{"10.10.10.1", 1111} => {"10.10.10.2", 2222},
-        {"10.10.10.2", 2222} => {"10.10.10.1", 1111}},
-      timestamp: :os.system_time(:millisecond)}}}
+      state = %{
+        @valid_state
+        | relay_table: %{
+            2 => %{
+              type: :proxy,
+              relays: %{
+                {"10.10.10.1", 1111} => {"10.10.10.2", 2222},
+                {"10.10.10.2", 2222} => {"10.10.10.1", 1111}
+              },
+              timestamp: :os.system_time(:millisecond)
+            }
+          }
+      }
+
       source = {"10.10.10.2", 2222}
       data = "data"
       proxy_seq = 2
@@ -200,53 +246,77 @@ defmodule LAP2.Networking.Routing.StateTest do
     end
 
     test "Drop duplicate clove" do
-      state = %{@valid_state |
-      clove_cache: %{2 => %{hash: :erlang.phash2("Test data"),
-        data: "Test data",
-        prev_hop: {"10.10.10.1", 1111},
-        next_hop: {"10.10.10.2", 2222},
-        timestamp: :os.system_time(:millisecond)}}}
+      state = %{
+        @valid_state
+        | clove_cache: %{
+            2 => %{
+              hash: :erlang.phash2("Test data"),
+              data: "Test data",
+              prev_hop: {"10.10.10.1", 1111},
+              next_hop: {"10.10.10.2", 2222},
+              timestamp: :os.system_time(:millisecond)
+            }
+          }
+      }
+
       source = {"10.10.10.1", 1111}
       data = "Test data"
       clove_seq = 2
       proxy_discovery_header = %ProxyDiscoveryHeader{clove_seq: clove_seq, drop_probab: 1.0}
-      clove = %Clove{data: data, headers: {:proxy_discovery, proxy_discovery_header}, checksum: CRC.crc_32(data)}
+
+      clove = %Clove{
+        data: data,
+        headers: {:proxy_discovery, proxy_discovery_header},
+        checksum: CRC.crc_32(data)
+      }
 
       assert State.get_route(state, source, clove) == :drop
     end
 
     test "Drop by clove_seq" do
-      state = %{@valid_state |
-      drop_rules: %{clove_seq: [1], ip_addr: [], proxy_seq: []}}
+      state = %{@valid_state | drop_rules: %{clove_seq: [1], ip_addr: [], proxy_seq: []}}
       source = {"1.2.3.4", 1234}
       data = "data"
       clove_seq = 1
       proxy_discovery_header = %ProxyDiscoveryHeader{clove_seq: clove_seq, drop_probab: 1.0}
-      clove = %Clove{data: data, headers: {:proxy_discovery, proxy_discovery_header}, checksum: CRC.crc_32(data)}
+
+      clove = %Clove{
+        data: data,
+        headers: {:proxy_discovery, proxy_discovery_header},
+        checksum: CRC.crc_32(data)
+      }
 
       assert State.get_route(state, source, clove) == :drop
     end
 
     test "Drop by proxy_seq" do
-      state = %{@valid_state |
-      drop_rules: %{clove_seq: [], ip_addr: [], proxy_seq: [3]}}
+      state = %{@valid_state | drop_rules: %{clove_seq: [], ip_addr: [], proxy_seq: [3]}}
       source = {"1.2.3.4", 1234}
       data = "data"
       proxy_seq = 3
       proxy_discovery_header = %RegularProxyHeader{proxy_seq: proxy_seq}
-      clove = %Clove{data: data, headers: {:regular_proxy, proxy_discovery_header}, checksum: CRC.crc_32(data)}
+
+      clove = %Clove{
+        data: data,
+        headers: {:regular_proxy, proxy_discovery_header},
+        checksum: CRC.crc_32(data)
+      }
 
       assert State.get_route(state, source, clove) == :drop
     end
 
     test "Drop by source address" do
-      state = %{@valid_state |
-      drop_rules: %{clove_seq: [], ip_addr: ["1.2.3.4"], proxy_seq: []}}
+      state = %{@valid_state | drop_rules: %{clove_seq: [], ip_addr: ["1.2.3.4"], proxy_seq: []}}
       source = {"1.2.3.4", 1234}
       data = "data"
       clove_seq = 1
       proxy_discovery_header = %ProxyDiscoveryHeader{clove_seq: clove_seq, drop_probab: 1.0}
-      clove = %Clove{data: data, headers: {:proxy_discovery, proxy_discovery_header}, checksum: CRC.crc_32(data)}
+
+      clove = %Clove{
+        data: data,
+        headers: {:proxy_discovery, proxy_discovery_header},
+        checksum: CRC.crc_32(data)
+      }
 
       assert State.get_route(state, source, clove) == :drop
     end
@@ -256,7 +326,12 @@ defmodule LAP2.Networking.Routing.StateTest do
       data = "data"
       clove_seq = 1
       proxy_discovery_header = %ProxyDiscoveryHeader{clove_seq: clove_seq, drop_probab: 0.0}
-      clove = %Clove{data: data, headers: {:proxy_discovery, proxy_discovery_header}, checksum: CRC.crc_32(data)}
+
+      clove = %Clove{
+        data: data,
+        headers: {:proxy_discovery, proxy_discovery_header},
+        checksum: CRC.crc_32(data)
+      }
 
       assert State.get_route(@valid_state, source, clove) == :drop
     end

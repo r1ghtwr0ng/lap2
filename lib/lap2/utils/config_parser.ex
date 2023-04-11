@@ -27,10 +27,12 @@ defmodule LAP2.Utils.ConfigParser do
 
   # Generate the registry table and add it to the config.
   defp gen_registry_table(config) do
-    registry_table = Enum.reduce(config, %{}, fn
-      {k, %{name: name}}, acc -> Map.put(acc, k, name)
-      _, acc -> acc
-    end)
+    registry_table =
+      Enum.reduce(config, %{}, fn
+        {k, %{name: name}}, acc -> Map.put(acc, k, name)
+        _, acc -> acc
+      end)
+
     add_registry_table(config, registry_table)
   end
 
@@ -65,6 +67,9 @@ defmodule LAP2.Utils.ConfigParser do
 
   # Get the config path based on the environment, default to DEBUG if not PROD
   @spec get_config_path(String.t()) :: String.t()
-  defp get_config_path("PROD"), do: System.get_env("LAP2_PROD_CONFIG_PATH") || "./config/prod_config.json"
-  defp get_config_path(_), do: System.get_env("LAP2_DEBUG_CONFIG_PATH") || "./config/debug_config.json"
+  defp get_config_path("PROD"),
+    do: System.get_env("LAP2_PROD_CONFIG_PATH") || "./config/prod_config.json"
+
+  defp get_config_path(_),
+    do: System.get_env("LAP2_DEBUG_CONFIG_PATH") || "./config/debug_config.json"
 end

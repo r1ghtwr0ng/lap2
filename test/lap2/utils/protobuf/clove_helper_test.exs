@@ -22,7 +22,11 @@ defmodule LAP2.Utils.ProtoBuf.CloveHelperTest do
       data = "TEST_DATA"
 
       # Different types of headers
-      hdr = %ProxyDiscoveryHeader{clove_seq: CloveHelper.gen_seq_num(), drop_probab: CloveHelper.gen_drop_probab(0.7, 1.0)}
+      hdr = %ProxyDiscoveryHeader{
+        clove_seq: CloveHelper.gen_seq_num(),
+        drop_probab: CloveHelper.gen_drop_probab(0.7, 1.0)
+      }
+
       # How the clove should look like
       clove = %Clove{data: data, headers: {:proxy_discovery, hdr}, checksum: CRC.crc_32(data)}
       # Set headers
@@ -35,7 +39,12 @@ defmodule LAP2.Utils.ProtoBuf.CloveHelperTest do
       data = "TEST_DATA"
 
       # Different types of headers
-      hdr = %ProxyResponseHeader{clove_seq: CloveHelper.gen_seq_num(), proxy_seq: CloveHelper.gen_seq_num(), hop_count: 0}
+      hdr = %ProxyResponseHeader{
+        clove_seq: CloveHelper.gen_seq_num(),
+        proxy_seq: CloveHelper.gen_seq_num(),
+        hop_count: 0
+      }
+
       # How the clove should look like
       clove = %Clove{data: data, headers: {:proxy_response, hdr}, checksum: CRC.crc_32(data)}
       # Set headers
@@ -61,42 +70,53 @@ defmodule LAP2.Utils.ProtoBuf.CloveHelperTest do
   describe "handle_deserialised_clove/3" do
     test "Test valid clove" do
       data = "TEST DATA"
+
       valid_clove = %{
         data: data,
-        headers: {:proxy_discovery, %ProxyDiscoveryHeader{
-          clove_seq: 1,
-          drop_probab: 0.8
-        }},
+        headers:
+          {:proxy_discovery,
+           %ProxyDiscoveryHeader{
+             clove_seq: 1,
+             drop_probab: 0.8
+           }},
         checksum: CRC.crc_32(data)
       }
 
-      assert CloveHelper.handle_deserialised_clove({"127.0.0.1", 1234}, valid_clove, :router) == :ok
+      assert CloveHelper.handle_deserialised_clove({"127.0.0.1", 1234}, valid_clove, :router) ==
+               :ok
     end
 
     test "Test invalid clove" do
       data = "TEST DATA"
+
       invalid_clove = %{
         data: data,
-        headers: {:proxy_discovery, %ProxyDiscoveryHeader{
-          clove_seq: 2,
-          drop_probab: 1.5
-        }},
+        headers:
+          {:proxy_discovery,
+           %ProxyDiscoveryHeader{
+             clove_seq: 2,
+             drop_probab: 1.5
+           }},
         checksum: CRC.crc_32(data)
       }
 
-      assert CloveHelper.handle_deserialised_clove({"127.0.0.1", 1234}, invalid_clove, :router) == :err
+      assert CloveHelper.handle_deserialised_clove({"127.0.0.1", 1234}, invalid_clove, :router) ==
+               :err
     end
   end
 
   describe "verify_clove/1" do
     test "Test valid cloves" do
       data = "TEST_DATA"
+
       valid_clove = %{
         data: data,
-        headers: {:proxy_discovery, %ProxyDiscoveryHeader{
-          drop_probab: 0.5,
-          clove_seq: 1
-        }},
+        headers:
+          {:proxy_discovery,
+           %ProxyDiscoveryHeader{
+             drop_probab: 0.5,
+             clove_seq: 1
+           }},
         checksum: CRC.crc_32(data)
       }
 
@@ -105,30 +125,37 @@ defmodule LAP2.Utils.ProtoBuf.CloveHelperTest do
 
     test "Test invalid cloves" do
       data = "TEST DATA"
+
       invalid_clove_probab = %{
         data: data,
-        headers: {:proxy_discovery, %ProxyDiscoveryHeader{
-          drop_probab: 1.5,
-          clove_seq: 1
-        }},
+        headers:
+          {:proxy_discovery,
+           %ProxyDiscoveryHeader{
+             drop_probab: 1.5,
+             clove_seq: 1
+           }},
         checksum: CRC.crc_32(data)
       }
 
       invalid_clove_checksum = %{
         data: data,
-        headers: {:proxy_discovery, %ProxyDiscoveryHeader{
-          drop_probab: 0.5,
-          clove_seq: 1
-        }},
+        headers:
+          {:proxy_discovery,
+           %ProxyDiscoveryHeader{
+             drop_probab: 0.5,
+             clove_seq: 1
+           }},
         checksum: CRC.crc_32(data) + 1
       }
 
       invalid_clove = %{
         data: data,
-        headers: {:proxy_discovery, %ProxyDiscoveryHeader{
-          drop_probab: 1.5,
-          clove_seq: 1
-        }},
+        headers:
+          {:proxy_discovery,
+           %ProxyDiscoveryHeader{
+             drop_probab: 1.5,
+             clove_seq: 1
+           }},
         checksum: CRC.crc_32(data) + 1
       }
 
@@ -141,7 +168,10 @@ defmodule LAP2.Utils.ProtoBuf.CloveHelperTest do
   describe "verify_headers/1" do
     test "Valid headers" do
       valid_headers_1 = {:proxy_discovery, %ProxyDiscoveryHeader{clove_seq: 1, drop_probab: 0.5}}
-      valid_headers_2 = {:proxy_response, %ProxyResponseHeader{clove_seq: 1, proxy_seq: 1, hop_count: 0}}
+
+      valid_headers_2 =
+        {:proxy_response, %ProxyResponseHeader{clove_seq: 1, proxy_seq: 1, hop_count: 0}}
+
       valid_headers_3 = {:regular_proxy, %RegularProxyHeader{proxy_seq: 1}}
 
       assert CloveHelper.verify_headers(valid_headers_1)
@@ -186,7 +216,10 @@ defmodule LAP2.Utils.ProtoBuf.CloveHelperTest do
       # Create the clove
       clove = CloveHelper.create_clove(data, hdr, :proxy_discovery)
       # Expected serial outputs
-      serial = <<26, 7, 8, 1, 21, 51, 51, 51, 63, 8, 199, 208, 167, 236, 2, 18, 9, 84, 69, 83, 84, 95, 68, 65, 84, 65>>
+      serial =
+        <<26, 7, 8, 1, 21, 51, 51, 51, 63, 8, 199, 208, 167, 236, 2, 18, 9, 84, 69, 83, 84, 95,
+          68, 65, 84, 65>>
+
       # Serialise the cloves
       assert {:ok, serial} == CloveHelper.serialise(clove)
     end
@@ -198,7 +231,10 @@ defmodule LAP2.Utils.ProtoBuf.CloveHelperTest do
       # Create the clove
       clove = CloveHelper.create_clove(data, hdr, :proxy_response)
       # Expected serial outputs
-      serial = <<34, 4, 8, 4, 16, 2, 8, 199, 208, 167, 236, 2, 18, 9, 84, 69, 83, 84, 95, 68, 65, 84, 65>>
+      serial =
+        <<34, 4, 8, 4, 16, 2, 8, 199, 208, 167, 236, 2, 18, 9, 84, 69, 83, 84, 95, 68, 65, 84,
+          65>>
+
       # Serialise the cloves
       assert {:ok, serial} == CloveHelper.serialise(clove)
     end
@@ -210,7 +246,9 @@ defmodule LAP2.Utils.ProtoBuf.CloveHelperTest do
       # Create the clove
       clove = CloveHelper.create_clove(data, hdr, :regular_proxy)
       # Expected serial outputs
-      serial = <<42, 2, 8, 3, 8, 199, 208, 167, 236, 2, 18, 9, 84, 69, 83, 84, 95, 68, 65, 84, 65>>
+      serial =
+        <<42, 2, 8, 3, 8, 199, 208, 167, 236, 2, 18, 9, 84, 69, 83, 84, 95, 68, 65, 84, 65>>
+
       # Serialise the cloves
       assert {:ok, serial} == CloveHelper.serialise(clove)
     end
@@ -221,7 +259,13 @@ defmodule LAP2.Utils.ProtoBuf.CloveHelperTest do
       # Serial data
       serial = <<26, 5, 21, 51, 51, 51, 63, 18, 9, 84, 69, 83, 84, 95, 68, 65, 84, 65>>
       # Expected deserial outputs
-      clove = %Clove{data: "TEST_DATA", headers: {:proxy_discovery, %ProxyDiscoveryHeader{clove_seq: 0, drop_probab: 0.699999988079071}}, checksum: 0}
+      clove = %Clove{
+        data: "TEST_DATA",
+        headers:
+          {:proxy_discovery, %ProxyDiscoveryHeader{clove_seq: 0, drop_probab: 0.699999988079071}},
+        checksum: 0
+      }
+
       # Deserialise the cloves
       assert {:ok, clove} == CloveHelper.deserialise(serial)
     end
@@ -230,7 +274,14 @@ defmodule LAP2.Utils.ProtoBuf.CloveHelperTest do
       # Serial data
       serial = <<34, 4, 8, 4, 16, 2, 18, 9, 84, 69, 83, 84, 95, 68, 65, 84, 65>>
       # Expected deserial outputs
-      clove = %Clove{data: "TEST_DATA", headers: {:proxy_response, %ProxyResponseHeader{proxy_seq: 4, clove_seq: 2, hop_count: 0, __uf__: []}}, checksum: 0}
+      clove = %Clove{
+        data: "TEST_DATA",
+        headers:
+          {:proxy_response,
+           %ProxyResponseHeader{proxy_seq: 4, clove_seq: 2, hop_count: 0, __uf__: []}},
+        checksum: 0
+      }
+
       # Deserialise the cloves
       assert {:ok, clove} == CloveHelper.deserialise(serial)
     end
@@ -239,7 +290,12 @@ defmodule LAP2.Utils.ProtoBuf.CloveHelperTest do
       # Serial data
       serial = <<42, 2, 8, 3, 18, 9, 84, 69, 83, 84, 95, 68, 65, 84, 65>>
       # Expected deserial outputs
-      clove = %Clove{data: "TEST_DATA", headers: {:regular_proxy, %RegularProxyHeader{proxy_seq: 3}}, checksum: 0}
+      clove = %Clove{
+        data: "TEST_DATA",
+        headers: {:regular_proxy, %RegularProxyHeader{proxy_seq: 3}},
+        checksum: 0
+      }
+
       # Deserialise the cloves
       assert {:ok, clove} == CloveHelper.deserialise(serial)
     end

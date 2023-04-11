@@ -13,6 +13,7 @@ defmodule LAP2.Main.Helpers.ProcessorState do
     cond do
       ShareHelper.verify_share(share) ->
         handle_valid_share(state, share)
+
       true ->
         :drop
     end
@@ -24,21 +25,30 @@ defmodule LAP2.Main.Helpers.ProcessorState do
   """
   @spec cache_share(map, Share) :: map
   def cache_share(state, %Share{message_id: msg_id, share_idx: share_idx})
-    when is_map_key(state.share_info, msg_id) do
+      when is_map_key(state.share_info, msg_id) do
     current_entry = Map.get(state.share_info, msg_id)
-    new_entry = %{current_entry |
-      share_idxs: [share_idx | current_entry.share_idxs],
-      timestamp: :os.system_time(:millisecond)
+
+    new_entry = %{
+      current_entry
+      | share_idxs: [share_idx | current_entry.share_idxs],
+        timestamp: :os.system_time(:millisecond)
     }
+
     new_share_info = Map.put(state.share_info, msg_id, new_entry)
     %{state | share_info: new_share_info}
   end
-  def cache_share(state, %Share{message_id: msg_id, share_idx: share_idx, share_threshold: threshold}) do
+
+  def cache_share(state, %Share{
+        message_id: msg_id,
+        share_idx: share_idx,
+        share_threshold: threshold
+      }) do
     new_entry = %{
       threshold: threshold,
       share_idxs: [share_idx],
       timestamp: :os.system_time(:millisecond)
     }
+
     new_share_info = Map.put(state.sharet_info, msg_id, new_entry)
     %{state | share_info: new_share_info}
   end
@@ -61,16 +71,21 @@ defmodule LAP2.Main.Helpers.ProcessorState do
   @spec add_share_to_ets(reference, Share, map) :: :ok | :error
   def add_share_to_ets(ets, share, aux_data) do
     # Check if share.message_id is in ets
-    new_struct = case :ets.lookup(ets, share.message_id) do
-      [] -> %{
-          shares: [share],
-          aux_data: [aux_data]
-        }
-      [{_key, ets_struct}] -> %{
-          shares: [share | ets_struct.shares],
-          aux_data: [aux_data | ets_struct.aux_data]
-        }
-    end
+    new_struct =
+      case :ets.lookup(ets, share.message_id) do
+        [] ->
+          %{
+            shares: [share],
+            aux_data: [aux_data]
+          }
+
+        [{_key, ets_struct}] ->
+          %{
+            shares: [share | ets_struct.shares],
+            aux_data: [aux_data | ets_struct.aux_data]
+          }
+      end
+
     if :ets.insert(ets, {share.message_id, new_struct}), do: :ok, else: :error
   end
 
@@ -96,11 +111,13 @@ defmodule LAP2.Main.Helpers.ProcessorState do
   @spec handle_valid_share(map, Share) :: {:drop | :reassemble | :cache}
   defp handle_valid_share(state, share) when is_map_key(state.share_info, share.message_id) do
     share_cache = state.share_info[share.message_id]
+
     cond do
       share.share_idx in share_cache.share_idxs -> :drop
       true -> check_share_count(share_cache)
     end
   end
+
   defp handle_valid_share(_, _), do: :cache
 
   # Check the share count to determine if we should reassemble or cache

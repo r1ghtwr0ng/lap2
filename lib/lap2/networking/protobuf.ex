@@ -1,7 +1,7 @@
 defmodule LAP2.Networking.ProtoBuf do
   use Protox,
-  files: ["./specs/structs.proto"],
-  path: ["./specs"]
+    files: ["./specs/structs.proto"],
+    path: ["./specs"]
 
   @doc """
   Serialise a map via ProtoBuff before sending it

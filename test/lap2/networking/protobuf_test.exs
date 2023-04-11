@@ -13,8 +13,16 @@ defmodule LAP2.Networking.ProtoBufTest do
       # Create the clove
       clove = CloveHelper.create_clove(data, hdr, :proxy_discovery)
       # Expected serial outputs
-      serial = [[[[], "\x1A", ["\a", "\b\x01\x15333?"]], "\b", ["\xC7", ["\xD0", ["\xA7", ["\xEC", "\x02"]]]]],
-      "\x12", ["\t", "TEST_DATA"]]
+      serial = [
+        [
+          [[], "\x1A", ["\a", "\b\x01\x15333?"]],
+          "\b",
+          ["\xC7", ["\xD0", ["\xA7", ["\xEC", "\x02"]]]]
+        ],
+        "\x12",
+        ["\t", "TEST_DATA"]
+      ]
+
       # Serialise the cloves
       assert {:ok, serial} == ProtoBuf.serialise(clove)
     end
@@ -26,8 +34,16 @@ defmodule LAP2.Networking.ProtoBufTest do
       # Create the clove
       clove = CloveHelper.create_clove(data, hdr, :proxy_response)
       # Expected serial outputs
-      serial = [[[[], "\"", [<<4>>, <<8, 4, 16, 2>>]], "\b", [<<199>>, [<<208>>, [<<167>>, [<<236>>, <<2>>]]]]],
-      <<18>>, ["\t", "TEST_DATA"]]
+      serial = [
+        [
+          [[], "\"", [<<4>>, <<8, 4, 16, 2>>]],
+          "\b",
+          [<<199>>, [<<208>>, [<<167>>, [<<236>>, <<2>>]]]]
+        ],
+        <<18>>,
+        ["\t", "TEST_DATA"]
+      ]
+
       # Serialise the cloves
       assert {:ok, serial} == ProtoBuf.serialise(clove)
     end
@@ -39,8 +55,12 @@ defmodule LAP2.Networking.ProtoBufTest do
       # Create the clove
       clove = CloveHelper.create_clove(data, hdr, :regular_proxy)
       # Expected serial outputs
-      serial = [[[[], "*", [<<2>>, <<8, 3>>]], "\b", [<<199>>, [<<208>>, [<<167>>, [<<236>>, <<2>>]]]]],
-      <<18>>, ["\t", "TEST_DATA"]]
+      serial = [
+        [[[], "*", [<<2>>, <<8, 3>>]], "\b", [<<199>>, [<<208>>, [<<167>>, [<<236>>, <<2>>]]]]],
+        <<18>>,
+        ["\t", "TEST_DATA"]
+      ]
+
       # Serialise the cloves
       assert {:ok, serial} == ProtoBuf.serialise(clove)
     end
@@ -51,7 +71,13 @@ defmodule LAP2.Networking.ProtoBufTest do
       # Serial data
       serial = <<26, 5, 21, 51, 51, 51, 63, 18, 9, 84, 69, 83, 84, 95, 68, 65, 84, 65>>
       # Expected deserial outputs
-      clove = %Clove{data: "TEST_DATA", headers: {:proxy_discovery, %ProxyDiscoveryHeader{clove_seq: 0, drop_probab: 0.699999988079071}}, checksum: 0}
+      clove = %Clove{
+        data: "TEST_DATA",
+        headers:
+          {:proxy_discovery, %ProxyDiscoveryHeader{clove_seq: 0, drop_probab: 0.699999988079071}},
+        checksum: 0
+      }
+
       # Deserialise the cloves
       assert {:ok, clove} == ProtoBuf.deserialise(serial, Clove)
     end
@@ -60,7 +86,14 @@ defmodule LAP2.Networking.ProtoBufTest do
       # Serial data
       serial = <<34, 4, 8, 4, 16, 2, 18, 9, 84, 69, 83, 84, 95, 68, 65, 84, 65>>
       # Expected deserial outputs
-      clove = %Clove{data: "TEST_DATA", headers: {:proxy_response, %ProxyResponseHeader{proxy_seq: 4, clove_seq: 2, hop_count: 0, __uf__: []}}, checksum: 0}
+      clove = %Clove{
+        data: "TEST_DATA",
+        headers:
+          {:proxy_response,
+           %ProxyResponseHeader{proxy_seq: 4, clove_seq: 2, hop_count: 0, __uf__: []}},
+        checksum: 0
+      }
+
       # Deserialise the cloves
       assert {:ok, clove} == ProtoBuf.deserialise(serial, Clove)
     end
@@ -69,7 +102,12 @@ defmodule LAP2.Networking.ProtoBufTest do
       # Serial data
       serial = <<42, 2, 8, 3, 18, 9, 84, 69, 83, 84, 95, 68, 65, 84, 65>>
       # Expected deserial outputs
-      clove = %Clove{data: "TEST_DATA", headers: {:regular_proxy, %RegularProxyHeader{proxy_seq: 3}}, checksum: 0}
+      clove = %Clove{
+        data: "TEST_DATA",
+        headers: {:regular_proxy, %RegularProxyHeader{proxy_seq: 3}},
+        checksum: 0
+      }
+
       # Deserialise the cloves
       assert {:ok, clove} == ProtoBuf.deserialise(serial, Clove)
     end

@@ -47,9 +47,11 @@ defmodule LAP2.Networking.RouterTest do
   describe "update_config/2" do
     test "Update the configuration in the state", context do
       # Prepare the necessary data and expected state
-      new_config = context.config
-      |> Map.put(:proxy_limit, 5)
-      |> Map.delete(:name)
+      new_config =
+        context.config
+        |> Map.put(:proxy_limit, 5)
+        |> Map.delete(:name)
+
       Router.update_config(new_config, :router)
 
       # Verify that the state has been updated as expected

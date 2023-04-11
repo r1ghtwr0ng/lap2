@@ -17,10 +17,11 @@ defmodule LAP2.Crypto.InformationDispersal.RabinIDA do
   @spec split(binary, non_neg_integer, non_neg_integer) :: list(binary)
   def split(data, n, m) do
     # Pad the data to be a multiple of m and split it into n chunks of size m
-    byte_chunks = data
-    |> PKCS7.pad(m)
-    |> :erlang.binary_to_list()
-    |> Enum.chunk_every(m)
+    byte_chunks =
+      data
+      |> PKCS7.pad(m)
+      |> :erlang.binary_to_list()
+      |> Enum.chunk_every(m)
 
     # Generate the Vandermonde matrix
     vand_matrix = Matrix.gen_vandermonde_matrix(n, m, @prime)
@@ -28,7 +29,9 @@ defmodule LAP2.Crypto.InformationDispersal.RabinIDA do
     # Calculate the shares
     Matrix.matrix_dot_product(vand_matrix, byte_chunks, @prime)
     |> Enum.map(&encode_double_byte/1)
-    |> Enum.with_index(fn chunk, idx -> %{data: :erlang.list_to_binary(chunk), share_idx: idx + 1}; end)
+    |> Enum.with_index(fn chunk, idx ->
+      %{data: :erlang.list_to_binary(chunk), share_idx: idx + 1}
+    end)
   end
 
   @doc """
@@ -40,20 +43,23 @@ defmodule LAP2.Crypto.InformationDispersal.RabinIDA do
   @spec reconstruct(list(map)) :: binary
   def reconstruct(shares) do
     # Fetch the data from the shares
-    byte_chunks = Enum.map(shares, fn share ->
-      :erlang.binary_to_list(share.data)
-      |> decode_double_byte()
-    end)
+    byte_chunks =
+      Enum.map(shares, fn share ->
+        :erlang.binary_to_list(share.data)
+        |> decode_double_byte()
+      end)
 
     # Fetch the ids from the shares and use them to generate the reassembly matrix
     try do
-      reconstructed = Enum.map(shares, fn share -> share.share_idx; end)
-      |> Matrix.vandermonde_inverse(@prime)
-      |> Matrix.matrix_product(byte_chunks, @prime)
-      |> Matrix.transpose()
-      |> Enum.concat()
-      |> :erlang.list_to_binary()
-      |> PKCS7.unpad()
+      reconstructed =
+        Enum.map(shares, fn share -> share.share_idx end)
+        |> Matrix.vandermonde_inverse(@prime)
+        |> Matrix.matrix_product(byte_chunks, @prime)
+        |> Matrix.transpose()
+        |> Enum.concat()
+        |> :erlang.list_to_binary()
+        |> PKCS7.unpad()
+
       {:ok, reconstructed}
     rescue
       # If the shares are not enough to reconstruct the data, return nil
@@ -73,15 +79,17 @@ defmodule LAP2.Crypto.InformationDispersal.RabinIDA do
 
   @spec decode_double_byte(list(non_neg_integer)) :: list(non_neg_integer)
   defp decode_double_byte(bytes) do
-    {decoded_bytes, _skip_next} = Enum.reduce(bytes, {[], false}, fn byte, {acc, skip_next} ->
-      case {byte, skip_next} do
-        {255, false} -> {acc, true}
-        {0, true} -> {acc ++ [255], false}
-        {1, true} -> {acc ++ [256], false}
-        {_, true} -> {acc, false}
-        {other, false} -> {acc ++ [other], false}
-      end
-    end)
+    {decoded_bytes, _skip_next} =
+      Enum.reduce(bytes, {[], false}, fn byte, {acc, skip_next} ->
+        case {byte, skip_next} do
+          {255, false} -> {acc, true}
+          {0, true} -> {acc ++ [255], false}
+          {1, true} -> {acc ++ [256], false}
+          {_, true} -> {acc, false}
+          {other, false} -> {acc ++ [other], false}
+        end
+      end)
+
     decoded_bytes
   end
 end

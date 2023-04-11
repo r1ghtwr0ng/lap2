@@ -1,9 +1,9 @@
 defmodule LAP2.Networking.Resolver do
   require Logger
+
   @moduledoc """
   This module contains helper function for resolving addresses.
   """
-
 
   # ---- Public functions ----
   @doc """
@@ -15,5 +15,4 @@ defmodule LAP2.Networking.Resolver do
   end
 
   # ---- Helper functions ----
-
 end
