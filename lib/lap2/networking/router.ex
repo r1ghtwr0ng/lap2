@@ -58,7 +58,7 @@ defmodule LAP2.Networking.Router do
         {:noreply, state}
       {:random_walk, rand_neighbor} -> Remote.relay_proxy_discovery(state, source, rand_neighbor, clove)
       # Proxy request
-      :proxy_request-> Local.handle_proxy_request(state, source, clove)
+      :proxy_request -> Local.handle_proxy_request(state, source, clove)
       # Route discovery response to share handler
       :recv_discovery -> Local.receive_discovery_response(state, source, clove)
       # Route discovery response

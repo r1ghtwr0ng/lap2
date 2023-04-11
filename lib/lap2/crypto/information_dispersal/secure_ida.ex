@@ -54,8 +54,22 @@ defmodule LAP2.Crypto.InformationDispersal.SecureIDA do
   Reconstruct the data from the given shares.
   m is the number of shares required to reconstruct the data (threshold).
   """
-  @spec reconstruct(list) :: {:ok, binary}
+  @spec reconstruct(list(Share)) :: {:ok, binary}
   def reconstruct(shares) do
+    # Check that there are enough shares to reconstruct the data
+    threshold = Enum.at(shares, 0).share_threshold
+    cond do
+      length(shares) == threshold -> {:ok, reconstruct_data(shares)}
+      length(shares) < threshold -> {:error, "Not enough shares to reconstruct data"}
+      length(shares) > threshold ->
+        shares = Enum.take_random(shares, threshold)
+        {:ok, reconstruct_data(shares)}
+    end
+  end
+
+  # ---- Private Functions ----
+  @spec reconstruct_data(list(Share)) :: binary
+  defp reconstruct_data(shares) do
     # Extract key and data shares from share structs
     {aes_key, iv} = shares
     |> Enum.map(fn share -> share.key_share; end)
@@ -65,10 +79,9 @@ defmodule LAP2.Crypto.InformationDispersal.SecureIDA do
     {:ok, data} = RabinIDA.reconstruct(shares)
 
     # Decrypt data with AES and the ephemeral key
-    {:ok, decrypt(data, aes_key, iv)}
+    decrypt(data, aes_key, iv)
   end
 
-  # ---- Private Functions ----
   # Reconstruct the AES key and IV from the given key shares
   @spec recover_aes_data(list) :: {binary, binary}
   defp recover_aes_data(key_shares) do

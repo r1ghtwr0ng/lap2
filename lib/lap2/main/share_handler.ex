@@ -27,6 +27,7 @@ defmodule LAP2.Main.ShareHandler do
     state = %{
       ets: :ets.new(:clove_ets, [:set, :private]),
       share_info: %{},
+      drop_list: [],
       config: %{share_ttl: config.share_ttl}
     }
     {:ok, state}
@@ -39,9 +40,22 @@ defmodule LAP2.Main.ShareHandler do
     share = ShareHelper.deserialise(data)
     case ProcessorState.route_share(state, share) do
       :reassemble ->
-        {:noreply, state}
+        ets_shares = ProcessorState.get_share_from_ets(state.ets, share.message_id)
+        ProcessorState.delete_share_from_ets(state.ets, share.message_id)
+        all_shares = [share | ets_shares]
+        case ShareHelper.reconstruct(all_shares) do
+          {:ok, reconstructed} ->
+            IO.puts("Reconstructed: #{reconstructed}") # TODO send to other handler
+          {:error, _} -> IO.puts("Reconstruction failed")
+        end
+        new_state = state
+        |> ProcessorState.delete_from_cache(share.message_id)
+        |> ProcessorState.add_to_drop_list(share.message_id)
+        {:noreply, new_state}
       :cache ->
-        {:noreply, state}
+        new_state = ProcessorState.cache_share(state, share)
+        ProcessorState.add_share_to_ets(state.ets, share, aux_data)
+        {:noreply, new_state}
       :drop -> {:noreply, state}
     end
   end
@@ -61,52 +75,4 @@ defmodule LAP2.Main.ShareHandler do
   def deliver(data, aux_data, name) do
     GenServer.cast({:global, name}, {:deliver, data, aux_data})
   end
-
-  # ---- Private Functions ----
-  @spec add_or_update(map, non_neg_integer, non_neg_integer, non_neg_integer) :: map
-  defp add_or_update(state, msg_sequence, share_idx, threshold) when is_map_key(state.share_info, msg_sequence) do
-    current_entry = Map.get(state.share_info, msg_sequence)
-    new_entry = %{current_entry |
-      share_idxs: [share_idx | current_entry.share_idxs],
-      timestamp: :os.system_time(:millisecond)
-    }
-    new_share_info = Map.put(state.share_info, msg_sequence, new_entry)
-    %{state | share_info: new_share_info}
-  end
-  defp add_or_update(state, msg_sequence, share_idx, threshold) do
-    new_entry = %{
-      threshold: threshold,
-      share_idxs: [share_idx],
-      timestamp: :os.system_time(:millisecond)
-    }
-    new_share_info = Map.put(state.sharet_info, msg_sequence, new_entry)
-    %{state | share_info: new_share_info}
-  end
-
-  # Add a share and auxiliary information to the ETS table
-  @spec add_share_to_ets(reference, Share, map) :: :ok | :error
-  defp add_share_to_ets(ets, share, aux_data) do
-    # Check if share.message_id is in ets
-    new_struct = case :ets.lookup(ets, share.message_id) do
-      [] -> %{
-          shares: [share],
-          aux_data: [aux_data]
-        }
-      [{_key, ets_struct}] -> %{
-          shares: [share | ets_struct.shares],
-          aux_data: [aux_data | ets_struct.aux_data]
-        }
-    end
-    if :ets.insert(ets, {share.message_id, new_struct}), do: :ok, else: :error
-  end
-
-  defp get_share_from_ets(ets, message_id) do
-    case :ets.lookup(ets, message_id) do
-      [] -> {:error, :not_found}
-      [{_key, ets_struct}] -> {:ok, ets_struct}
-    end
-  end
-
-  @spec delete_share_from_ets(reference, non_neg_integer) :: :ok
-  defp delete_share_from_ets(ets, message_id), do: :ets.delete(ets, message_id)
 end
