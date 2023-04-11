@@ -12,10 +12,11 @@
 # **TODO**
 
 ## *General*
-- [ ] Testing framework
+- [x] Unit testing
 - [ ] Docker build
 - [x] Error logging
 - [x] Configuration file parsing
+
 ## *Networking*
 - [x] Efficient UDP datagram buffering and handling
 - [x] UDP communication module
@@ -24,11 +25,13 @@
 - [ ] Distributeed hash table
 - [x] Clove storage and relay
 - [ ] Introduction Points
+- [ ] Proxy routing
 - [ ] Connection supervisor module
+
 ## *Garlic Cast*
 - [x] Rabin's IDA
 - [x] Security Enchansed IDA
-- [ ] Dynamic proxy discovery
+- [ ] Proxy discovery
 
 ## *Crypto*
 - [ ] Key exchange

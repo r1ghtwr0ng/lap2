@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+// Structure sent over the wire.
+// Contains routing information needed by network relays.
 message Clove {
     uint32 checksum = 1;
     bytes data = 2;
@@ -10,22 +12,24 @@ message Clove {
         RegularProxyHeader regular_proxy = 5;
     }
 }
-
+// Clove header used in the proxy discovery phase.
 message ProxyDiscoveryHeader {
     uint64 clove_seq = 1;
     float drop_probab = 2;
 }
-
+// Clove header used in the proxy response phase.
 message ProxyResponseHeader {
     uint64 proxy_seq = 1;
     uint64 clove_seq = 2;
     uint32 hop_count = 3;
 }
-
+// Clove header used for established proxies
 message RegularProxyHeader {
     uint64 proxy_seq = 1;
 }
 
+// Structure of the Clove's data field.
+// Contains info for IDA reconstruction.
 message Share {
     uint64 message_id = 1;
     uint32 total_shares = 2;
@@ -34,8 +38,64 @@ message Share {
     KeyShare key_share = 5;
     bytes data = 6;
 }
-
+// Contains info for reconstructing the symmetric key.
 message KeyShare {
     bytes aes_key = 1;
     bytes iv = 2;
+}
+
+// Structure of the reconstructed message.
+// Contains the actual message and cryptographic information.enum
+// Used to relay instructions to and from the proxy.
+message Request {
+    uint64 hmac = 1;
+    uint64 request_id = 2;
+    bytes request_type = 3;
+    bytes data = 4;
+    oneof crypto {
+        KeyExchangeInit init_ke = 5;
+        KeyExchangeResponse resp_ke = 6;
+        KeyExchangeFinal fin_ke = 7;
+        KeyRotation key_rot = 8;
+        SymmetricKey sym_key = 9;
+    }
+}
+// Key exchange initialisation struct.
+// Contains cryptographic information needed to establish a secure channel.
+message KeyExchangeInit {
+    bytes identity = 1;
+    bytes ephemeral_pk = 2;
+    bytes generator = 3;
+    bytes ring_pk = 4;
+    bytes signature = 5;
+    bytes hmac_key = 6;
+}
+// Key exchange response struct.
+message KeyExchangeResponse {
+    bytes identity = 1;
+    bytes ephemeral_pk = 2;
+    bytes generator = 3;
+    bytes ring_pk = 4;
+    bytes signature = 5;
+    bytes ring_signature = 6;
+    bytes hmac_key = 7;
+}
+// Key exchange finalisation struct.
+// Final message in the key exchange protocol.
+message KeyExchangeFinal {
+    bytes ring_signature = 1;
+    bytes hmac_key = 2;
+}
+// Regular symmetric key struct.
+// Used once symmetric keys have been established.
+message SymmetricKey {
+    bytes iv = 1;
+    bytes hmac_key = 2;
+}
+// Symmetric key rotation struct.
+// Used to rotate symmetric keys.
+message KeyRotation {
+    bytes new_key = 1;
+    bytes new_iv = 2;
+    bytes hmac_key = 3;
 }
