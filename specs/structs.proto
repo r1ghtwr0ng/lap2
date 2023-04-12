@@ -45,6 +45,13 @@ message KeyShare {
 }
 
 // Structure of the reconstructed message.
+// Contains cryptographic information needed to decrypt the request.
+message EncryptedRequest {
+    bool is_encrypted = 1;
+    bytes iv = 2;
+    bytes data = 3;
+}
+// Structure of the reconstructed message.
 // Contains the actual message and cryptographic information.enum
 // Used to relay instructions to and from the proxy.
 message Request {
@@ -89,13 +96,11 @@ message KeyExchangeFinal {
 // Regular symmetric key struct.
 // Used once symmetric keys have been established.
 message SymmetricKey {
-    bytes iv = 1;
-    bytes hmac_key = 2;
+    bytes hmac_key = 1;
 }
 // Symmetric key rotation struct.
 // Used to rotate symmetric keys.
 message KeyRotation {
     bytes new_key = 1;
-    bytes new_iv = 2;
-    bytes hmac_key = 3;
+    bytes hmac_key = 2;
 }
