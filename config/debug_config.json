@@ -6,6 +6,9 @@
         "name": "lap2_superv",
         "max_children": 10
     },
+    "crypto_manager": {
+        "name": "crypto_manager"
+    },
     "share_handler": {
         "name": "share_handler",
         "registry_table": null,
