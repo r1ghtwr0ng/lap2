@@ -56,7 +56,7 @@ defmodule LAP2.Utils.ProtoBuf.CloveHelper do
   @doc """
   Send out the deserialised clove for routing.
   """
-  @spec handle_deserialised_clove({binary, non_neg_integer}, map, atom) :: :ok | :err
+  @spec handle_deserialised_clove({binary, non_neg_integer}, map, atom) :: :ok | :error
   def handle_deserialised_clove(source, clove, router_name) do
     # Verify clove validity
     cond do
@@ -69,7 +69,7 @@ defmodule LAP2.Utils.ProtoBuf.CloveHelper do
       true ->
         # DEBUG
         IO.puts("[-] CloveHelper: Invalid clove")
-        :err
+        :error
     end
   end
 

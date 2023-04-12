@@ -63,7 +63,7 @@ defmodule LAP2.Crypto.InformationDispersal.RabinIDA do
       {:ok, reconstructed}
     rescue
       # If the shares are not enough to reconstruct the data, return nil
-      ArgumentError -> {:err, nil}
+      ArgumentError -> {:error, nil}
     end
   end
 

@@ -31,7 +31,9 @@ defmodule LAP2.Crypto.CryptoManager do
   # ---- GenServer Callbacks ----
   @spec handle_call({:decrypt, EncryptedRequest, non_neg_integer}, map) :: {:reply, tuple, map}
   def handle_call({:decrypt, encrypted_req, proxy_seq}, state) do
-    response = fetch_and_decrypt(state.ets, encrypted_req, proxy_seq)
+    {_crypto, response} = Map.pop(fetch_and_decrypt(state.ets, encrypted_req, proxy_seq), :crypto)
+    # TODO handle crypto request
+    # Delete crypto information from response to avoid leaking keys
     {:reply, response, state}
   end
 

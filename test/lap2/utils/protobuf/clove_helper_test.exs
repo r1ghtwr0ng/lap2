@@ -101,7 +101,7 @@ defmodule LAP2.Utils.ProtoBuf.CloveHelperTest do
       }
 
       assert CloveHelper.handle_deserialised_clove({"127.0.0.1", 1234}, invalid_clove, :router) ==
-               :err
+               :error
     end
   end
 

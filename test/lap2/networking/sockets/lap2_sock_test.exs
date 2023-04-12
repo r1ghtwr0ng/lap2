@@ -24,7 +24,7 @@ defmodule LAP2.Networking.Sockets.Lap2SocketTest do
       dgram = "invalid_datagram"
       source = {"127.0.0.1", 8080}
 
-      assert Lap2Socket.parse_dgram(source, dgram, context.router_name) == :err
+      assert Lap2Socket.parse_dgram(source, dgram, context.router_name) == :error
     end
   end
 

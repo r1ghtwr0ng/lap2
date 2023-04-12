@@ -6,7 +6,7 @@ defmodule LAP2.Networking.Sockets.Lap2Socket do
   @doc """
   Parse a received datagram.
   """
-  @spec parse_dgram({String.t(), non_neg_integer}, binary, atom) :: :ok | :err
+  @spec parse_dgram({String.t(), non_neg_integer}, binary, atom) :: :ok | :error
   def parse_dgram(source, dgram, router_name) do
     IO.puts("[+] Lap2Socket: Received datagram #{inspect(dgram)}")
     # DEBUG: Sleep for 1 second to simulate (unrealistically large) processing time
@@ -17,14 +17,14 @@ defmodule LAP2.Networking.Sockets.Lap2Socket do
     else
       {:error, reason} ->
         IO.puts("[!] Lap2Socket: Error deserialising datagram: #{inspect(reason)}")
-        :err
+        :error
     end
   end
 
   @doc """
   Send a clove to a destination address and port.
   """
-  @spec send_clove({String.t(), non_neg_integer}, binary, map, atom, atom) :: :ok | :err
+  @spec send_clove({String.t(), non_neg_integer}, binary, map, atom, atom) :: :ok | :error
   def send_clove({dest_addr, port}, data, headers, udp_name, clove_type \\ :regular_proxy) do
     data
     |> CloveHelper.create_clove(headers, clove_type)
@@ -36,7 +36,7 @@ defmodule LAP2.Networking.Sockets.Lap2Socket do
 
       {:error, reason} ->
         IO.puts("[!] Lap2Socket: Error serialising clove: #{inspect(reason)}")
-        :err
+        :error
     end
   end
 end
