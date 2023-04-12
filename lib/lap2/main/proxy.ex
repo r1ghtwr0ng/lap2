@@ -4,7 +4,7 @@ defmodule LAP2.Main.Proxy do
   """
   use GenServer
   require Logger
-  #alias LAP2.Main.Master
+  # alias LAP2.Main.Master
 
   @doc """
   Start the Proxy process.
@@ -31,7 +31,6 @@ defmodule LAP2.Main.Proxy do
   end
 
   # ---- GenServer Callbacks ----
-
 
   # Cleanup the ETS table on exit
   @spec terminate(any, map) :: :ok
@@ -67,6 +66,7 @@ defmodule LAP2.Main.Proxy do
     # TODO: Handle regular proxy
     IO.inspect(request)
   end
+
   def handle_regular_proxy(request) when request.request_type == "regular_proxy_response" do
     # TODO: Handle regular proxy
     IO.inspect(request)

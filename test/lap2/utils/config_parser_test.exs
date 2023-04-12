@@ -25,7 +25,7 @@ defmodule LAP2.Utils.ConfigParserTest do
             crypto_manager: :crypto_manager
           },
           relay_table_size: 5000,
-          relay_table_ttl: 1800000
+          relay_table_ttl: 1_800_000
         },
         share_handler: %{
           name: :share_handler,

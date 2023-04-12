@@ -13,6 +13,7 @@ defmodule LAP2.Main.StructHandlers.RequestHandler do
   @spec handle_request(binary, map) :: {:noreply, map}
   def handle_request(request_bin, %{request_type: :proxy_request} = aux_data) do
     Logger.info("[i] Handling proxy request")
+
     case RequestHelper.deserialise(request_bin) do
       {:ok, request} -> Proxy.handle_proxy_request(request, aux_data)
       {:error, reason} -> {:error, reason}
@@ -21,14 +22,20 @@ defmodule LAP2.Main.StructHandlers.RequestHandler do
 
   def handle_request(request_bin, %{request_type: :discovery_response} = aux_data) do
     Logger.info("[i] Handling discovery response")
+
     case RequestHelper.deserialise(request_bin) do
       {:ok, request} -> Proxy.handle_discovery_response(request, aux_data)
       {:error, reason} -> {:error, reason}
     end
   end
 
-  def handle_request(request_bin, %{request_type: :regular_proxy, proxy_seq: pseq}, crypto_mgr_name) do
+  def handle_request(
+        request_bin,
+        %{request_type: :regular_proxy, proxy_seq: pseq},
+        crypto_mgr_name
+      ) do
     Logger.info("[i] Handling regular proxy request")
+
     case RequestHelper.deserialise_encrypted(request_bin, pseq, crypto_mgr_name) do
       {:ok, request} -> Proxy.handle_regular_proxy(request)
       {:error, reason} -> {:error, reason}

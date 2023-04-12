@@ -30,8 +30,7 @@ defmodule LAP2.Main.StructHandlers.ShareHandler do
       ets: :ets.new(:clove_ets, [:set, :private]),
       share_info: %{},
       drop_list: [],
-      config: %{share_ttl: config.share_ttl,
-      registry_table: config.registry_table}
+      config: %{share_ttl: config.share_ttl, registry_table: config.registry_table}
     }
 
     {:ok, state}
@@ -54,11 +53,18 @@ defmodule LAP2.Main.StructHandlers.ShareHandler do
             # Verify and format the auxiliary data
             case ShareHelper.format_aux_data([aux_data | ets_struct.aux_data]) do
               {:ok, formatted_aux_data} ->
-                Task.async(fn -> RequestHandler.handle_request(reconstructed, formatted_aux_data, state.config.registry_table); end)
+                Task.async(fn ->
+                  RequestHandler.handle_request(
+                    reconstructed,
+                    formatted_aux_data,
+                    state.config.registry_table
+                  )
+                end)
+
                 IO.puts("Reconstructed: #{reconstructed}")
 
               {:error, reason} ->
-                IO.puts("Reconstruction failed #{inspect reason}}")
+                IO.puts("Reconstruction failed #{inspect(reason)}}")
             end
 
           {:error, _} ->

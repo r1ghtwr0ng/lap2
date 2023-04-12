@@ -99,8 +99,12 @@ defmodule LAP2.Crypto.CryptoManager do
     case :ets.lookup(ets, proxy_seq) do
       [{_proxy_seq, key}] ->
         Logger.info("[i] Decrypting proxy request")
-        pt = :crypto.crypto_one_time(:aes_256_cbc, key, encrypted_req.iv, encrypted_req.data, false)
+
+        pt =
+          :crypto.crypto_one_time(:aes_256_cbc, key, encrypted_req.iv, encrypted_req.data, false)
+
         {:ok, PKCS7.unpad(pt)}
+
       [] ->
         Logger.info("[i] No key found for proxy request")
         {:error, :no_key}
@@ -108,19 +112,23 @@ defmodule LAP2.Crypto.CryptoManager do
   end
 
   # Encrypt the request data and add to EncryptedRequest struct
-  @spec fetch_and_encrypt(reference, binary, non_neg_integer) :: {:ok, binary, binary} | {:error, atom}
+  @spec fetch_and_encrypt(reference, binary, non_neg_integer) ::
+          {:ok, binary, binary} | {:error, atom}
   defp fetch_and_encrypt(ets, data, proxy_seq) do
     case :ets.lookup(ets, proxy_seq) do
       [{_proxy_seq, key}] ->
         Logger.info("[i] Encrypting proxy request")
         iv = :crypto.strong_rand_bytes(16)
         ct = :crypto.crypto_one_time(:aes_256_cbc, key, iv, PKCS7.pad(data, 16), true)
+
         encrypted_req = %EncryptedRequest{
           is_encrypted: true,
           iv: iv,
           data: ct
         }
+
         {:ok, encrypted_req}
+
       [] ->
         Logger.info("[i] No key found for proxy request")
         {:error, :no_key}

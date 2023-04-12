@@ -4,6 +4,5 @@ defmodule LAP2.Main.Master do
   """
 
   def deliver_request(request, aux_data) do
-
   end
 end

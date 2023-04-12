@@ -25,9 +25,15 @@ defmodule LAP2.Utils.ProtoBuf.RequestHelper do
   """
   @spec deserialise_encrypted(binary, non_neg_integer, atom) :: {:ok, map} | {:error, any}
   def deserialise_encrypted(enc_request, proxy_seqm, crypto_mgr_name \\ :crypto_manager)
-  def deserialise_encrypted(%EncryptedRequest{is_encrypted: false, data: data}, _proxy_seq, _crypto_mgr_name) do
+
+  def deserialise_encrypted(
+        %EncryptedRequest{is_encrypted: false, data: data},
+        _proxy_seq,
+        _crypto_mgr_name
+      ) do
     deserialise(data)
   end
+
   def deserialise_encrypted(enc_request, proxy_seq, crypto_mgr_name) do
     # Decrypt the request
     case CryptoManager.decrypt_request(enc_request, proxy_seq, crypto_mgr_name) do
@@ -61,7 +67,9 @@ defmodule LAP2.Utils.ProtoBuf.RequestHelper do
           {:ok, enc_request} -> ProtoBuf.serialise(enc_request)
           {:error, reason} -> {:error, reason}
         end
-      {:error, reason} -> {:error, reason}
+
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 end

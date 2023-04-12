@@ -78,6 +78,7 @@ defmodule LAP2.Utils.ProtoBuf.ShareHelper do
   def format_aux_data([aux_data | rest]), do: format_aux_data(rest, aux_data)
   @spec format_aux_data(list(map), map) :: map
   defp format_aux_data([], acc), do: {:ok, acc}
+
   defp format_aux_data([aux_data | rest], acc) do
     case merge_aux_data(aux_data, acc) do
       {:ok, acc} -> format_aux_data(rest, acc)
@@ -87,21 +88,29 @@ defmodule LAP2.Utils.ProtoBuf.ShareHelper do
 
   # Merge the aux data into a map.
   @spec merge_aux_data(map, map) :: {:ok, map} | {:error, atom}
-  defp merge_aux_data(aux_data, acc) when is_map_key(aux_data, :relay) and is_map_key(aux_data, :hop_count) do
-    case Map.delete(Map.delete(aux_data, :relay), :hop_count) === Map.delete(Map.delete(acc, :relay), :hop_count) do
-      true -> {:ok, Map.merge(acc, aux_data, fn _k, v1, v2 -> [v1 | v2]; end)}
+  defp merge_aux_data(aux_data, acc)
+       when is_map_key(aux_data, :relay) and is_map_key(aux_data, :hop_count) do
+    case Map.delete(Map.delete(aux_data, :relay), :hop_count) ===
+           Map.delete(Map.delete(acc, :relay), :hop_count) do
+      true -> {:ok, Map.merge(acc, aux_data, fn _k, v1, v2 -> [v1 | v2] end)}
       false -> {:error, :invalid_aux_data}
     end
   end
+
   defp merge_aux_data(aux_data, acc) when is_map_key(aux_data, :relay) do
     case Map.delete(aux_data, :relay) === Map.delete(acc, :relay) do
-      true -> {:ok, Map.merge(acc, aux_data, fn
-        _k, v1, v2 when is_list(v2) -> [v1 | v2]
-        _k, v1, v2 -> [v1, v2]
-      end)}
-      _ -> {:error, :invalid_aux_data}
+      true ->
+        {:ok,
+         Map.merge(acc, aux_data, fn
+           _k, v1, v2 when is_list(v2) -> [v1 | v2]
+           _k, v1, v2 -> [v1, v2]
+         end)}
+
+      _ ->
+        {:error, :invalid_aux_data}
     end
   end
+
   defp merge_aux_data(aux_data, acc) do
     case aux_data === acc do
       true -> {:ok, acc}

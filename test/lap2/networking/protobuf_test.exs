@@ -78,6 +78,7 @@ defmodule LAP2.Networking.ProtoBufTest do
         data: <<1, 1, 1, 1>>,
         __uf__: []
       }
+
       # Expected serial outputs
       serial = [
         [
@@ -102,14 +103,17 @@ defmodule LAP2.Networking.ProtoBufTest do
         request_id: 0,
         request_type: "proxy_discovery",
         data: "TEST_DATA",
-        crypto: {:init_ke, %KeyExchangeInit{
-          identity: <<>>,
-          ephemeral_pk: <<>>,
-          generator: <<>>,
-          ring_pk: <<>>,
-          signature: <<>>,
-          hmac_key: <<>>
-        }}}
+        crypto:
+          {:init_ke,
+           %KeyExchangeInit{
+             identity: <<>>,
+             ephemeral_pk: <<>>,
+             generator: <<>>,
+             ring_pk: <<>>,
+             signature: <<>>,
+             hmac_key: <<>>
+           }}
+      }
 
       # Expected serial outputs
       serial = [
@@ -125,19 +129,22 @@ defmodule LAP2.Networking.ProtoBufTest do
     test "Test key exchange response serialisation" do
       # Packet serialisation
       request = %Request{
-          hmac: 0,
-          request_id: 0,
-          request_type: "discovery_response",
-          data: "TEST_DATA",
-          crypto: {:resp_ke, %KeyExchangeResponse{
-            identity: <<>>,
-            ephemeral_pk: <<>>,
-            generator: <<>>,
-            ring_pk: <<>>,
-            signature: <<>>,
-            ring_signature: <<>>,
-            hmac_key: <<>>
-        }}}
+        hmac: 0,
+        request_id: 0,
+        request_type: "discovery_response",
+        data: "TEST_DATA",
+        crypto:
+          {:resp_ke,
+           %KeyExchangeResponse{
+             identity: <<>>,
+             ephemeral_pk: <<>>,
+             generator: <<>>,
+             ring_pk: <<>>,
+             signature: <<>>,
+             ring_signature: <<>>,
+             hmac_key: <<>>
+           }}
+      }
 
       # Expected serial outputs
       serial = [
@@ -157,10 +164,13 @@ defmodule LAP2.Networking.ProtoBufTest do
         request_id: 0,
         request_type: "key_exchange",
         data: "TEST_DATA",
-        crypto: {:fin_ke, %KeyExchangeFinal{
-          ring_signature: <<>>,
-          hmac_key: <<>>
-      }}}
+        crypto:
+          {:fin_ke,
+           %KeyExchangeFinal{
+             ring_signature: <<>>,
+             hmac_key: <<>>
+           }}
+      }
 
       # Expected serial outputs
       serial = [
@@ -180,9 +190,12 @@ defmodule LAP2.Networking.ProtoBufTest do
         request_id: 0,
         request_type: "regular_proxy",
         data: "TEST_DATA",
-        crypto: {:sym_key, %SymmetricKey{
-          hmac_key: <<>>
-      }}}
+        crypto:
+          {:sym_key,
+           %SymmetricKey{
+             hmac_key: <<>>
+           }}
+      }
 
       # Expected serial outputs
       serial = [
@@ -202,10 +215,13 @@ defmodule LAP2.Networking.ProtoBufTest do
         request_id: 0,
         request_type: "regular_proxy",
         data: "TEST_DATA",
-        crypto: {:key_rot, %KeyRotation{
-          new_key: <<>>,
-          hmac_key: <<>>
-      }}}
+        crypto:
+          {:key_rot,
+           %KeyRotation{
+             new_key: <<>>,
+             hmac_key: <<>>
+           }}
+      }
 
       # Expected serial outputs
       serial = [
@@ -269,8 +285,10 @@ defmodule LAP2.Networking.ProtoBufTest do
   describe "(Share) deserialise/2" do
     test "Test proxy discovery deserialisation" do
       # Serial data
-      serial = <<8, 1, 16, 2, 24, 1, 32, 2, 42, 12, 10, 4, 1, 1, 1, 1, 18, 4, 1, 1, 1, 1, 50,
-      4, 1, 1, 1, 1>>
+      serial =
+        <<8, 1, 16, 2, 24, 1, 32, 2, 42, 12, 10, 4, 1, 1, 1, 1, 18, 4, 1, 1, 1, 1, 50, 4, 1, 1, 1,
+          1>>
+
       # Expected deserial outputs
       share = %Share{
         message_id: 1,
@@ -290,22 +308,27 @@ defmodule LAP2.Networking.ProtoBufTest do
   describe "(Request) deserialise/2" do
     test "Test initial key exchange deserialisation" do
       # Serial data
-      serial = <<42, 0, 26, 15, 112, 114, 111, 120, 121, 95, 100, 105, 115, 99, 111, 118, 101,
-      114, 121, 34, 9, 84, 69, 83, 84, 95, 68, 65, 84, 65>>
+      serial =
+        <<42, 0, 26, 15, 112, 114, 111, 120, 121, 95, 100, 105, 115, 99, 111, 118, 101, 114, 121,
+          34, 9, 84, 69, 83, 84, 95, 68, 65, 84, 65>>
+
       # Expected deserialised outputs
       request = %Request{
         hmac: 0,
         request_id: 0,
         request_type: "proxy_discovery",
         data: "TEST_DATA",
-        crypto: {:init_ke, %KeyExchangeInit{
-          identity: <<>>,
-          ephemeral_pk: <<>>,
-          generator: <<>>,
-          ring_pk: <<>>,
-          signature: <<>>,
-          hmac_key: <<>>
-        }}}
+        crypto:
+          {:init_ke,
+           %KeyExchangeInit{
+             identity: <<>>,
+             ephemeral_pk: <<>>,
+             generator: <<>>,
+             ring_pk: <<>>,
+             signature: <<>>,
+             hmac_key: <<>>
+           }}
+      }
 
       # Deserialise the request
       assert {:ok, request} == ProtoBuf.deserialise(serial, Request)
@@ -313,23 +336,28 @@ defmodule LAP2.Networking.ProtoBufTest do
 
     test "Test key exchange response deserialisation" do
       # Serial data
-      serial = <<50, 0, 26, 18, 100, 105, 115, 99, 111, 118, 101, 114, 121, 95, 114, 101, 115,
-      112, 111, 110, 115, 101, 34, 9, 84, 69, 83, 84, 95, 68, 65, 84, 65>>
+      serial =
+        <<50, 0, 26, 18, 100, 105, 115, 99, 111, 118, 101, 114, 121, 95, 114, 101, 115, 112, 111,
+          110, 115, 101, 34, 9, 84, 69, 83, 84, 95, 68, 65, 84, 65>>
+
       # Expected deserialised outputs
       request = %Request{
         hmac: 0,
         request_id: 0,
         request_type: "discovery_response",
         data: "TEST_DATA",
-        crypto: {:resp_ke, %KeyExchangeResponse{
-          identity: <<>>,
-          ephemeral_pk: <<>>,
-          generator: <<>>,
-          ring_pk: <<>>,
-          signature: <<>>,
-          ring_signature: <<>>,
-          hmac_key: <<>>
-      }}}
+        crypto:
+          {:resp_ke,
+           %KeyExchangeResponse{
+             identity: <<>>,
+             ephemeral_pk: <<>>,
+             generator: <<>>,
+             ring_pk: <<>>,
+             signature: <<>>,
+             ring_signature: <<>>,
+             hmac_key: <<>>
+           }}
+      }
 
       # Deserialise the request
       assert {:ok, request} == ProtoBuf.deserialise(serial, Request)
@@ -337,18 +365,23 @@ defmodule LAP2.Networking.ProtoBufTest do
 
     test "Test final key exchange deserialisation" do
       # Serial data
-      serial = <<58, 0, 26, 12, 107, 101, 121, 95, 101, 120, 99, 104, 97, 110, 103, 101, 34, 9,
-      84, 69, 83, 84, 95, 68, 65, 84, 65>>
+      serial =
+        <<58, 0, 26, 12, 107, 101, 121, 95, 101, 120, 99, 104, 97, 110, 103, 101, 34, 9, 84, 69,
+          83, 84, 95, 68, 65, 84, 65>>
+
       # Expected deserialised outputs
       request = %Request{
         hmac: 0,
         request_id: 0,
         request_type: "key_exchange",
         data: "TEST_DATA",
-        crypto: {:fin_ke, %KeyExchangeFinal{
-          ring_signature: <<>>,
-          hmac_key: <<>>
-      }}}
+        crypto:
+          {:fin_ke,
+           %KeyExchangeFinal{
+             ring_signature: <<>>,
+             hmac_key: <<>>
+           }}
+      }
 
       # Deserialise the request
       assert {:ok, request} == ProtoBuf.deserialise(serial, Request)
@@ -356,17 +389,22 @@ defmodule LAP2.Networking.ProtoBufTest do
 
     test "Test symmetric key communication deserialisation" do
       # Serial data
-      serial = <<74, 0, 26, 13, 114, 101, 103, 117, 108, 97, 114, 95, 112, 114, 111, 120, 121,
-      34, 9, 84, 69, 83, 84, 95, 68, 65, 84, 65>>
+      serial =
+        <<74, 0, 26, 13, 114, 101, 103, 117, 108, 97, 114, 95, 112, 114, 111, 120, 121, 34, 9, 84,
+          69, 83, 84, 95, 68, 65, 84, 65>>
+
       # Expected deserialised outputs
       request = %Request{
         hmac: 0,
         request_id: 0,
         request_type: "regular_proxy",
         data: "TEST_DATA",
-        crypto: {:sym_key, %SymmetricKey{
-          hmac_key: <<>>
-      }}}
+        crypto:
+          {:sym_key,
+           %SymmetricKey{
+             hmac_key: <<>>
+           }}
+      }
 
       # Deserialise the request
       assert {:ok, request} == ProtoBuf.deserialise(serial, Request)
@@ -374,18 +412,23 @@ defmodule LAP2.Networking.ProtoBufTest do
 
     test "Test key rotation deserialisation" do
       # Serial data
-      serial = <<66, 0, 26, 13, 114, 101, 103, 117, 108, 97, 114, 95, 112, 114, 111, 120, 121,
-      34, 9, 84, 69, 83, 84, 95, 68, 65, 84, 65>>
+      serial =
+        <<66, 0, 26, 13, 114, 101, 103, 117, 108, 97, 114, 95, 112, 114, 111, 120, 121, 34, 9, 84,
+          69, 83, 84, 95, 68, 65, 84, 65>>
+
       # Expected deserialised outputs
       request = %Request{
         hmac: 0,
         request_id: 0,
         request_type: "regular_proxy",
         data: "TEST_DATA",
-        crypto: {:key_rot, %KeyRotation{
-          new_key: <<>>,
-          hmac_key: <<>>
-      }}}
+        crypto:
+          {:key_rot,
+           %KeyRotation{
+             new_key: <<>>,
+             hmac_key: <<>>
+           }}
+      }
 
       # Deserialise the request
       assert {:ok, request} == ProtoBuf.deserialise(serial, Request)
