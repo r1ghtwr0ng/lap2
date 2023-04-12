@@ -6,18 +6,7 @@ defmodule LAP2.Utils.ConfigParserTest do
   describe "get_config/1" do
     test "Read config from file" do
       expected_config = %{
-        share_handler: %{
-          name: :share_handler,
-          registry_table: %{
-            share_handler: :share_handler,
-            main_supervisor: :lap2_deamon,
-            router: :router,
-            task_supervisor: :lap2_superv,
-            tcp_server: :tcp_server,
-            udp_server: :udp_server
-          },
-          share_ttl: 60000
-        },
+        crypto_manager: %{name: :crypto_manager},
         main_supervisor: %{name: :lap2_deamon},
         router: %{
           clove_cache_size: 1000,
@@ -27,15 +16,29 @@ defmodule LAP2.Utils.ConfigParserTest do
           proxy_limit: 20,
           proxy_policy: true,
           registry_table: %{
-            share_handler: :share_handler,
             main_supervisor: :lap2_deamon,
             router: :router,
+            share_handler: :share_handler,
             task_supervisor: :lap2_superv,
             tcp_server: :tcp_server,
-            udp_server: :udp_server
+            udp_server: :udp_server,
+            crypto_manager: :crypto_manager
           },
           relay_table_size: 5000,
-          relay_table_ttl: 1_800_000
+          relay_table_ttl: 1800000
+        },
+        share_handler: %{
+          name: :share_handler,
+          registry_table: %{
+            main_supervisor: :lap2_deamon,
+            router: :router,
+            share_handler: :share_handler,
+            task_supervisor: :lap2_superv,
+            tcp_server: :tcp_server,
+            udp_server: :udp_server,
+            crypto_manager: :crypto_manager
+          },
+          share_ttl: 60000
         },
         task_supervisor: %{max_children: 10, name: :lap2_superv},
         tcp_server: %{
@@ -43,12 +46,13 @@ defmodule LAP2.Utils.ConfigParserTest do
           name: :tcp_server,
           queue_interval: 100,
           registry_table: %{
-            share_handler: :share_handler,
             main_supervisor: :lap2_deamon,
             router: :router,
+            share_handler: :share_handler,
             task_supervisor: :lap2_superv,
             tcp_server: :tcp_server,
-            udp_server: :udp_server
+            udp_server: :udp_server,
+            crypto_manager: :crypto_manager
           },
           req_timeout: 50000,
           tcp_port: 3001
@@ -59,12 +63,13 @@ defmodule LAP2.Utils.ConfigParserTest do
           name: :udp_server,
           queue_interval: 100,
           registry_table: %{
-            share_handler: :share_handler,
             main_supervisor: :lap2_deamon,
             router: :router,
+            share_handler: :share_handler,
             task_supervisor: :lap2_superv,
             tcp_server: :tcp_server,
-            udp_server: :udp_server
+            udp_server: :udp_server,
+            crypto_manager: :crypto_manager
           },
           req_timeout: 50000,
           udp_port: 1447

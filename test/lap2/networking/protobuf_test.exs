@@ -181,7 +181,6 @@ defmodule LAP2.Networking.ProtoBufTest do
         request_type: "regular_proxy",
         data: "TEST_DATA",
         crypto: {:sym_key, %SymmetricKey{
-          iv: <<>>,
           hmac_key: <<>>
       }}}
 
@@ -205,7 +204,6 @@ defmodule LAP2.Networking.ProtoBufTest do
         data: "TEST_DATA",
         crypto: {:key_rot, %KeyRotation{
           new_key: <<>>,
-          new_iv: <<>>,
           hmac_key: <<>>
       }}}
 
@@ -367,7 +365,6 @@ defmodule LAP2.Networking.ProtoBufTest do
         request_type: "regular_proxy",
         data: "TEST_DATA",
         crypto: {:sym_key, %SymmetricKey{
-          iv: <<>>,
           hmac_key: <<>>
       }}}
 
@@ -387,7 +384,6 @@ defmodule LAP2.Networking.ProtoBufTest do
         data: "TEST_DATA",
         crypto: {:key_rot, %KeyRotation{
           new_key: <<>>,
-          new_iv: <<>>,
           hmac_key: <<>>
       }}}
 

@@ -9,6 +9,7 @@ defmodule LAP2Test do
     %{
       main_supervisor: %{name: String.to_atom("lap2_daemon_#{addr}")},
       task_supervisor: %{max_children: 10, name: String.to_atom("lap2_superv_#{addr}")},
+      crypto_manager: %{name: String.to_atom("crypto_manager_#{addr}")},
       router: %{
         clove_cache_size: 1000,
         clove_cache_ttl: 30000,
