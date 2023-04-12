@@ -18,7 +18,7 @@ defmodule LAP2.Networking.Routing.Local do
       }) do
     # Debug
     IO.puts("[+] Local: Relaying clove to share handler")
-    aux_data = %{request_type: :regular_proxy}
+    aux_data = %{request_type: :regular_proxy, proxy_seq: pseq}
     processor_name = state.config.registry_table.share_handler
     route_clove(processor_name, [data], aux_data)
     new_state = State.update_relay_timestamp(state, pseq)

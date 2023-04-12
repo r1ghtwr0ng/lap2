@@ -27,10 +27,10 @@ defmodule LAP2.Main.StructHandlers.RequestHandler do
     end
   end
 
-  def handle_request(request_bin, %{request_type: :regular_proxy} = aux_data) do
+  def handle_request(request_bin, %{request_type: :regular_proxy, proxy_seq: pseq}, crypto_mgr_name) do
     Logger.info("[i] Handling regular proxy request")
-    case RequestHelper.deserialise(request_bin) do
-      {:ok, request} -> Proxy.handle_regular_proxy(request, aux_data)
+    case RequestHelper.deserialise_encrypted(request_bin, pseq, crypto_mgr_name) do
+      {:ok, request} -> Proxy.handle_regular_proxy(request)
       {:error, reason} -> {:error, reason}
     end
   end

@@ -1,6 +1,6 @@
 defmodule LAP2.Main.StructHandlers.ShareHandler do
   @moduledoc """
-  Handle managing, sending and receiving data from the network.
+  Handle share caching and reassembly.
   """
   use GenServer
   require Logger
@@ -9,7 +9,7 @@ defmodule LAP2.Main.StructHandlers.ShareHandler do
   alias LAP2.Main.StructHandlers.RequestHandler
 
   @doc """
-  Start the Router process.
+  Start the ShareHandler process.
   """
   @spec start_link(map) :: GenServer.on_start()
   def start_link(config) do
@@ -17,20 +17,21 @@ defmodule LAP2.Main.StructHandlers.ShareHandler do
   end
 
   @doc """
-  Initialise the data handler GenServer.
+  Initialise the share handler GenServer.
   """
   @spec init(map) :: {:ok, map}
   def init(config) do
     # Ensure that the ETS gets cleaned up on exit
     Process.flag(:trap_exit, true)
     # Initialise data handler state
-    IO.puts("[i] Share Handler: Starting GenServer")
+    IO.puts("[i] ShareHandler: Starting GenServer")
 
     state = %{
       ets: :ets.new(:clove_ets, [:set, :private]),
       share_info: %{},
       drop_list: [],
-      config: %{share_ttl: config.share_ttl}
+      config: %{share_ttl: config.share_ttl,
+      registry_table: config.registry_table}
     }
 
     {:ok, state}
@@ -53,7 +54,7 @@ defmodule LAP2.Main.StructHandlers.ShareHandler do
             # Verify and format the auxiliary data
             case ShareHelper.format_aux_data([aux_data | ets_struct.aux_data]) do
               {:ok, formatted_aux_data} ->
-                Task.async(fn -> RequestHandler.handle_request(reconstructed, formatted_aux_data); end)
+                Task.async(fn -> RequestHandler.handle_request(reconstructed, formatted_aux_data, state.config.registry_table); end)
                 IO.puts("Reconstructed: #{reconstructed}")
 
               {:error, reason} ->
