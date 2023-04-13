@@ -10,7 +10,7 @@ defmodule LAP2.Utils.ConfigParserTest do
         main_supervisor: %{name: :lap2_deamon},
         router: %{
           clove_cache_size: 1000,
-          clove_cache_ttl: 30000,
+          clove_cache_ttl: 30_000,
           lap2_addr: "test",
           name: :router,
           proxy_limit: 20,
@@ -38,7 +38,7 @@ defmodule LAP2.Utils.ConfigParserTest do
             udp_server: :udp_server,
             crypto_manager: :crypto_manager
           },
-          share_ttl: 60000
+          share_ttl: 60_000
         },
         task_supervisor: %{max_children: 10, name: :lap2_superv},
         tcp_server: %{
@@ -54,7 +54,7 @@ defmodule LAP2.Utils.ConfigParserTest do
             udp_server: :udp_server,
             crypto_manager: :crypto_manager
           },
-          req_timeout: 50000,
+          req_timeout: 50_000,
           tcp_port: 3001
         },
         udp_server: %{
@@ -71,7 +71,7 @@ defmodule LAP2.Utils.ConfigParserTest do
             udp_server: :udp_server,
             crypto_manager: :crypto_manager
           },
-          req_timeout: 50000,
+          req_timeout: 50_000,
           udp_port: 1447
         }
       }

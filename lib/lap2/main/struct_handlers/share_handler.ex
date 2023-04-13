@@ -4,6 +4,7 @@ defmodule LAP2.Main.StructHandlers.ShareHandler do
   """
   use GenServer
   require Logger
+  alias LAP2.Utils.EtsHelper
   alias LAP2.Utils.ProtoBuf.ShareHelper
   alias LAP2.Main.Helpers.ProcessorState
   alias LAP2.Main.StructHandlers.RequestHandler
@@ -44,8 +45,8 @@ defmodule LAP2.Main.StructHandlers.ShareHandler do
 
     case ProcessorState.route_share(state, share) do
       :reassemble ->
-        ets_struct = ProcessorState.get_share_from_ets(state.ets, share.message_id)
-        ProcessorState.delete_share_from_ets(state.ets, share.message_id)
+        ets_struct = EtsHelper.get_value(state.ets, share.message_id)
+        EtsHelper.delete_value(state.ets, share.message_id)
         all_shares = [share | ets_struct.shares]
 
         case ShareHelper.reconstruct(all_shares) do

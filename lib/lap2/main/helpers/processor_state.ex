@@ -4,6 +4,7 @@ defmodule LAP2.Main.Helpers.ProcessorState do
   """
 
   alias LAP2.Utils.ProtoBuf.ShareHelper
+  alias LAP2.Utils.EtsHelper
 
   @doc """
   Route a share to the appropriate processing stage.
@@ -72,39 +73,22 @@ defmodule LAP2.Main.Helpers.ProcessorState do
   def add_share_to_ets(ets, share, aux_data) do
     # Check if share.message_id is in ets
     new_struct =
-      case :ets.lookup(ets, share.message_id) do
-        [] ->
+      case EtsHelper.get_value(ets, share.message_id) do
+        {:error, :not_found} ->
           %{
             shares: [share],
             aux_data: [aux_data]
           }
 
-        [{_key, ets_struct}] ->
+          {:ok, struct} ->
           %{
-            shares: [share | ets_struct.shares],
-            aux_data: [aux_data | ets_struct.aux_data]
+            shares: [share | struct.shares],
+            aux_data: [aux_data | struct.aux_data]
           }
       end
 
-    if :ets.insert(ets, {share.message_id, new_struct}), do: :ok, else: :error
+    EtsHelper.insert_value(ets, share.message_id, new_struct)
   end
-
-  @doc """
-  Get a share from the ETS table.
-  """
-  @spec get_share_from_ets(reference, non_neg_integer) :: {:ok, map} | {:error, :not_found}
-  def get_share_from_ets(ets, message_id) do
-    case :ets.lookup(ets, message_id) do
-      [] -> {:error, :not_found}
-      [{_key, ets_struct}] -> {:ok, ets_struct}
-    end
-  end
-
-  @doc """
-  Delete a share from the ETS table.
-  """
-  @spec delete_share_from_ets(reference, non_neg_integer) :: :ok
-  def delete_share_from_ets(ets, message_id), do: :ets.delete(ets, message_id)
 
   # ---- Private Functions ----
   # Handle valid share routing
