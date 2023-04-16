@@ -62,7 +62,8 @@ defmodule LAP2.Networking.Routing.Local do
     aux_data = %{
       request_type: :proxy_request,
       clove_seq: cseq,
-      relay: source
+      proxy_seq: proxy_seq,
+      relays: [source, prev_hop],
     }
 
     processor_name = state.config.registry_table.share_handler

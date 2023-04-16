@@ -96,7 +96,7 @@ defmodule LAP2.Crypto.CryptoManager do
 
   # ---- Private ETS Functions ----
   # Fetch the key from the ETS table and decrypt the request
-  @spec fetch_and_decrypt(reference, binary, non_neg_integer) :: {:ok, binary} | {:error, atom}
+  @spec fetch_and_decrypt(:ets.tid, binary, non_neg_integer) :: {:ok, binary} | {:error, atom}
   defp fetch_and_decrypt(ets, encrypted_req, proxy_seq) do
     case :ets.lookup(ets, proxy_seq) do
       [{_proxy_seq, key}] ->
@@ -114,8 +114,8 @@ defmodule LAP2.Crypto.CryptoManager do
   end
 
   # Encrypt the request data and add to EncryptedRequest struct
-  @spec fetch_and_encrypt(reference, binary, non_neg_integer) ::
-          {:ok, binary, binary} | {:error, atom}
+  @spec fetch_and_encrypt(:ets.tid, binary, non_neg_integer) ::
+          {:ok, EncryptedRequest} | {:error, :no_key}
   defp fetch_and_encrypt(ets, data, proxy_seq) do
     case :ets.lookup(ets, proxy_seq) do
       [{_proxy_seq, key}] ->
@@ -138,10 +138,10 @@ defmodule LAP2.Crypto.CryptoManager do
   end
 
   # Add a key to the ETS table
-  @spec add_key(reference, binary, non_neg_integer) :: :ok
+  @spec add_key(:ets.tid, binary, non_neg_integer) :: :ok
   defp ets_add_key(ets, key, proxy_seq), do: :ets.insert(ets, {proxy_seq, key})
 
   # Remove a key from the ETS table
-  @spec remove_key(reference, non_neg_integer) :: :ok
+  @spec remove_key(:ets.tid, non_neg_integer) :: :ok
   defp ets_remove_key(ets, proxy_seq), do: :ets.delete(ets, proxy_seq)
 end
