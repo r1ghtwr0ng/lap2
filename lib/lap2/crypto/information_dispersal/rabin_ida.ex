@@ -29,8 +29,8 @@ defmodule LAP2.Crypto.InformationDispersal.RabinIDA do
     # Calculate the shares
     Matrix.matrix_dot_product(vand_matrix, byte_chunks, @prime)
     |> Enum.map(&encode_double_byte/1)
-    |> Enum.with_index(fn chunk, idx ->
-      %{data: :erlang.list_to_binary(chunk), share_idx: idx + 1}
+    |> Enum.with_index(fn binary_chunk, idx ->
+      %{data: binary_chunk, share_idx: idx + 1}
     end)
   end
 
@@ -40,14 +40,10 @@ defmodule LAP2.Crypto.InformationDispersal.RabinIDA do
   a in the shares.
   Finally, the data is un-padded and returned.
   """
-  @spec reconstruct(list(map)) :: binary
+  @spec reconstruct(list(map)) :: {:ok, binary} | {:error, nil}
   def reconstruct(shares) do
     # Fetch the data from the shares
-    byte_chunks =
-      Enum.map(shares, fn share ->
-        :erlang.binary_to_list(share.data)
-        |> decode_double_byte()
-      end)
+    byte_chunks = Enum.map(shares, fn share -> decode_double_byte(share.data); end)
 
     # Fetch the ids from the shares and use them to generate the reassembly matrix
     try do
@@ -56,6 +52,7 @@ defmodule LAP2.Crypto.InformationDispersal.RabinIDA do
         |> Matrix.vandermonde_inverse(@prime)
         |> Matrix.matrix_product(byte_chunks, @prime)
         |> Matrix.transpose()
+        |> IO.inspect(label: "reconstructed")
         |> Enum.concat()
         |> :erlang.list_to_binary()
         |> PKCS7.unpad()
@@ -68,28 +65,19 @@ defmodule LAP2.Crypto.InformationDispersal.RabinIDA do
   end
 
   # ---- Private Functions ----
+  # Encode a list of integers into a binary where each element is 2 bytes
   @spec encode_double_byte(list(non_neg_integer)) :: list(non_neg_integer)
-  defp encode_double_byte(bytes) do
-    Enum.flat_map(bytes, fn
-      255 -> [255, 0]
-      256 -> [255, 1]
-      byte -> [byte]
-    end)
+  def encode_double_byte(bytes) do
+    Enum.reduce(bytes, <<>>, fn byte, acc -> acc <> <<byte::size(16)>>; end)
   end
 
-  @spec decode_double_byte(list(non_neg_integer)) :: list(non_neg_integer)
-  defp decode_double_byte(bytes) do
-    {decoded_bytes, _skip_next} =
-      Enum.reduce(bytes, {[], false}, fn byte, {acc, skip_next} ->
-        case {byte, skip_next} do
-          {255, false} -> {acc, true}
-          {0, true} -> {acc ++ [255], false}
-          {1, true} -> {acc ++ [256], false}
-          {_, true} -> {acc, false}
-          {other, false} -> {acc ++ [other], false}
-        end
-      end)
-
-    decoded_bytes
+  # Decode a binary into a list of integers where each element is 2 bytes
+  @spec decode_double_byte(binary) :: list(non_neg_integer)
+  def decode_double_byte(bytes) do
+    bytes
+    |> :binary.bin_to_list()
+    |> Stream.chunk_every(2)
+    |> Stream.map(fn [byte1, byte2] -> byte1 * 256 + byte2; end)
+    |> Enum.to_list()
   end
 end
