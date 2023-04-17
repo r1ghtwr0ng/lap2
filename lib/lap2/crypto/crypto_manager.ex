@@ -29,12 +29,14 @@ defmodule LAP2.Crypto.CryptoManager do
   end
 
   # ---- GenServer Callbacks ----
-  @spec handle_call({:decrypt, EncryptedRequest, non_neg_integer}, map) :: {:reply, tuple, map}
+  @spec handle_call({:decrypt, EncryptedRequest.t, non_neg_integer}, map) ::
+    {:reply, {:ok, binary} | {:error, :no_key}, map}
   def handle_call({:decrypt, encrypted_req, proxy_seq}, state) do
-    {_crypto, response} = Map.pop(fetch_and_decrypt(state.ets, encrypted_req, proxy_seq), :crypto)
+    {:ok, decrypted} = fetch_and_decrypt(state.ets, encrypted_req, proxy_seq)
+    #{_crypto, _response} = Map.pop(encrypted_req, :crypto)
     # TODO handle crypto request
     # Delete crypto information from response to avoid leaking keys
-    {:reply, response, state}
+    {:reply, decrypted, state}
   end
 
   @spec handle_call({:encrypt, binary, non_neg_integer}, map) :: {:reply, tuple, map}
@@ -65,15 +67,15 @@ defmodule LAP2.Crypto.CryptoManager do
   Decrypt a request using the key stored in the ETS table.
   Return binary for deserialisation.
   """
-  @spec decrypt_request(binary, non_neg_integer, atom) :: :ok
-  def decrypt_request(ciphertext, proxy_seq, name \\ :crypto_manager) do
-    GenServer.call({:global, name}, {:decrypt, ciphertext, proxy_seq})
+  @spec decrypt_request(EncryptedRequest.t, non_neg_integer, atom) :: {:ok, binary} | {:error, atom}
+  def decrypt_request(enc_request, proxy_seq, name \\ :crypto_manager) do
+    GenServer.call({:global, name}, {:decrypt, enc_request, proxy_seq})
   end
 
   @doc """
   Encrypt a serialised (binary) request, returning an EncryptedRequest struct.
   """
-  @spec encrypt_request(binary, non_neg_integer, atom) :: :ok
+  @spec encrypt_request(binary, non_neg_integer, atom) :: {:ok, EncryptedRequest.t} | {:error, :no_key}
   def encrypt_request(data, proxy_seq, name \\ :crypto_manager) do
     GenServer.call({:global, name}, {:encrypt, data, proxy_seq})
   end

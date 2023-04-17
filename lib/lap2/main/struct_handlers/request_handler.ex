@@ -10,11 +10,11 @@ defmodule LAP2.Main.StructHandlers.RequestHandler do
   @doc """
   Handle a request from the Share Handler.
   """
-  @spec handle_request(binary, map, map) :: {:noreply, map}
+  @spec handle_request(binary, map, map) :: {:ok, map} | {:error, any}
   def handle_request(request_bin, %{request_type: :proxy_request} = aux_data, registry_table) do
     Logger.info("[i] Handling proxy request")
 
-    case RequestHelper.deserialise(request_bin) do
+    case RequestHelper.deserialise(request_bin, Request) do
       {:ok, request} -> Proxy.handle_proxy_request(request, aux_data, registry_table.proxy)
       {:error, reason} -> {:error, reason}
     end
@@ -23,20 +23,19 @@ defmodule LAP2.Main.StructHandlers.RequestHandler do
   def handle_request(request_bin, %{request_type: :discovery_response} = aux_data, registry_table) do
     Logger.info("[i] Handling discovery response")
 
-    case RequestHelper.deserialise(request_bin) do
+    case RequestHelper.deserialise(request_bin, Request) do
       {:ok, request} -> Proxy.handle_discovery_response(request, aux_data, registry_table.proxy)
       {:error, reason} -> {:error, reason}
     end
   end
 
-  def handle_request(
-        request_bin,
-        %{request_type: :regular_proxy} = aux_data,
+  def handle_request(request_bin,
+        %{request_type: :regular_proxy, proxy_seq: pseq} = aux_data,
         registry_table
       ) do
     Logger.info("[i] Handling regular proxy request")
 
-    case RequestHelper.deserialise_encrypted(request_bin, aux_data, registry_table.crypto_manager) do
+    case RequestHelper.deserialise_encrypted(request_bin, pseq, registry_table.crypto_manager) do
       {:ok, request} -> Proxy.handle_regular_proxy(request, aux_data, registry_table.proxy)
       {:error, reason} -> {:error, reason}
     end

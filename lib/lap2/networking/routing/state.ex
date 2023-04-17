@@ -82,7 +82,7 @@ defmodule LAP2.Networking.Routing.State do
   @doc """
   Add a clove to the local cache.
   """
-  @spec cache_clove(map, {binary, integer}, {binary, integer}, Clove) :: map
+  @spec cache_clove(map, {binary, integer}, {binary, integer}, map) :: map
   def cache_clove(%{clove_cache: cache} = state, source, dest, %Clove{
         data: data,
         headers: {:proxy_discovery, %ProxyDiscoveryHeader{clove_seq: clove_seq}}
@@ -133,7 +133,7 @@ defmodule LAP2.Networking.Routing.State do
   @doc """
   Get routing information from state
   """
-  @spec get_route(map, {String.t(), non_neg_integer}, Clove) ::
+  @spec get_route(map, {String.t(), non_neg_integer}, map) ::
           atom | {atom, {String.t(), non_neg_integer} | atom | binary}
   def get_route(state, source, clove) do
     cond do
@@ -153,7 +153,7 @@ defmodule LAP2.Networking.Routing.State do
 
   # ---- Private handler functions ----
   # Handle proxy discovery clove
-  @spec handle_clove(map, {Strint.t(), non_neg_integer}, Clove) :: atom | {atom, any}
+  @spec handle_clove(map, {Strint.t(), non_neg_integer}, map) :: atom | {atom, any}
   defp handle_clove(state, _source, %Clove{
          data: data,
          headers: {:proxy_discovery, %ProxyDiscoveryHeader{clove_seq: clove_seq}}
@@ -237,7 +237,7 @@ defmodule LAP2.Networking.Routing.State do
 
   # ---- Clove drop rules ----
   # Drop rules for proxy discovery cloves
-  @spec drop?(map, {String.t(), non_neg_integer}, Clove) :: boolean
+  @spec drop?(map, {String.t(), non_neg_integer}, map) :: boolean
   defp drop?(state, {ip_addr, _}, %Clove{
          headers:
            {:proxy_discovery,

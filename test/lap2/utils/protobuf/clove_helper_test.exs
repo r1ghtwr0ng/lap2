@@ -7,13 +7,13 @@ defmodule LAP2.Utils.ProtoBuf.CloveHelperTest do
     test "Test valid checksum" do
       data = "TEST_DATA"
       checksum = CRC.crc_32(data)
-      assert CloveHelper.verify_checksum(%{data: data, checksum: checksum}) == true
+      assert CloveHelper.verify_checksum(%Clove{data: data, checksum: checksum}) == true
     end
 
     test "Test invalid checksum" do
       data = "TEST_DATA"
       checksum = CRC.crc_32(data)
-      assert CloveHelper.verify_checksum(%{data: data, checksum: checksum + 1}) == false
+      assert CloveHelper.verify_checksum(%Clove{data: data, checksum: checksum + 1}) == false
     end
   end
 
@@ -71,7 +71,7 @@ defmodule LAP2.Utils.ProtoBuf.CloveHelperTest do
     test "Test valid clove" do
       data = "TEST DATA"
 
-      valid_clove = %{
+      valid_clove = %Clove{
         data: data,
         headers:
           {:proxy_discovery,
@@ -89,7 +89,7 @@ defmodule LAP2.Utils.ProtoBuf.CloveHelperTest do
     test "Test invalid clove" do
       data = "TEST DATA"
 
-      invalid_clove = %{
+      invalid_clove = %Clove{
         data: data,
         headers:
           {:proxy_discovery,
@@ -109,7 +109,7 @@ defmodule LAP2.Utils.ProtoBuf.CloveHelperTest do
     test "Test valid cloves" do
       data = "TEST_DATA"
 
-      valid_clove = %{
+      valid_clove = %Clove{
         data: data,
         headers:
           {:proxy_discovery,
@@ -126,7 +126,7 @@ defmodule LAP2.Utils.ProtoBuf.CloveHelperTest do
     test "Test invalid cloves" do
       data = "TEST DATA"
 
-      invalid_clove_probab = %{
+      invalid_clove_probab = %Clove{
         data: data,
         headers:
           {:proxy_discovery,
@@ -137,7 +137,7 @@ defmodule LAP2.Utils.ProtoBuf.CloveHelperTest do
         checksum: CRC.crc_32(data)
       }
 
-      invalid_clove_checksum = %{
+      invalid_clove_checksum = %Clove{
         data: data,
         headers:
           {:proxy_discovery,
@@ -148,7 +148,7 @@ defmodule LAP2.Utils.ProtoBuf.CloveHelperTest do
         checksum: CRC.crc_32(data) + 1
       }
 
-      invalid_clove = %{
+      invalid_clove = %Clove{
         data: data,
         headers:
           {:proxy_discovery,

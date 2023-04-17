@@ -41,11 +41,11 @@ defmodule LAP2.Main.StructHandlers.ShareHandler do
   @spec handle_cast({:deliver, binary, map}, map) :: {:noreply, map}
   def handle_cast({:deliver, data, aux_data}, state) do
     # TODO send data for parsing
-    share = ShareHelper.deserialise(data)
+    {:ok, share} = ShareHelper.deserialise(data)
 
     case ProcessorState.route_share(state, share) do
       :reassemble ->
-        ets_struct = EtsHelper.get_value(state.ets, share.message_id)
+        {:ok, ets_struct} = EtsHelper.get_value(state.ets, share.message_id)
         EtsHelper.delete_value(state.ets, share.message_id)
         all_shares = [share | ets_struct.shares]
 
@@ -61,15 +61,14 @@ defmodule LAP2.Main.StructHandlers.ShareHandler do
                     state.config.registry_table
                   )
                 end)
-
-                IO.puts("Reconstructed: #{reconstructed}")
+                Logger.info("Reconstructed: #{reconstructed}")
 
               {:error, reason} ->
-                IO.puts("Reconstruction failed #{inspect(reason)}}")
+                Logger.error("Reconstruction failed #{inspect(reason)}}")
             end
 
           {:error, _} ->
-            IO.puts("Reconstruction failed")
+            Logger.error("Reconstruction failed")
         end
 
         new_state =
