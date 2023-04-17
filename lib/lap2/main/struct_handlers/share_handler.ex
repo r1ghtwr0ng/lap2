@@ -61,6 +61,7 @@ defmodule LAP2.Main.StructHandlers.ShareHandler do
                     state.config.registry_table
                   )
                 end)
+
                 Logger.info("Reconstructed: #{reconstructed}")
 
               {:error, reason} ->

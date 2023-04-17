@@ -6,7 +6,7 @@ defmodule LAP2.Utils.EtsHelper do
   @doc """
   Get a value from an ETS table.
   """
-  @spec get_value(:ets.tid, any) :: {:ok, any} | {:error, :not_found}
+  @spec get_value(:ets.tid(), any) :: {:ok, any} | {:error, :not_found}
   def get_value(table, key) do
     case :ets.lookup(table, key) do
       [{_, value}] -> {:ok, value}
@@ -17,12 +17,12 @@ defmodule LAP2.Utils.EtsHelper do
   @doc """
   Insert a value into an ETS table.
   """
-  @spec insert_value(:ets.tid, any, any) :: true
+  @spec insert_value(:ets.tid(), any, any) :: true
   def insert_value(table, key, value), do: :ets.insert(table, {key, value})
 
   @doc """
   Delete a value from an ETS table.
   """
-  @spec delete_value(:ets.tid, any) :: true
+  @spec delete_value(:ets.tid(), any) :: true
   def delete_value(table, key), do: :ets.delete(table, key)
 end

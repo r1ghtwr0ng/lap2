@@ -29,11 +29,11 @@ defmodule LAP2.Crypto.CryptoManager do
   end
 
   # ---- GenServer Callbacks ----
-  @spec handle_call({:decrypt, EncryptedRequest.t, non_neg_integer}, map) ::
-    {:reply, {:ok, binary} | {:error, :no_key}, map}
+  @spec handle_call({:decrypt, EncryptedRequest.t(), non_neg_integer}, map) ::
+          {:reply, {:ok, binary} | {:error, :no_key}, map}
   def handle_call({:decrypt, encrypted_req, proxy_seq}, state) do
     {:ok, decrypted} = fetch_and_decrypt(state.ets, encrypted_req, proxy_seq)
-    #{_crypto, _response} = Map.pop(encrypted_req, :crypto)
+    # {_crypto, _response} = Map.pop(encrypted_req, :crypto)
     # TODO handle crypto request
     # Delete crypto information from response to avoid leaking keys
     {:reply, decrypted, state}
@@ -67,7 +67,8 @@ defmodule LAP2.Crypto.CryptoManager do
   Decrypt a request using the key stored in the ETS table.
   Return binary for deserialisation.
   """
-  @spec decrypt_request(EncryptedRequest.t, non_neg_integer, atom) :: {:ok, binary} | {:error, atom}
+  @spec decrypt_request(EncryptedRequest.t(), non_neg_integer, atom) ::
+          {:ok, binary} | {:error, atom}
   def decrypt_request(enc_request, proxy_seq, name \\ :crypto_manager) do
     GenServer.call({:global, name}, {:decrypt, enc_request, proxy_seq})
   end
@@ -75,7 +76,8 @@ defmodule LAP2.Crypto.CryptoManager do
   @doc """
   Encrypt a serialised (binary) request, returning an EncryptedRequest struct.
   """
-  @spec encrypt_request(binary, non_neg_integer, atom) :: {:ok, EncryptedRequest.t} | {:error, :no_key}
+  @spec encrypt_request(binary, non_neg_integer, atom) ::
+          {:ok, EncryptedRequest.t()} | {:error, :no_key}
   def encrypt_request(data, proxy_seq, name \\ :crypto_manager) do
     GenServer.call({:global, name}, {:encrypt, data, proxy_seq})
   end
@@ -98,7 +100,7 @@ defmodule LAP2.Crypto.CryptoManager do
 
   # ---- Private ETS Functions ----
   # Fetch the key from the ETS table and decrypt the request
-  @spec fetch_and_decrypt(:ets.tid, binary, non_neg_integer) :: {:ok, binary} | {:error, atom}
+  @spec fetch_and_decrypt(:ets.tid(), binary, non_neg_integer) :: {:ok, binary} | {:error, atom}
   defp fetch_and_decrypt(ets, encrypted_req, proxy_seq) do
     case :ets.lookup(ets, proxy_seq) do
       [{_proxy_seq, key}] ->
@@ -116,7 +118,7 @@ defmodule LAP2.Crypto.CryptoManager do
   end
 
   # Encrypt the request data and add to EncryptedRequest struct
-  @spec fetch_and_encrypt(:ets.tid, binary, non_neg_integer) ::
+  @spec fetch_and_encrypt(:ets.tid(), binary, non_neg_integer) ::
           {:ok, EncryptedRequest} | {:error, :no_key}
   defp fetch_and_encrypt(ets, data, proxy_seq) do
     case :ets.lookup(ets, proxy_seq) do
@@ -140,10 +142,10 @@ defmodule LAP2.Crypto.CryptoManager do
   end
 
   # Add a key to the ETS table
-  @spec add_key(:ets.tid, binary, non_neg_integer) :: :ok
+  @spec add_key(:ets.tid(), binary, non_neg_integer) :: :ok
   defp ets_add_key(ets, key, proxy_seq), do: :ets.insert(ets, {proxy_seq, key})
 
   # Remove a key from the ETS table
-  @spec remove_key(:ets.tid, non_neg_integer) :: :ok
+  @spec remove_key(:ets.tid(), non_neg_integer) :: :ok
   defp ets_remove_key(ets, proxy_seq), do: :ets.delete(ets, proxy_seq)
 end

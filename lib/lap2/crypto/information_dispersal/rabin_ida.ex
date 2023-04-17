@@ -43,7 +43,7 @@ defmodule LAP2.Crypto.InformationDispersal.RabinIDA do
   @spec reconstruct(list(map)) :: {:ok, binary} | {:error, nil}
   def reconstruct(shares) do
     # Fetch the data from the shares
-    byte_chunks = Enum.map(shares, fn share -> decode_double_byte(share.data); end)
+    byte_chunks = Enum.map(shares, fn share -> decode_double_byte(share.data) end)
 
     # Fetch the ids from the shares and use them to generate the reassembly matrix
     try do
@@ -67,7 +67,7 @@ defmodule LAP2.Crypto.InformationDispersal.RabinIDA do
   # Encode a list of integers into a binary where each element is 2 bytes
   @spec encode_double_byte(list(non_neg_integer)) :: list(non_neg_integer)
   def encode_double_byte(bytes) do
-    Enum.reduce(bytes, <<>>, fn byte, acc -> acc <> <<byte::size(16)>>; end)
+    Enum.reduce(bytes, <<>>, fn byte, acc -> acc <> <<byte::size(16)>> end)
   end
 
   # Decode a binary into a list of integers where each element is 2 bytes
@@ -76,7 +76,7 @@ defmodule LAP2.Crypto.InformationDispersal.RabinIDA do
     bytes
     |> :binary.bin_to_list()
     |> Stream.chunk_every(2)
-    |> Stream.map(fn [byte1, byte2] -> byte1 * 256 + byte2; end)
+    |> Stream.map(fn [byte1, byte2] -> byte1 * 256 + byte2 end)
     |> Enum.to_list()
   end
 end

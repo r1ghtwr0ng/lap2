@@ -29,7 +29,8 @@ defmodule LAP2.Main.StructHandlers.RequestHandler do
     end
   end
 
-  def handle_request(request_bin,
+  def handle_request(
+        request_bin,
         %{request_type: :regular_proxy, proxy_seq: pseq} = aux_data,
         registry_table
       ) do

@@ -11,7 +11,8 @@ defmodule LAP2.Utils.ProtoBuf.RequestHelper do
   @doc """
   Deserialise a request struct.
   """
-  @spec deserialise(binary, Request | EncryptedRequest) :: {:ok, Request.t | EncryptedRequest.t} | {:error, any}
+  @spec deserialise(binary, Request | EncryptedRequest) ::
+          {:ok, Request.t() | EncryptedRequest.t()} | {:error, any}
   def deserialise(data, struct) do
     # Deserialise the request
     ProtoBuf.deserialise(data, struct)
@@ -22,8 +23,10 @@ defmodule LAP2.Utils.ProtoBuf.RequestHelper do
   """
   @spec deserialise_encrypted(binary, integer, atom) :: any
   def deserialise_encrypted(enc_request, proxy_seq, crypto_mgr_name \\ :crypto_manager)
+
   def deserialise_encrypted(enc_request, proxy_seq, crypto_mgr_name) do
     enc_req_struct = deserialise(enc_request, EncryptedRequest)
+
     case CryptoManager.decrypt_request(enc_req_struct, proxy_seq, crypto_mgr_name) do
       {:ok, data} -> deserialise(data, Request)
       {:error, reason} -> {:error, reason}
@@ -33,7 +36,7 @@ defmodule LAP2.Utils.ProtoBuf.RequestHelper do
   @doc """
   Serialise a request struct.
   """
-  @spec serialise(Request.t) :: {:ok, binary} | {:error, any}
+  @spec serialise(Request.t()) :: {:ok, binary} | {:error, any}
   def serialise(request) do
     # Serialise the request
     case ProtoBuf.serialise(request) do
@@ -45,7 +48,7 @@ defmodule LAP2.Utils.ProtoBuf.RequestHelper do
   @doc """
   Encrypt a Request struct and serialise to EncryptedRequest struct.
   """
-  @spec serialise_encrypted(Request.t, non_neg_integer, atom) :: {:ok, binary} | {:error, any}
+  @spec serialise_encrypted(Request.t(), non_neg_integer, atom) :: {:ok, binary} | {:error, any}
   def serialise_encrypted(request, proxy_seq, crypto_mgr_name \\ :crypto_manager) do
     # Serialise the request
     case ProtoBuf.serialise(request) do

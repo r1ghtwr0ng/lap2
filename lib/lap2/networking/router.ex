@@ -171,7 +171,7 @@ defmodule LAP2.Networking.Router do
   @doc """
   Route an inbound clove to the appropriate destination.
   """
-  @spec route_inbound({String.t(), non_neg_integer}, Clove.t, atom) :: :ok
+  @spec route_inbound({String.t(), non_neg_integer}, Clove.t(), atom) :: :ok
   def route_inbound(source, clove, name \\ :router) do
     GenServer.cast({:global, name}, {:route_inbound, source, clove})
   end

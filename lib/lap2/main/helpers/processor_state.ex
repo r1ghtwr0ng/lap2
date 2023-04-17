@@ -9,7 +9,7 @@ defmodule LAP2.Main.Helpers.ProcessorState do
   @doc """
   Route a share to the appropriate processing stage.
   """
-  @spec route_share(map, Share.t) :: :drop | :cache | :reassemble
+  @spec route_share(map, Share.t()) :: :drop | :cache | :reassemble
   def route_share(state, share) do
     cond do
       ShareHelper.verify_share(share) ->
@@ -75,7 +75,7 @@ defmodule LAP2.Main.Helpers.ProcessorState do
   @doc """
   Add a share and auxiliary information to the ETS table
   """
-  @spec add_share_to_ets(:ets.tid, Share, map) :: :ok
+  @spec add_share_to_ets(:ets.tid(), Share, map) :: :ok
   def add_share_to_ets(ets, share, aux_data) do
     # Check if share.message_id is in ets
     new_struct =
@@ -86,7 +86,7 @@ defmodule LAP2.Main.Helpers.ProcessorState do
             aux_data: [aux_data]
           }
 
-          {:ok, struct} ->
+        {:ok, struct} ->
           %{
             shares: [share | struct.shares],
             aux_data: [aux_data | struct.aux_data]
