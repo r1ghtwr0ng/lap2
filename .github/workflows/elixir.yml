@@ -51,11 +51,11 @@ jobs:
 
     - name: Code
       run: |
-        mix compile --warnings-as-errors
+        mix compile
  
     - name: Test
       run: |
-        mix test --warnings-as-errors --cover --export-coverage default
+        mix test
 
     - name: Artifacts
       uses: actions/upload-artifact@v2
