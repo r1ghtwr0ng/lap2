@@ -50,9 +50,8 @@ defmodule LAP2.Crypto.InformationDispersal.RabinIDA do
       reconstructed =
         Enum.map(shares, fn share -> share.share_idx end)
         |> Matrix.vandermonde_inverse(@prime)
-        |> Matrix.matrix_product(byte_chunks, @prime)
+        |> Matrix.matrix_nif_product(byte_chunks, @prime)
         |> Matrix.transpose()
-        |> IO.inspect(label: "reconstructed")
         |> Enum.concat()
         |> :erlang.list_to_binary()
         |> PKCS7.unpad()

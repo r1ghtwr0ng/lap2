@@ -9,7 +9,7 @@ defmodule LAP2.Main.Helpers.ProcessorState do
   @doc """
   Route a share to the appropriate processing stage.
   """
-  @spec route_share(map, Share) :: {:drop | :reassemble | :cache}
+  @spec route_share(map, Share.t) :: :drop | :cache | :reassemble
   def route_share(state, share) do
     cond do
       ShareHelper.verify_share(share) ->
@@ -24,7 +24,7 @@ defmodule LAP2.Main.Helpers.ProcessorState do
   @doc """
   Cache a share in the share_info map.
   """
-  @spec cache_share(map, Share) :: map
+  @spec cache_share(map, map) :: map
   def cache_share(state, %Share{message_id: msg_id, share_idx: share_idx})
       when is_map_key(state.share_info, msg_id) do
     current_entry = Map.get(state.share_info, msg_id)
@@ -54,12 +54,18 @@ defmodule LAP2.Main.Helpers.ProcessorState do
     %{state | share_info: new_share_info}
   end
 
+  @doc """
+  Delete a share from the share_info map.
+  """
   @spec delete_from_cache(map, non_neg_integer) :: map
   def delete_from_cache(state, msg_id) do
     new_share_info = Map.delete(state.share_info, msg_id)
     %{state | share_info: new_share_info}
   end
 
+  @doc """
+  Add a message id to the drop list.
+  """
   @spec add_to_drop_list(map, non_neg_integer) :: map
   def add_to_drop_list(state, msg_id) do
     %{state | drop_list: [msg_id | state.drop_list]}
@@ -69,7 +75,7 @@ defmodule LAP2.Main.Helpers.ProcessorState do
   @doc """
   Add a share and auxiliary information to the ETS table
   """
-  @spec add_share_to_ets(reference, Share, map) :: :ok | :error
+  @spec add_share_to_ets(:ets.tid, Share, map) :: :ok
   def add_share_to_ets(ets, share, aux_data) do
     # Check if share.message_id is in ets
     new_struct =
@@ -88,11 +94,12 @@ defmodule LAP2.Main.Helpers.ProcessorState do
       end
 
     EtsHelper.insert_value(ets, share.message_id, new_struct)
+    :ok
   end
 
   # ---- Private Functions ----
   # Handle valid share routing
-  @spec handle_valid_share(map, Share) :: {:drop | :reassemble | :cache}
+  @spec handle_valid_share(map, Share) :: :drop | :reassemble | :cache
   defp handle_valid_share(state, share) when is_map_key(state.share_info, share.message_id) do
     share_cache = state.share_info[share.message_id]
 
@@ -105,7 +112,7 @@ defmodule LAP2.Main.Helpers.ProcessorState do
   defp handle_valid_share(_, _), do: :cache
 
   # Check the share count to determine if we should reassemble or cache
-  @spec check_share_count(map) :: {:reassemble | :cache}
+  @spec check_share_count(map) :: :reassemble | :cache
   defp check_share_count(share_cache) do
     cond do
       length(share_cache.share_idxs) >= share_cache.threshold - 1 -> :reassemble
