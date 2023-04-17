@@ -1,39 +1,66 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-
-name: Elixir CI
+name: Elixir CI Workflow
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ master ]
   pull_request:
-    branches: [ "master" ]
-
-permissions:
-  contents: read
+    branches: [ master ]
 
 jobs:
-  build:
-
-    name: Build and test
+  elixir_ci:
+    name: Elixir CI
     runs-on: ubuntu-latest
+    env:
+      MIX_ENV: test
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Elixir
-      uses: erlef/setup-beam@988e02bfe678367a02564f65ca2e37726dc0268f
-      with:
-        elixir-version: '1.12.3' # Define the elixir version [required]
-        otp-version: '24.1' # Define the OTP version [required]
-    - name: Restore dependencies cache
-      uses: actions/cache@v3
-      with:
-        path: deps
-        key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
-        restore-keys: ${{ runner.os }}-mix-
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
     - name: Install dependencies
-      run: mix deps.get
-    - name: Run tests
-      run: mix test
+      run: sudo apt-get install -y protobuf-compiler
+
+    - name: Install Erlang/OTP + Elixir
+      id: setup-beam
+      uses: erlef/setup-beam@v1
+      with:
+        elixir-version: '1.14.4'
+        otp-version: '24.2.1'
+        # install-hex: true (default)
+        # install-rebar: true (default)
+      # outputs: ${steps.setup-beam.outputs.(opt, elixir, rebar3)-version} (exact version installed)        
+
+    - name: Restore dependency/build cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          deps
+          _build
+        # cache key is hierarchical: OS, otp-version, elixir-version, mix.lock
+        key: ${{ runner.os }}-mix-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-${{ hashFiles('**/mix.lock') }}
+        # restore keys are tried on cache misses, and only match the key prefix
+        restore-keys: |
+          ${{ runner.os }}-mix-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-
+          ${{ runner.os }}-mix-${{ steps.setup-beam.outputs.otp-version }}-
+          ${{ runner.os }}-mix-
+        
+    - name: Dependencies
+      run: |
+        mix deps.get
+        mix deps.compile
+
+    - name: Code
+      run: |
+        mix compile --warnings-as-errors
+ 
+    - name: Test
+      run: |
+        mix test --warnings-as-errors --cover --export-coverage default
+
+    - name: Artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: doc-cover
+        path: |
+          doc
+          cover
