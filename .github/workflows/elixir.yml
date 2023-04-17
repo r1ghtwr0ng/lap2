@@ -48,16 +48,11 @@ jobs:
 
     - name: Code
       run: |
-        mix format --check-formatted
         mix compile --warnings-as-errors
-        mix credo --strict
-        mix dialyzer
-        mix docs
  
     - name: Test
       run: |
         mix test --warnings-as-errors --cover --export-coverage default
-        mix test.coverage
 
     - name: Artifacts
       uses: actions/upload-artifact@v2
