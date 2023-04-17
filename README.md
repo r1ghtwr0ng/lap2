@@ -41,10 +41,11 @@
 
 ## *Math*
 - [x] Matrix module
+- [x] Matrix NIF
 
 ## *Bonus*
 - [ ] Sybil guard
-- [ ] Rewrite matrix module as NIF
+- [x] Rewrite matrix module as NIF
 - [ ] Contribution verification
 - [ ] Removing bad nodes
 - [ ] Phoenix frontend
