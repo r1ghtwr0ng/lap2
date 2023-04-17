@@ -17,6 +17,9 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
+    - name: Install dependencies
+      run: sudo apt-get install -y protobuf-compiler
+
     - name: Install Erlang/OTP + Elixir
       id: setup-beam
       uses: erlef/setup-beam@v1
