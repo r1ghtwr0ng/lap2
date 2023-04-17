@@ -4,11 +4,17 @@ defmodule LAP2.Math.Matrix do
   The functions used for performing the vandermonde matrix operations are based on the
   follwoing repository: https://github.com/mmtan/IDA
   """
+  @on_load :load_nif
+
+  @spec load_nif :: :ok | {:error, any}
+  def load_nif() do
+    :erlang.load_nif("./lib/nifs/matrix", 0)
+  end
 
   @doc """
   Calculate the dot product of two matrices, ensuring the result is within the finite field.
   """
-  @spec matrix_dot_product(list, list, non_neg_integer) :: non_neg_integer
+  @spec matrix_dot_product(list, list, non_neg_integer) :: list
   def matrix_dot_product(a, b, field_limit) do
     # TODO verify that a and b are the same length
     Enum.map(a, fn a_row ->
@@ -19,28 +25,39 @@ defmodule LAP2.Math.Matrix do
   end
 
   @doc """
-  Perform matrix multiplication of two matrices, ensuring the result is within the finite field.
+  Wrapper for the NIF matrix product calculation function.
   """
-  @spec matrix_product(list, list, non_neg_integer) :: non_neg_integer
-  def matrix_product(a, b, field_limit) do
-    # TODO verify that a and b are the same length
-    Enum.reduce(0..(length(a) - 1), [], fn i, result ->
-      res_row =
-        Enum.reduce(0..(length(Enum.at(b, 0)) - 1), [], fn j, row ->
-          res =
-            Enum.reduce(0..(length(Enum.at(a, 0)) - 1), 0, fn k, ans ->
-              elem_a = Enum.at(Enum.at(a, i), k)
-              elem_b = Enum.at(Enum.at(b, k), j)
-              Integer.mod(ans + elem_a * elem_b, field_limit)
-            end)
+  @spec matrix_nif_product(list, list, non_neg_integer) :: list
+  def matrix_nif_product(a, b, field_limit) do
+    cond do
+      length(b) != length(Enum.at(a, 0)) ->
+        []
 
-          [res | row]
-        end)
-        |> Enum.reverse()
+      true ->
+        a_rows = length(a)
+        a_cols = length(Enum.at(a, 0))
+        b_cols = length(Enum.at(b, 0))
+        a_bin = Enum.reduce(List.flatten(a), <<>>, fn byte, acc -> acc <> <<byte::16>>; end)
+        b_bin = Enum.reduce(List.flatten(b), <<>>, fn byte, acc -> acc <> <<byte::16>>; end)
+        matrix = matrix_product(a_rows, a_cols, b_cols, field_limit, a_bin, b_bin)
+        |> :binary.bin_to_list()
+        |> Stream.chunk_every(2)
+        |> Stream.map(fn [byte_1, byte_2] -> byte_2 * 256 + byte_1; end)
+        |> Stream.chunk_every(b_cols)
+        |> Enum.to_list()
+        matrix
+    end
+  end
 
-      [res_row | result]
-    end)
-    |> Enum.reverse()
+  @spec matrix_product(non_neg_integer, non_neg_integer, non_neg_integer, non_neg_integer, binary, binary) :: any
+  defp matrix_product(a_rows, a_cols, b_cols, p, a, b) do
+    :matrix.matrix_product(a_rows, a_cols, b_cols, p, a, b)
+    |> case do
+      {:ok, matrix} ->
+        matrix
+      :error ->
+        raise "matrix_product_nif returned an error"
+    end
   end
 
   @doc """

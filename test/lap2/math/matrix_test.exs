@@ -17,7 +17,7 @@ defmodule LAP2.Math.MatrixTest do
       a = [[1, 2], [3, 4]]
       b = [[5, 6], [7, 8]]
       field_limit = 20
-      result = Matrix.matrix_product(a, b, field_limit)
+      result = Matrix.matrix_nif_product(a, b, field_limit)
       assert result == [[19, 2], [3, 10]]
     end
   end
