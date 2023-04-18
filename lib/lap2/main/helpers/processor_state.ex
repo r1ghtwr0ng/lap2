@@ -24,7 +24,7 @@ defmodule LAP2.Main.Helpers.ProcessorState do
   @doc """
   Cache a share in the share_info map.
   """
-  @spec cache_share(map, map) :: map
+  @spec cache_share(map, Share.t()) :: map
   def cache_share(state, %Share{message_id: msg_id, share_idx: share_idx})
       when is_map_key(state.share_info, msg_id) do
     current_entry = Map.get(state.share_info, msg_id)
@@ -75,7 +75,7 @@ defmodule LAP2.Main.Helpers.ProcessorState do
   @doc """
   Add a share and auxiliary information to the ETS table
   """
-  @spec add_share_to_ets(:ets.tid(), Share, map) :: :ok
+  @spec add_share_to_ets(:ets.tid(), Share.t(), map) :: :ok
   def add_share_to_ets(ets, share, aux_data) do
     # Check if share.message_id is in ets
     new_struct =
@@ -99,7 +99,7 @@ defmodule LAP2.Main.Helpers.ProcessorState do
 
   # ---- Private Functions ----
   # Handle valid share routing
-  @spec handle_valid_share(map, Share) :: :drop | :reassemble | :cache
+  @spec handle_valid_share(map, Share.t()) :: :drop | :reassemble | :cache
   defp handle_valid_share(state, share) when is_map_key(state.share_info, share.message_id) do
     share_cache = state.share_info[share.message_id]
 

@@ -39,7 +39,7 @@ defmodule LAP2.Utils.ProtoBuf.ShareHelper do
   @spec reconstruct(list(Share.t())) :: {:ok, binary} | {:error, any}
   def reconstruct(shares) do
     cond do
-      valid_shares?(shares) -> {:ok, SecureIDA.reconstruct(shares)}
+      valid_shares?(shares) -> SecureIDA.reconstruct(shares)
       true -> {:error, "Invalid shares"}
     end
   end
@@ -73,13 +73,12 @@ defmodule LAP2.Utils.ProtoBuf.ShareHelper do
   @doc """
   Format the aux data into a map.
   """
-  @spec format_aux_data(list(map)) :: {:ok, map} | {:error, :no_aux_data}
-  def format_aux_data([]), do: {:error, :no_aux_data}
+  @spec format_aux_data(list(map)) :: {:ok, map} | {:error, :bad_aux_data}
   def format_aux_data([aux_data | rest]), do: format_aux_data(rest, aux_data)
+  def format_aux_data(_), do: {:error, :bad_aux_data}
 
   @spec format_aux_data(list(map), map) :: {:ok, map} | {:error, atom}
   defp format_aux_data([], acc), do: {:ok, acc}
-
   defp format_aux_data([aux_data | rest], acc) do
     case merge_aux_data(aux_data, acc) do
       {:ok, acc} -> format_aux_data(rest, acc)

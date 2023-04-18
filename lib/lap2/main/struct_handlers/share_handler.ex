@@ -45,51 +45,19 @@ defmodule LAP2.Main.StructHandlers.ShareHandler do
 
     case ProcessorState.route_share(state, share) do
       :reassemble ->
-        {:ok, ets_struct} = EtsHelper.get_value(state.ets, share.message_id)
-        EtsHelper.delete_value(state.ets, share.message_id)
-        all_shares = [share | ets_struct.shares]
-
-        case ShareHelper.reconstruct(all_shares) do
-          {:ok, reconstructed} ->
-            # Verify and format the auxiliary data
-            case ShareHelper.format_aux_data([aux_data | ets_struct.aux_data]) do
-              {:ok, formatted_aux_data} ->
-                Task.async(fn ->
-                  RequestHandler.handle_request(
-                    reconstructed,
-                    formatted_aux_data,
-                    state.config.registry_table
-                  )
-                end)
-
-                Logger.info("Reconstructed: #{reconstructed}")
-
-              {:error, reason} ->
-                Logger.error("Reconstruction failed #{inspect(reason)}}")
-            end
-
-          {:error, _} ->
-            Logger.error("Reconstruction failed")
-        end
-
-        new_state =
-          state
-          |> ProcessorState.delete_from_cache(share.message_id)
-          |> ProcessorState.add_to_drop_list(share.message_id)
-
-        {:noreply, new_state}
+        reassemble(state, share, aux_data)
 
       :cache ->
-        new_state = ProcessorState.cache_share(state, share)
-        ProcessorState.add_share_to_ets(state.ets, share, aux_data)
-        {:noreply, new_state}
+        cache(state, share, aux_data)
 
       :drop ->
         {:noreply, state}
     end
   end
 
-  # Cleanup the ETS table on exit
+  @doc """
+  Cleanup the ETS table on exit.
+  """
   @spec terminate(any, map) :: :ok
   def terminate(_reason, state) do
     :ets.delete(state.ets)
@@ -103,5 +71,58 @@ defmodule LAP2.Main.StructHandlers.ShareHandler do
   @spec deliver(binary, map, atom) :: :ok
   def deliver(data, aux_data, name) do
     GenServer.cast({:global, name}, {:deliver, data, aux_data})
+  end
+
+  # ---- Private Functions ----
+  # Reassemble shares and send to the request handler
+  @spec reassemble(map, Share.t(), map) :: {:noreply, map}
+  defp reassemble(state, share, aux_data) do
+    {:ok, ets_struct} = EtsHelper.get_value(state.ets, share.message_id)
+    EtsHelper.delete_value(state.ets, share.message_id)
+    all_shares = [share | ets_struct.shares]
+    aux_list = [aux_data | ets_struct.aux_data]
+    case ShareHelper.format_aux_data(aux_list) do
+      {:ok, formatted_aux_data} ->
+        cast_reconstructed(all_shares, formatted_aux_data, state.config.registry_table)
+
+      {:error, _reason} ->
+        Logger.error("Reconstruction failed")
+    end
+
+    new_state =
+      state
+      |> ProcessorState.delete_from_cache(share.message_id)
+      |> ProcessorState.add_to_drop_list(share.message_id)
+
+    {:noreply, new_state}
+  end
+
+  # Cast the reconstructed data to the listener
+  @spec cast_reconstructed(list(Share.t()), map, map) :: :ok
+  defp cast_reconstructed(all_shares, formatted_aux, registry_table) do
+    case ShareHelper.reconstruct(all_shares) do
+      {:ok, reconstructed_data} ->
+        # Verify and format the auxiliary data
+        Task.async(fn ->
+          RequestHandler.handle_request(
+            reconstructed_data,
+            formatted_aux,
+            registry_table
+          )
+        end)
+        Logger.info("Reconstructed: #{reconstructed_data}")
+
+      {:error, _reason} ->
+        Logger.error("Reconstruction failed")
+    end
+  end
+
+  # Cache a share inside ETS
+  @spec cache(map, Share.t(), map) :: {:noreply, map}
+  defp cache(state, share, aux_data) do
+    # Add the share to the cache
+    new_state = ProcessorState.cache_share(state, share)
+    ProcessorState.add_share_to_ets(state.ets, share, aux_data)
+    {:noreply, new_state}
   end
 end
