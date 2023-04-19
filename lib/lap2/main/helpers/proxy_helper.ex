@@ -4,7 +4,9 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
   """
 
   require Logger
+  alias LAP2.Main.Master
   alias LAP2.Utils.EtsHelper
+  alias LAP2.Crypto.CryptoManager
   alias LAP2.Main.Helpers.SendPipelines
 
   @doc """
@@ -16,6 +18,7 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
   def accept_proxy_request(request, %{proxy_seq: pseq, relays: relays}, state) do
     Logger.info("[i] Accepting proxy request")
     new_pool = add_relays(state.proxy_pool, pseq, relays)
+    CryptoManager.init_exchange(request, pseq, state.config.registry_table.crypto_manager)
     SendPipelines.ack_proxy_request(request, pseq, new_pool)
     Map.put(state, :proxy_pool, new_pool)
   end
@@ -42,6 +45,7 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
 
       true ->
         new_relay = add_relays(state.proxy_pool, pseq, [source])
+        CryptoManager.respond_exchange(request, pseq, state.config.registry_table.crypto_manager)
         SendPipelines.fin_key_exchange(request, pseq, new_relay)
         {:ok, Map.put(state, :proxy_pool, new_relay)}
     end
@@ -49,23 +53,50 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
 
   # This is going to be a pain, many of the requests are application-specific
   # I think I'll expose an interface for this so devs can add their own
-  @spec handle_proxy_request(Request.t(), map, atom) :: :ok
-  def handle_proxy_request(_request, _aux_data, _proxy_name) do
-    # TODO send to application interface for handling
+  @doc """
+  Route proxy request to the correct application listener via the Master module.
+  """
+  @spec handle_proxy_request(Request.t(), :ets.tid(), non_neg_integer, atom) :: :ok
+  def handle_proxy_request(%Request{request_id: rid, data: data}, ets, _pseq, master_name) do
     Logger.info("[i] Handling proxy request")
-  end
-
-  @spec handle_proxy_response(non_neg_integer, binary, :ets.tid(), atom) :: :ok | :error
-  def handle_proxy_response(rid, _data, ets, _master_name) do
     case EtsHelper.get_value(ets, rid) do
-      {:ok, _stream_id} ->
-        # Master.deliver_response(data, stream_id, master_name)
+      {:ok, stream_id} ->
+        Master.deliver_request(data, stream_id, master_name)
         :ok
 
       {:error, :not_found} ->
         Logger.error("No stream ID for request ID: #{rid}")
         :error
     end
+  end
+
+  @doc """
+  Route proxy response to the correct listener via the Master module.
+  """
+  @spec handle_proxy_response(Request.t(), :ets.tid(), non_neg_integer, atom) :: :ok | :error
+  def handle_proxy_response(%Request{request_id: rid, data: data}, ets, _pseq, master_name) do
+    case EtsHelper.get_value(ets, rid) do
+      {:ok, stream_id} ->
+        Master.deliver_response(data, stream_id, master_name)
+        :ok
+
+      {:error, :not_found} ->
+        Logger.error("No stream ID for request ID: #{rid}")
+        :error
+    end
+  end
+
+  @doc """
+  Finalise the key exchange.
+  """
+  @spec handle_fin_key_exhange(Request.t(), non_neg_integer, map) :: map
+  def handle_fin_key_exhange(request, pseq, state) do
+    Logger.info("[i] Handling key exchange finalisation")
+    new_pool = remove_proxy(state.proxy_pool, pseq)
+    crypt_name = state.config.registry_table.crypto_manager
+    CryptoManager.finalise_exchange(request, pseq, crypt_name)
+    SendPipelines.ack_key_exchange(request, pseq, new_pool)
+    Map.put(state, :proxy_pool, new_pool)
   end
 
   # ---- State Helpers ----

@@ -66,6 +66,15 @@ defmodule LAP2.Main.Master do
   end
 
   @doc """
+  Send a request to the appropriate listener socket.
+  """
+  @spec deliver_request(binary, binary, atom) :: :ok
+  def deliver_request(data, stream_id, master_name \\ :master) do
+    GenServer.cast({:global, master_name}, {:deliver_request, data, stream_id})
+    :ok
+  end
+
+  @doc """
   Register a listener with a unique stream ID.
   """
   # TODO specify listener type

@@ -24,6 +24,7 @@ defmodule LAP2.Main.Proxy do
 
     state = %{
       proxy_pool: %{},
+      # TODO add request_id => stream_id to ETS table
       request_ets: :ets.new(:request_mapper, [:set, :protected]),
       config: config
     }
@@ -63,8 +64,10 @@ defmodule LAP2.Main.Proxy do
     {:noreply, new_state}
   end
 
+  # Cleanup the ETS table on exit
   @spec terminate(any, map) :: :ok
-  def terminate(_reason, _state) do
+  def terminate(_reason, state) do
+    :ets.delete(state.request_ets)
     :ok
   end
 
@@ -88,24 +91,21 @@ defmodule LAP2.Main.Proxy do
   @doc """
   Handle a regular proxy request/response.
   """
-  @spec handle_regular_proxy(Request.t(), map, atom) :: :ok | :error
+  @spec handle_regular_proxy(Request.t(), %{proxy_seq: non_neg_integer}, atom) :: :ok | :error
   def handle_regular_proxy(request, %{proxy_seq: pseq}, proxy_name)
       when request.request_type == "regular_proxy_request" do
-    ProxyHelper.handle_proxy_request(request, pseq, proxy_name)
+    state = GenServer.call({:global, proxy_name}, :get_state)
+    ProxyHelper.handle_proxy_request(request, state.request_ets, pseq, state.config.registry_table.crypto_manager)
   end
 
-  def handle_regular_proxy(
-        %Request{request_id: rid, request_type: rtype, data: data},
-        _aux_data,
-        proxy_name
-      )
-      when rtype == "regular_proxy_response" do
+  def handle_regular_proxy(request, %{proxy_seq: pseq}, proxy_name)
+      when request.request_type == "regular_proxy_response" do
     state = GenServer.call({:global, proxy_name}, :get_state)
 
     ProxyHelper.handle_proxy_response(
-      rid,
-      data,
+      request,
       state.request_ets,
+      pseq,
       state.config.registry_table.crypto_manager
     )
   end

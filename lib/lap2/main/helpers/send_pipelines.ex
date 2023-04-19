@@ -43,6 +43,15 @@ defmodule LAP2.Main.Helpers.SendPipelines do
   end
 
   @doc """
+  Acknowledge the key exchange process.
+  """
+  @spec ack_key_exchange(Request.t(), non_neg_integer, map) :: :ok
+  def ack_key_exchange(_request, _proxy_seq, _proxy_pool) do
+    # TODO
+    Logger.info("[i] Acking key exchange")
+  end
+
+  @doc """
   Send a regular proxy request.
   """
   @spec send_regular_proxy(Request.t(), non_neg_integer, map, atom) :: :ok
