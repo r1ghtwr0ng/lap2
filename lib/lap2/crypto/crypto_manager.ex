@@ -19,16 +19,37 @@ defmodule LAP2.Crypto.CryptoManager do
   Initialise the data handler GenServer.
   """
   @spec init(map) :: {:ok, map}
-  def init(_config) do
+  def init(config) do
     # Ensure that the ETS gets cleaned up on exit
     Process.flag(:trap_exit, true)
     # Initialise data handler state
     IO.puts("[i] CryptoManager: Starting GenServer")
-    state = %{ets: :ets.new(:key_manager, [:set, :private])}
+    state = %{
+      ets: :ets.new(:key_manager, [:set, :private]),
+      identity: config.identity}
     {:ok, state}
   end
 
-  # ---- GenServer Callbacks ----
+  # ---- GenServer Callbacks (Key Exchange) ----
+  @spec handle_call({:init_exchange, non_neg_integer, Request.t()}, map) :: {:reply, tuple, map}
+  def handle_call({:init_exchange, proxy_seq, request}, state) do
+    resp = gen_init_crypto(state.ets, state.identity, proxy_seq, request)
+    {:reply, resp, state}
+  end
+
+  @spec handle_call({:respond_exchange, non_neg_integer, Request.t()}, map) :: {:reply, tuple, map}
+  def handle_call({:respond_exchange, proxy_seq, request}, state) do
+    resp = gen_resp_crypto(state.ets, state.identity, proxy_seq, request)
+    {:reply, resp, state}
+  end
+
+  @spec handle_call({:finalise_exchange, non_neg_integer, Request.t()}, map) :: {:reply, tuple, map}
+  def handle_call({:finalise_exchange, proxy_seq, request}, state) do
+    resp = gen_fin_crypto(state.ets, state.identity, proxy_seq, request)
+    {:reply, resp, state}
+  end
+
+  # ---- GenServer Callbacks (Crypto Operations) ----
   @spec handle_call({:decrypt, EncryptedRequest.t(), non_neg_integer}, map) ::
           {:reply, {:ok, binary} | {:error, :no_key}, map}
   def handle_call({:decrypt, encrypted_req, proxy_seq}, state) do
@@ -62,13 +83,37 @@ defmodule LAP2.Crypto.CryptoManager do
     :ok
   end
 
-  # ---- Public Functions ----
+  # ---- Public Functions (Key Exchange) ----
+  @doc """
+  Initiate a key exchange with a remote proxy.
+  """
+  @spec init_exchange(Request.t(), non_neg_integer, atom) :: {:ok, binary} | {:error, atom}
+  def init_exchange(request, proxy_seq, name \\ :crypto_manager) do
+    GenServer.call({:global, name}, {:init_exchange, proxy_seq, request})
+  end
+
+  @doc """
+  Respond to a key exchange request from a remote proxy.
+  """
+  @spec respond_exchange(Request.t(), non_neg_integer, atom) :: {:ok, binary} | {:error, atom}
+  def respond_exchange(request, proxy_seq, name \\ :crypto_manager) do
+    GenServer.call({:global, name}, {:respond_exchange, proxy_seq, request})
+  end
+
+  @doc """
+  Finish a key exchange with a remote proxy.
+  """
+  @spec finalise_exchange(Request.t(), non_neg_integer, atom) :: {:ok, binary} | {:error, atom}
+  def finalise_exchange(request, proxy_seq, name \\ :crypto_manager) do
+    GenServer.call({:global, name}, {:finalise_exchange, proxy_seq, request})
+  end
+
+  # ---- Public Functions (Crypto Operations) ----
   @doc """
   Decrypt a request using the key stored in the ETS table.
   Return binary for deserialisation.
   """
-  @spec decrypt_request(EncryptedRequest.t(), non_neg_integer, atom) ::
-          {:ok, binary} | {:error, atom}
+  @spec decrypt_request(EncryptedRequest.t(), non_neg_integer, atom) :: {:ok, binary} | {:error, atom}
   def decrypt_request(enc_request, proxy_seq, name \\ :crypto_manager) do
     GenServer.call({:global, name}, {:decrypt, enc_request, proxy_seq})
   end
@@ -76,8 +121,7 @@ defmodule LAP2.Crypto.CryptoManager do
   @doc """
   Encrypt a serialised (binary) request, returning an EncryptedRequest struct.
   """
-  @spec encrypt_request(binary, non_neg_integer, atom) ::
-          {:ok, EncryptedRequest.t()} | {:error, :no_key}
+  @spec encrypt_request(binary, non_neg_integer, atom) :: {:ok, EncryptedRequest.t()} | {:error, :no_key}
   def encrypt_request(data, proxy_seq, name \\ :crypto_manager) do
     GenServer.call({:global, name}, {:encrypt, data, proxy_seq})
   end
@@ -98,7 +142,27 @@ defmodule LAP2.Crypto.CryptoManager do
     GenServer.call({:global, name}, {:remove_key, proxy_seq})
   end
 
-  # ---- Private ETS Functions ----
+  # ---- Private ETS Functions (Key Exchange) ----
+  # Create initial key exchange primitives
+  @spec gen_init_crypto(:ets.tid(), binary, non_neg_integer, Request.t()) :: {:ok, binary} | {:error, atom}
+  defp gen_init_crypto(_ets, _identity, _proxy_seq, _request) do
+    # TODO
+    {:ok, <<>>}
+  end
+
+  @spec gen_resp_crypto(:ets.tid(), binary, non_neg_integer, Request.t()) :: {:ok, binary} | {:error, atom}
+  defp gen_resp_crypto(_ets, _identity, _proxy_seq, _request) do
+    # TODO
+    {:ok, <<>>}
+  end
+
+  @spec gen_fin_crypto(:ets.tid(), binary, non_neg_integer, Request.t()) :: {:ok, binary} | {:error, atom}
+  defp gen_fin_crypto(_ets, _identity, _proxy_seq, _request) do
+    # TODO
+    {:ok, <<>>}
+  end
+
+  # ---- Private ETS Functions (Crypto Operations) ----
   # Fetch the key from the ETS table and decrypt the request
   @spec fetch_and_decrypt(:ets.tid(), binary, non_neg_integer) :: {:ok, binary} | {:error, atom}
   defp fetch_and_decrypt(ets, encrypted_req, proxy_seq) do

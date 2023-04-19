@@ -6,7 +6,8 @@ defmodule LAP2.Utils.ConfigParserTest do
   describe "get_config/1" do
     test "Read config from file" do
       expected_config = %{
-        crypto_manager: %{name: :crypto_manager},
+        crypto_manager: %{name: :crypto_manager,
+        identity: "IDENTITY"},
         main_supervisor: %{name: :lap2_deamon},
         router: %{
           clove_cache_size: 1000,
