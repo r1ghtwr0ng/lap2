@@ -102,12 +102,11 @@ defmodule LAP2.Utils.ProtoBuf.ShareHelper do
       true ->
         {:ok,
          Map.merge(acc, aux_data, fn
-           _k, v1, v2 when is_list(v2) -> [v1 | v2]
-           _k, v1, v2 -> [v1, v2]
+           :relay, v1, v2 -> List.flatten([v1, v2])
+            _k, v1, _v2 -> v1
          end)}
 
-      _ ->
-        {:error, :invalid_aux_data}
+      _ -> {:error, :invalid_aux_data}
     end
   end
 
