@@ -3,6 +3,8 @@ defmodule LAP2.Utils.ConfigParser do
   Parses a JSON file into a map.
   """
 
+  alias LAP2.Utils.JsonUtils
+
   @doc """
   Parses a JSON file into a map.
   """
@@ -20,9 +22,9 @@ defmodule LAP2.Utils.ConfigParser do
   defp parse_json(filename) do
     filename
     |> File.read!()
-    |> Jason.decode!()
-    |> keys_to_atoms()
-    |> names_to_atoms()
+    |> JsonUtils.parse_json()
+    |> JsonUtils.keys_to_atoms()
+    |> JsonUtils.values_to_atoms(:name)
   end
 
   # Generate the registry table and add it to the config.
@@ -42,25 +44,6 @@ defmodule LAP2.Utils.ConfigParser do
     Enum.into(config, %{}, fn
       {:registry_table, _} -> {:registry_table, registry_table}
       {k, v} when is_map(v) -> {k, add_registry_table(v, registry_table)}
-      {k, v} -> {k, v}
-    end)
-  end
-
-  # Function for recursively converting a map's keys to atoms.
-  @spec keys_to_atoms(map) :: map
-  defp keys_to_atoms(map) do
-    Enum.into(map, %{}, fn
-      {k, v} when is_map(v) -> {String.to_atom(k), keys_to_atoms(v)}
-      {k, v} -> {String.to_atom(k), v}
-    end)
-  end
-
-  # Function for recursively converting the config names to atoms.
-  @spec names_to_atoms(map) :: map
-  defp names_to_atoms(map) do
-    Enum.into(map, %{}, fn
-      {:name, v} -> {:name, String.to_atom(v)}
-      {k, v} when is_map(v) -> {k, names_to_atoms(v)}
       {k, v} -> {k, v}
     end)
   end
