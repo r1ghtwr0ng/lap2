@@ -91,14 +91,13 @@ defmodule LAP2.Main.Proxy do
   @doc """
   Handle a regular proxy request/response.
   """
-  @spec handle_regular_proxy(Request.t(), %{proxy_seq: non_neg_integer}, atom) :: :ok | :error
-  def handle_regular_proxy(request, %{proxy_seq: pseq}, proxy_name)
+  @spec handle_regular_proxy(Request.t(), non_neg_integer, atom) :: :ok | :error
+  def handle_regular_proxy(request, pseq, proxy_name)
       when request.request_type == "regular_proxy_request" do
     state = GenServer.call({:global, proxy_name}, :get_state)
     ProxyHelper.handle_proxy_request(request, state.request_ets, pseq, state.config.registry_table.crypto_manager)
   end
-
-  def handle_regular_proxy(request, %{proxy_seq: pseq}, proxy_name)
+  def handle_regular_proxy(request, pseq, proxy_name)
       when request.request_type == "regular_proxy_response" do
     state = GenServer.call({:global, proxy_name}, :get_state)
 
@@ -109,15 +108,13 @@ defmodule LAP2.Main.Proxy do
       state.config.registry_table.crypto_manager
     )
   end
-
-  def handle_regular_proxy(request, _aux_data, proxy_name)
+  def handle_regular_proxy(request, pseq, proxy_name)
       when request.request_type == "fin_key_exchange" do
-    # TODO handle the proxy seq in aux_data argument
-    _state = GenServer.call({:global, proxy_name}, :get_state)
+    state = GenServer.call({:global, proxy_name}, :get_state)
+    ProxyHelper.handle_fin_key_exhange(request, pseq, state)
     # TODO implement this
     :ok
   end
-
   def handle_regular_proxy(request, _, _) do
     Logger.error("Invalid request type: #{request.request_type}")
   end
