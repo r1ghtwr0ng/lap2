@@ -94,15 +94,15 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
     Logger.info("[i] Handling key exchange finalisation")
     new_pool = remove_proxy(state.proxy_pool, pseq)
     crypt_name = state.config.registry_table.crypto_manager
-    CryptoManager.finalise_exchange(request, pseq, crypt_name)
+    CryptoManager.recv_finalise_exchange(request, pseq, crypt_name)
     SendPipelines.ack_key_exchange(request, pseq, new_pool)
     Map.put(state, :proxy_pool, new_pool)
   end
 
   # ---- State Helpers ----
-  @spec remove_proxy(map, map) :: map
-  def remove_proxy(state, %{proxy_seq: proxy_id}) do
-    Map.put(state, :proxy_pool, Map.delete(state.proxy_pool, proxy_id))
+  @spec remove_proxy(map, non_neg_integer) :: map
+  def remove_proxy(state, pseq) do
+    Map.put(state, :proxy_pool, Map.delete(state.proxy_pool, pseq))
   end
 
   # Add a proxy to the proxy pool
