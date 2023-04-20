@@ -6,6 +6,9 @@ defmodule LAP2.Math.Matrix do
   """
   @on_load :load_nif
 
+  # Added for the sake of my sanity, makes dialyzer shut up about a function which works perfectly fine
+  @dialyzer {:nowarn_function, load_nif: 0}
+
   # Cached inverse lookup array for finite field Z/257
   @inverse_lookup [0, 1, 129, 86, 193, 103, 43, 147, 225, 200, 180, 187, 150, 178,
   202, 120, 241, 121, 100, 230, 90, 49, 222, 190, 75, 72, 89, 238, 101, 195, 60,
@@ -66,8 +69,9 @@ defmodule LAP2.Math.Matrix do
     end
   end
 
-  @spec matrix_product(non_neg_integer, non_neg_integer, non_neg_integer, non_neg_integer, binary, binary) :: any
+  @spec matrix_product(non_neg_integer, non_neg_integer, non_neg_integer, non_neg_integer, binary, binary) :: binary
   defp matrix_product(a_rows, a_cols, b_cols, p, a, b) do
+    # It's a NIF function, Dialyzer won't shut up about it and I can't seem to disable the warnings so just live with it
     :matrix.matrix_product(a_rows, a_cols, b_cols, p, a, b)
     |> case do
       {:ok, matrix} ->
