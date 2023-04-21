@@ -35,14 +35,13 @@ defmodule LAP2.Math.Matrix do
   Calculate the dot product of two matrices, ensuring the result is within the finite field.
   """
   @spec matrix_dot_product(list, list, non_neg_integer) :: list
-  def matrix_dot_product(a, b, field_limit) when length(a) == length(b) do
+  def matrix_dot_product(a, b, field_limit) do
     Enum.map(a, fn a_row ->
       Enum.map(b, fn b_row ->
         vector_dot_product(a_row, b_row, field_limit)
       end)
     end)
   end
-  def matrix_dot_product(_, _, _), do: []
 
   @doc """
   Wrapper for the NIF matrix product calculation function.
