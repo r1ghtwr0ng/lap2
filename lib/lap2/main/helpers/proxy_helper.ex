@@ -18,8 +18,8 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
   def accept_proxy_request(request, %{proxy_seq: pseq, relays: relays}, state) do
     Logger.info("[i] Accepting proxy request")
     new_pool = add_relays(state.proxy_pool, pseq, relays)
-    CryptoManager.init_exchange(request, pseq, state.config.registry_table.crypto_manager)
-    SendPipelines.ack_proxy_request(request, pseq, new_pool)
+    response = CryptoManager.respond_exchange(request, pseq, state.config.registry_table.crypto_manager)
+    SendPipelines.ack_proxy_request(response, pseq, new_pool)
     Map.put(state, :proxy_pool, new_pool)
   end
 
@@ -45,18 +45,40 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
 
       true ->
         new_relay = add_relays(state.proxy_pool, pseq, [source])
-        CryptoManager.respond_exchange(request, pseq, state.config.registry_table.crypto_manager)
-        SendPipelines.fin_key_exchange(request, pseq, new_relay)
-        {:ok, Map.put(state, :proxy_pool, new_relay)}
+        case CryptoManager.send_finalise_exchange(request, pseq, state.config.registry_table.crypto_manager) do
+          {:ok, response_data} ->
+            SendPipelines.fin_key_exchange(response_data, pseq, new_relay)
+            {:ok, Map.put(state, :proxy_pool, new_relay)}
+          {:error, reason} ->
+            Logger.error("Error occured while responding to proxy: #{pseq}, Request type: FIN_KEY_REQUEST")
+            {:error, reason}
+          end
     end
   end
 
-  # This is going to be a pain, many of the requests are application-specific
-  # I think I'll expose an interface for this so devs can add their own
+  @doc """
+  Finalise the key exchange.
+  """
+  @spec handle_fin_key_exhange(Request.t(), non_neg_integer, map) :: {:ok, map} | {:error, atom}
+  def handle_fin_key_exhange(request, pseq, state) do
+    Logger.info("[i] Handling key exchange finalisation")
+    new_pool = remove_proxy(state.proxy_pool, pseq)
+    crypt_name = state.config.registry_table.crypto_manager
+    case CryptoManager.recv_finalise_exchange(request, pseq, crypt_name) do
+      {:ok, response_data} ->
+        SendPipelines.ack_key_exchange(response_data, pseq, new_pool)
+        Map.put(state, :proxy_pool, new_pool)
+      :error ->
+        Logger.error("Error occured while responding to proxy: #{pseq}, Request type: FIN_KEY_REQUEST")
+        {:error, :interrupted}
+    end
+  end
+
+  # TODO expose a TCP socket interface for this so devs can add their own
   @doc """
   Route proxy request to the correct application listener via the Master module.
   """
-  @spec handle_proxy_request(Request.t(), :ets.tid(), non_neg_integer, atom) :: :ok
+  @spec handle_proxy_request(Request.t(), :ets.tid(), non_neg_integer, atom) :: :ok | :error
   def handle_proxy_request(%Request{request_id: rid, data: data}, ets, _pseq, master_name) do
     Logger.info("[i] Handling proxy request")
     case EtsHelper.get_value(ets, rid) do
@@ -86,18 +108,7 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
     end
   end
 
-  @doc """
-  Finalise the key exchange.
-  """
-  @spec handle_fin_key_exhange(Request.t(), non_neg_integer, map) :: map
-  def handle_fin_key_exhange(request, pseq, state) do
-    Logger.info("[i] Handling key exchange finalisation")
-    new_pool = remove_proxy(state.proxy_pool, pseq)
-    crypt_name = state.config.registry_table.crypto_manager
-    CryptoManager.recv_finalise_exchange(request, pseq, crypt_name)
-    SendPipelines.ack_key_exchange(request, pseq, new_pool)
-    Map.put(state, :proxy_pool, new_pool)
-  end
+  # TODO responve typings and returns at CryptoManager (also CryptoManager calls in this module)
 
   # ---- State Helpers ----
   @spec remove_proxy(map, non_neg_integer) :: map

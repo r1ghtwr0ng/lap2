@@ -6,6 +6,90 @@ defmodule LAP2.Utils.ProtoBuf.RequestHelper do
 
   alias LAP2.Networking.ProtoBuf
   alias LAP2.Crypto.CryptoManager
+  alias LAP2.Crypto.Helpers.CryptoStructHelper
+
+  # ---- Build Requests ----
+  @doc """
+  Build the key exchange initialisation struct
+  """
+  @spec build_init_crypto(binary, binary, binary, binary, binary) :: {:init_ke, KeyExchangeInit.t()}
+  def build_init_crypto(identity, ephem_pk, generator, ring_pk, signature) do
+    {:inti_ke, %KeyExchangeInit{
+      identity: identity,
+      ephemeral_pk: ephem_pk,
+      generator: generator,
+      ring_pk: ring_pk,
+      signature: signature,
+      hmac_key: nil
+    }}
+  end
+
+  @doc """
+  Build the key exchange response struct
+  """
+  @spec build_resp_crypto(binary, binary, binary, binary, binary, binary) :: {:resp_ke, KeyExchangeResponse.t()}
+  def build_resp_crypto(identity, ephem_pk, generator, ring_pk, signature, ring_sign) do
+    {:resp_ke, %KeyExchangeResponse{
+      identity: identity,
+      ephemeral_pk: ephem_pk,
+      generator: generator,
+      ring_pk: ring_pk,
+      signature: signature,
+      ring_signature: ring_sign,
+      hmac_key: nil
+    }}
+  end
+
+  @doc """
+  Build the key exchange finalisation struct
+  """
+  @spec build_fin_crypto(binary) :: {:fin_ke, KeyExchangeFinal.t()}
+  def build_fin_crypto(ring_sign) do
+    {:fin_ke, %KeyExchangeFinal{
+      ring_signature: ring_sign,
+      hmac_key: nil
+    }}
+  end
+
+  @doc """
+  Build a regular symmetric key struct
+  Note: HMAC key is set when the HMAC is computed
+  """
+  @spec build_symmetric_crypto() :: {:sym_key, SymmetricKey.t()}
+  def build_symmetric_crypto() do
+    {:sym_key, %SymmetricKey{hmac_key: nil}}
+  end
+
+  @doc """
+  Build a key rotation request struct
+  """
+  @spec build_key_rotation(binary) :: {:key_rot, KeyRotation.t()}
+  def build_key_rotation(new_key) do
+    {:key_rot, %KeyRotation{
+      new_key: new_key,
+      hmac_key: nil
+    }}
+  end
+
+  @spec build_request({atom, struct()}, binary, binary, integer) :: Request.t()
+  def build_request(crypto, data, req_type, req_id) do
+    %Request{
+      hmac: nil,
+      request_id: req_id,
+      request_type: req_type,
+      data: data,
+      crypto: crypto
+    }
+    |> CryptoStructHelper.set_hmac()
+  end
+
+  @spec wrap_unencrypted(Request.t()) :: {:ok, EncryptedRequest.t()} | {:error, atom}
+  def wrap_unencrypted(request) do
+    case serialise(request) do
+      {:ok, data} -> %EncryptedRequest{is_encrypted: false, iv: <<>>, data: data}
+      {:error, reason} -> {:error, reason}
+    end
+  end
 
   # ---- ProtoBuf wrappers ----
   @doc """
@@ -21,14 +105,18 @@ defmodule LAP2.Utils.ProtoBuf.RequestHelper do
   @doc """
   Deserialise an encrypted request struct.
   """
-  @spec deserialise_encrypted(binary, integer, atom) :: any
-  def deserialise_encrypted(enc_request, proxy_seq, crypto_mgr_name \\ :crypto_manager)
-
-  def deserialise_encrypted(enc_request, proxy_seq, crypto_mgr_name) do
+  @spec deserialise_encrypted(binary, integer, atom) :: {:ok, Request.t()} | {:error, atom}
+  def deserialise_encrypted(enc_request, proxy_seq, crypto_mgr_name \\ :crypto_manager) do
     enc_req_struct = deserialise(enc_request, EncryptedRequest)
-
     case CryptoManager.decrypt_request(enc_req_struct, proxy_seq, crypto_mgr_name) do
-      {:ok, data} -> deserialise(data, Request)
+      {:ok, data} ->
+        case deserialise(data, Request) do
+          # Verify the validity of the HMAC
+          {:ok, request} -> CryptoStructHelper.check_hmac(request)
+
+          {:error, reason} -> {:error, reason}
+        end
+
       {:error, reason} -> {:error, reason}
     end
   end
@@ -48,8 +136,8 @@ defmodule LAP2.Utils.ProtoBuf.RequestHelper do
   @doc """
   Encrypt a Request struct and serialise to EncryptedRequest struct.
   """
-  @spec serialise_encrypted(Request.t(), non_neg_integer, atom) :: {:ok, binary} | {:error, any}
-  def serialise_encrypted(request, proxy_seq, crypto_mgr_name \\ :crypto_manager) do
+  @spec encrypte_and_serialise(Request.t(), non_neg_integer, atom) :: {:ok, binary} | {:error, any}
+  def encrypte_and_serialise(request, proxy_seq, crypto_mgr_name \\ :crypto_manager) do
     # Serialise the request
     case ProtoBuf.serialise(request) do
       {:ok, data} ->
