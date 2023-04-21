@@ -16,7 +16,7 @@ defmodule LAP2.Networking.Routing.Local do
         data: data,
         headers: {:regular_proxy, %RegularProxyHeader{proxy_seq: pseq}}
       }) do
-    # Debug
+    # TODO remove debug print
     IO.puts("[+] Local: Relaying clove to share handler")
     aux_data = %{request_type: :regular_proxy, proxy_seq: pseq}
     processor_name = state.config.registry_table.share_handler
@@ -33,6 +33,7 @@ defmodule LAP2.Networking.Routing.Local do
         data: data,
         headers: {:proxy_response, %ProxyResponseHeader{proxy_seq: pseq, hop_count: hops}}
       }) do
+    # TODO remove debug print
     IO.puts("[+] Local: Relaying discovery response to share handler")
 
     aux_data = %{
@@ -55,6 +56,7 @@ defmodule LAP2.Networking.Routing.Local do
         data: data,
         headers: {:proxy_discovery, %ProxyDiscoveryHeader{clove_seq: cseq}}
       }) do
+    # TODO remove debug print
     IO.puts("[+] Local: Relaying via proxy request from #{inspect(source)}")
     prev_hop = state.clove_cache[cseq].prv_hop
     proxy_seq = CloveHelper.gen_seq_num()
@@ -81,8 +83,8 @@ defmodule LAP2.Networking.Routing.Local do
   # Deliver the clove to the appropriate receiver, either local or remote
   @spec route_clove(atom, list, map) :: :ok
   defp route_clove(_receiver, [], _aux_data), do: :ok
-
   defp route_clove(processor_name, [data | tail], aux_data) do
+    # TODO remove debug print
     IO.puts("[+] Local: Delivering to share handler")
     IO.inspect(data, label: "LOCAL - RECEIVED:")
     Task.async(fn -> ShareHandler.deliver(data, aux_data, processor_name) end)

@@ -16,7 +16,7 @@ defmodule LAP2.Utils.ProtoBuf.CloveHelper do
     # Deserialise the clove
     case ProtoBuf.deserialise(dgram, Clove) do
       {:ok, clove} -> {:ok, clove}
-      {:error, reason} -> {:error, reason}
+      err -> err
     end
   end
 
@@ -28,7 +28,7 @@ defmodule LAP2.Utils.ProtoBuf.CloveHelper do
     # Serialise the clove
     case ProtoBuf.serialise(clove) do
       {:ok, dgram} -> {:ok, IO.iodata_to_binary(dgram)}
-      {:error, reason} -> {:error, reason}
+      err -> err
     end
   end
 

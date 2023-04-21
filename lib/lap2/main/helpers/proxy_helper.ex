@@ -49,9 +49,9 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
           {:ok, response_data} ->
             SendPipelines.fin_key_exchange(response_data, pseq, new_relay)
             {:ok, Map.put(state, :proxy_pool, new_relay)}
-          {:error, reason} ->
+            err ->
             Logger.error("Error occured while responding to proxy: #{pseq}, Request type: FIN_KEY_REQUEST")
-            {:error, reason}
+            err
           end
     end
   end
@@ -68,9 +68,9 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
       {:ok, response} ->
         SendPipelines.ack_key_exchange(response, pseq, new_pool)
         Map.put(state, :proxy_pool, new_pool)
-      {:error, reason} ->
+      err ->
         Logger.error("Error occured while responding to proxy: #{pseq}, Request type: FIN_KEY_REQUEST")
-        {:error, reason}
+        err
     end
   end
 

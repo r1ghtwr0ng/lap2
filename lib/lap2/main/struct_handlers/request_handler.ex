@@ -11,33 +11,33 @@ defmodule LAP2.Main.StructHandlers.RequestHandler do
   Handle a request from the Share Handler.
   """
   @spec handle_request(binary, map, map) :: {:ok, %{atom() => atom()}} | {:error, any}
-  def handle_request(request_bin, %{request_type: :proxy_request} = aux_data, registry_table) do
+  def handle_request(enc_request_bin, %{request_type: :proxy_request} = aux_data, registry_table) do
     Logger.info("[i] Handling proxy request")
-
-    case RequestHelper.deserialise(request_bin, Request) do
+    # Deserialise the request
+    case RequestHelper.deserialise_and_unwrap(enc_request_bin) do
       {:ok, request} -> Proxy.handle_proxy_request(request, aux_data, registry_table.proxy)
-      {:error, reason} -> {:error, reason}
+      err -> err
     end
   end
 
-  def handle_request(request_bin, %{request_type: :discovery_response} = aux_data, registry_table) do
+  def handle_request(enc_request_bin, %{request_type: :discovery_response} = aux_data, registry_table) do
     Logger.info("[i] Handling discovery response")
-
-    case RequestHelper.deserialise(request_bin, Request) do
+    # Deserialise the request
+    case RequestHelper.deserialise_and_unwrap(enc_request_bin) do
       {:ok, request} -> Proxy.handle_discovery_response(request, aux_data, registry_table.proxy)
-      {:error, reason} -> {:error, reason}
+      err -> err
     end
   end
 
-  def handle_request(request_bin,
+  def handle_request(enc_request_bin,
         %{request_type: :regular_proxy, proxy_seq: pseq},
         %{proxy: proxy, crypto_manager: crypt_mgr}
       ) do
     Logger.info("[i] Handling regular proxy request")
-
-    case RequestHelper.deserialise_encrypted(request_bin, pseq, crypt_mgr) do
+    # Deserialise the request
+    case RequestHelper.deserialise_and_unwrap(enc_request_bin, pseq, crypt_mgr) do
       {:ok, request} -> Proxy.handle_regular_proxy(request, pseq, proxy)
-      {:error, reason} -> {:error, reason}
+      err -> err
     end
   end
 end

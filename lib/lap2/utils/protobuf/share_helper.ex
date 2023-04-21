@@ -16,7 +16,7 @@ defmodule LAP2.Utils.ProtoBuf.ShareHelper do
     # Deserialise the share
     case ProtoBuf.deserialise(dgram, Share) do
       {:ok, share} -> {:ok, share}
-      {:error, reason} -> {:error, reason}
+      err -> err
     end
   end
 
@@ -28,7 +28,7 @@ defmodule LAP2.Utils.ProtoBuf.ShareHelper do
     # Serialise the share
     case ProtoBuf.serialise(share) do
       {:ok, dgram} -> {:ok, IO.iodata_to_binary(dgram)}
-      {:error, reason} -> {:error, reason}
+      err -> err
     end
   end
 
@@ -82,7 +82,7 @@ defmodule LAP2.Utils.ProtoBuf.ShareHelper do
   defp format_aux_data([aux_data | rest], acc) do
     case merge_aux_data(aux_data, acc) do
       {:ok, acc} -> format_aux_data(rest, acc)
-      {:error, reason} -> {:error, reason}
+      err -> err
     end
   end
 

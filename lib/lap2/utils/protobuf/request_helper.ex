@@ -4,6 +4,7 @@ defmodule LAP2.Utils.ProtoBuf.RequestHelper do
   Verifies integrity, serves as interface for serialising/deserialising with ProtoBuf.
   """
 
+  require Logger
   alias LAP2.Networking.ProtoBuf
   alias LAP2.Crypto.CryptoManager
   alias LAP2.Crypto.Helpers.CryptoStructHelper
@@ -87,7 +88,7 @@ defmodule LAP2.Utils.ProtoBuf.RequestHelper do
   def wrap_unencrypted(request) do
     case serialise(request) do
       {:ok, data} -> %EncryptedRequest{is_encrypted: false, iv: <<>>, data: data}
-      {:error, reason} -> {:error, reason}
+      err -> err
     end
   end
 
@@ -103,21 +104,34 @@ defmodule LAP2.Utils.ProtoBuf.RequestHelper do
   end
 
   @doc """
-  Deserialise an encrypted request struct.
+  Deserialise to EncryptedRequest struct.
+  If unencrypted, deserialise wrapped data.
+  If encrypted, unwrap and decrypt request.
   """
-  @spec deserialise_encrypted(binary, integer, atom) :: {:ok, Request.t()} | {:error, atom}
-  def deserialise_encrypted(enc_request, proxy_seq, crypto_mgr_name \\ :crypto_manager) do
-    enc_req_struct = deserialise(enc_request, EncryptedRequest)
-    case CryptoManager.decrypt_request(enc_req_struct, proxy_seq, crypto_mgr_name) do
-      {:ok, data} ->
-        case deserialise(data, Request) do
-          # Verify the validity of the HMAC
-          {:ok, request} -> CryptoStructHelper.check_hmac(request)
-
-          {:error, reason} -> {:error, reason}
+  def deserialise_and_unwrap(enc_request) do
+    case deserialise(enc_request, EncryptedRequest) do
+      {:ok, enc_req_struct} ->
+        cond do
+          enc_req_struct.is_encrypted -> # Encrypted
+            Logger.error("Invalid request: encrypted request received without proxy sequence")
+            {:error, :encrypted}
+          true -> # Unencrypted
+            deserialise(enc_req_struct.data, Request)
         end
-
-      {:error, reason} -> {:error, reason}
+      err -> err
+    end
+  end
+  @spec deserialise_and_unwrap(binary, integer, atom) :: {:ok, Request.t()} | {:error, atom}
+  def deserialise_and_unwrap(enc_request, proxy_seq, crypto_mgr_name \\ :crypto_manager) do
+    case deserialise(enc_request, EncryptedRequest) do
+      {:ok, enc_req_struct} ->
+        cond do
+          enc_req_struct.is_encrypted -> # Encrypted
+            decrypt_and_deserialise(enc_req_struct, proxy_seq, crypto_mgr_name)
+          true -> # Unencrypted
+            deserialise(enc_req_struct.data, Request)
+        end
+      err -> err
     end
   end
 
@@ -129,7 +143,7 @@ defmodule LAP2.Utils.ProtoBuf.RequestHelper do
     # Serialise the request
     case ProtoBuf.serialise(request) do
       {:ok, data} -> {:ok, IO.iodata_to_binary(data)}
-      {:error, reason} -> {:error, reason}
+      err -> err
     end
   end
 
@@ -144,11 +158,26 @@ defmodule LAP2.Utils.ProtoBuf.RequestHelper do
         # Encrypt the request
         case CryptoManager.encrypt_request(data, proxy_seq, crypto_mgr_name) do
           {:ok, enc_request} -> ProtoBuf.serialise(enc_request)
-          {:error, reason} -> {:error, reason}
+          err -> err
         end
 
-      {:error, reason} ->
-        {:error, reason}
+        err -> err
+    end
+  end
+
+  # ---- Private functions ----
+  # Decrypts an EncryptedRequest wrapper struct and deserialises its data to Request struct
+  @spec decrypt_and_deserialise(EncryptedRequest.t(), non_neg_integer, atom) :: {:ok, Request.t()} | {:error, atom}
+  defp decrypt_and_deserialise(enc_req_struct, proxy_seq, crypto_mgr_name) do
+    case CryptoManager.decrypt_request(enc_req_struct, proxy_seq, crypto_mgr_name) do
+      {:ok, data} ->
+        case deserialise(data, Request) do
+          # Verify the validity of the HMAC
+          {:ok, request} -> CryptoStructHelper.check_hmac(request)
+
+          err -> err
+        end
+      err -> err
     end
   end
 end
