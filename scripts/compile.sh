@@ -9,6 +9,6 @@ mix compile
 
 # Compile NIFs
 echo "[+] Compiling NIFs..."
-gcc -o ./lib/nifs/matrix_product.so -fPIC -shared ./lib/nifs/matrix_product.c
+gcc -o ./lib/nifs/matrix.so -fPIC -shared ./lib/nifs/matrix.c
 
 echo "[+] Done!"
