@@ -14,7 +14,7 @@ defmodule LAP2.Utils.ProtoBuf.RequestHelper do
   """
   @spec build_init_crypto(binary, binary, binary, binary, binary) :: {:init_ke, KeyExchangeInit.t()}
   def build_init_crypto(identity, ephem_pk, generator, ring_pk, signature) do
-    {:inti_ke, %KeyExchangeInit{
+    {:init_ke, %KeyExchangeInit{
       identity: identity,
       ephemeral_pk: ephem_pk,
       generator: generator,

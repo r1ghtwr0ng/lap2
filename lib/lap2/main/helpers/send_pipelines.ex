@@ -10,7 +10,7 @@ defmodule LAP2.Main.Helpers.SendPipelines do
   @doc """
   Create and send a proxy discovery packet.
   """
-  @spec send_proxy_discovery(Request.t(), map, map) :: :ok
+  @spec send_proxy_discovery(EncryptedRequest.t(), map, map) :: :ok
   def send_proxy_discovery(_request, _aux_data, _registry_table) do
     # TODO
     Logger.info("[i] Sending proxy discovery")
@@ -19,7 +19,7 @@ defmodule LAP2.Main.Helpers.SendPipelines do
   @doc """
   Build and send a proxy accept acknowledgement.
   """
-  @spec ack_proxy_request(Request.t(), non_neg_integer, map) :: :ok
+  @spec ack_proxy_request(EncryptedRequest.t(), non_neg_integer, map) :: :ok
   def ack_proxy_request(_request, _proxy_seq, _proxy_pool) do
     # TODO
     Logger.info("[i] Acking proxy request")
@@ -28,7 +28,7 @@ defmodule LAP2.Main.Helpers.SendPipelines do
   @doc """
   Finish the key exchange process.
   """
-  @spec fin_key_exchange(Request.t(), non_neg_integer, map) :: :ok
+  @spec fin_key_exchange(EncryptedRequest.t(), non_neg_integer, map) :: :ok
   def fin_key_exchange(_request, proxy_seq, proxy_pool) do
     cond do
       length(proxy_pool[proxy_seq]) < 2 ->
@@ -45,7 +45,7 @@ defmodule LAP2.Main.Helpers.SendPipelines do
   @doc """
   Acknowledge the key exchange process.
   """
-  @spec ack_key_exchange(Request.t(), non_neg_integer, map) :: :ok
+  @spec ack_key_exchange(EncryptedRequest.t(), non_neg_integer, map) :: :ok
   def ack_key_exchange(_request, _proxy_seq, _proxy_pool) do
     # TODO
     Logger.info("[i] Acking key exchange")
@@ -54,7 +54,7 @@ defmodule LAP2.Main.Helpers.SendPipelines do
   @doc """
   Send a regular proxy request.
   """
-  @spec send_regular_proxy(Request.t(), non_neg_integer, map, atom) :: :ok
+  @spec send_regular_proxy(EncryptedRequest.t(), non_neg_integer, map, atom) :: :ok
   def send_regular_proxy(_request, _proxy_seq, _proxy_pool, :rotate_key) do
     # TODO
     Logger.info("[i] Sending regular proxy (key rotation)")

@@ -65,12 +65,12 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
     new_pool = remove_proxy(state.proxy_pool, pseq)
     crypt_name = state.config.registry_table.crypto_manager
     case CryptoManager.recv_finalise_exchange(request, pseq, crypt_name) do
-      {:ok, response_data} ->
-        SendPipelines.ack_key_exchange(response_data, pseq, new_pool)
+      {:ok, response} ->
+        SendPipelines.ack_key_exchange(response, pseq, new_pool)
         Map.put(state, :proxy_pool, new_pool)
-      :error ->
+      {:error, reason} ->
         Logger.error("Error occured while responding to proxy: #{pseq}, Request type: FIN_KEY_REQUEST")
-        {:error, :interrupted}
+        {:error, reason}
     end
   end
 

@@ -5,12 +5,10 @@ defmodule LAP2.Crypto.CryptoManager do
 
   use GenServer
   require Logger
-  alias LAP2.Utils.JsonUtils
   alias LAP2.Crypto.Padding.PKCS7
-  alias LAP2.Utils.ProtoBuf.RequestHelper
   alias LAP2.Crypto.Helpers.CryptoStructHelper
 
-  @crypto_struct %{
+  @ets_crypto_struct %{
     asymmetric_key: nil,
     symmetric_key: nil,
     identity: nil,
@@ -44,29 +42,34 @@ defmodule LAP2.Crypto.CryptoManager do
   # ---- GenServer Callbacks (Key Exchange) ----
   @spec handle_call({:init_exchange, Request.t(), non_neg_integer}, map) :: {:reply, tuple, map}
   def handle_call({:init_exchange, request, proxy_seq}, state) do
-    {crypt_type, crypt_struct} = CryptoStructHelper.gen_init_crypto(state.ets, state.identity, request, proxy_seq)
-    resp = {:ok, EncryptedRequest.t()} # TODO
+    {_crypt_type, _crypt_struct} = CryptoStructHelper.gen_init_crypto(state.identity, request, proxy_seq)
+    resp = {:ok, %EncryptedRequest{}} # TODO
     {:reply, resp, state}
   end
 
   @spec handle_call({:respond_exchange, Request.t(), non_neg_integer}, map) :: {:reply, tuple, map}
   def handle_call({:respond_exchange, request, proxy_seq}, state) do
-    {crypt_type, crypt_struct} = CryptoStructHelper.gen_resp_crypto(state.ets, state.identity, request, proxy_seq)
+    # Generate cryptography primitives
+    crypto_struct = CryptoStructHelper.gen_resp_crypto(state.identity, request.crypto)
+    # Update proxy crypto state in ETS
+    recv_init(state.ets, request.crypto, proxy_seq, crypto_struct.asymmetric_key)
+    # TODO generate response
     resp = {:ok, %EncryptedRequest{}} # TODO
     {:reply, resp, state}
   end
 
   @spec handle_call({:send_finalise_exchange, Request.t(), non_neg_integer}, map) :: {:reply, tuple, map}
   def handle_call({:send_finalise_exchange, request, proxy_seq}, state) do
-    resp = CryptoStructHelper.gen_fin_crypto(state.ets, state.identity, request, proxy_seq)
+    crypto_struct = CryptoStructHelper.gen_fin_crypto(request.crypto)
+    recv_resp(state.ets, request.crypto, proxy_seq, crypto_struct.asymmetric_key)
     resp = {:ok, %EncryptedRequest{}} # TODO
     {:reply, resp, state}
   end
 
   @spec handle_call({:recv_finalise_exchange, Request.t(), non_neg_integer}, map) :: {:reply, tuple, map}
-  def handle_call({:recv_finalise_exchange, request, proxy_seq}, state) do
+  def handle_call({:recv_finalise_exchange, _request, proxy_seq}, state) do
     # TODO sanitise the request and get the appropraite map
-    {crypt_type, crypt_struct} = CryptoStructHelper.gen_key_rotation
+    {_crypt_type, crypt_struct} = CryptoStructHelper.gen_key_rotation()
     recv_rot(state.ets, crypt_struct, proxy_seq)
     resp = {:ok, %EncryptedRequest{}} # TODO
     {:reply, resp, state}
@@ -90,6 +93,7 @@ defmodule LAP2.Crypto.CryptoManager do
   end
 
   def handle_call({:add_crypto_struct, key, proxy_seq}, state) do
+    # TODO important: for debugging only, remove once finished
     ets_add_crypto_struct(state.ets, key, proxy_seq)
     {:noreply, state}
   end
@@ -227,14 +231,6 @@ defmodule LAP2.Crypto.CryptoManager do
     end
   end
 
-  @spec extract_crypto_params(Request.t()) :: map
-  defp extract_crypto_params(%Request{data: data}) do
-    # TODO maybe improve this with ProtoBuf, but it's not a priority
-    data
-    |> JsonUtils.parse_json()
-    |> JsonUtils.keys_to_atoms()
-  end
-
   # Add a key to the ETS table
   @spec ets_add_crypto_struct(:ets.tid(), map, non_neg_integer) :: true
   defp ets_add_crypto_struct(ets, crypto_struct, proxy_seq), do: :ets.insert(ets, {proxy_seq, crypto_struct})
@@ -257,19 +253,21 @@ defmodule LAP2.Crypto.CryptoManager do
     end
   end
 
+  # Update ETS with key exchange initialisation info
   @spec recv_init(:ets.tid(), KeyExchangeInit.t(), non_neg_integer, binary) :: :ok
   defp recv_init(ets, %KeyExchangeInit{} = crypto_struct, proxy_seq, asymmetric_key) do
     # TODO, also figure out whats up with the proxy sequence
     new_struct = %{
       identity: crypto_struct.identity,
       long_term_rs_pk: crypto_struct.ring_pk,
-      ephemeral_dh_pk: crypto_struct.ephemeral_pk
+      ephemeral_dh_pk: crypto_struct.ephemeral_pk,
+      asymmetric_key: asymmetric_key
     }
     ets_add_crypto_struct(ets, new_struct, proxy_seq)
     :ok
   end
 
-  # Update ETS with received key initialisation info
+  # Update ETS with key exchange response info
   @spec recv_resp(:ets.tid(), KeyExchangeResponse.t(), non_neg_integer, binary) :: :ok
   defp recv_resp(ets, %KeyExchangeResponse{} = crypto_struct, proxy_seq, asymmetric_key) do
     # Append info to crypto struct

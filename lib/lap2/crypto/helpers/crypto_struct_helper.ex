@@ -23,8 +23,8 @@ defmodule LAP2.Crypto.Helpers.CryptoStructHelper do
   Verify the validity of the HMAC
   """
   @spec check_hmac(Request.t()) :: {:ok, Request.t()} | {:error, :invalid_hmac}
-  def check_hmac(%Request{hmac: hmac, data: data, crypto: {crypto_type, crypto_struct}} = req) do
-    hmac_key = crypto_struct.hmac_key
+  def check_hmac(%Request{hmac: hmac, data: _data, crypto: {_, crypto_struct}} = req) do
+    _hmac_key = crypto_struct.hmac_key
     new_hmac = hmac # TODO replace to calculate and compare HMAC, currently always evaluates to true
     cond do
       new_hmac == hmac -> {:ok, req}
@@ -38,7 +38,7 @@ defmodule LAP2.Crypto.Helpers.CryptoStructHelper do
   """
   @spec gen_init_crypto(binary, Request.t(), non_neg_integer) :: {:init_ke, KeyExchangeInit.t()}
   def gen_init_crypto(identity, _request, _proxy_seq) do
-    # TODO generate cryptographic primitives:
+    # TODO remove crypto_struct if not needed
     ephem_pk = <<>>
     generator = <<>>
     ring_pk = <<>>
@@ -46,27 +46,31 @@ defmodule LAP2.Crypto.Helpers.CryptoStructHelper do
     RequestHelper.build_init_crypto(identity, ephem_pk, generator, ring_pk, signature)
   end
 
-  @spec gen_resp_crypto(:ets.tid(), binary, Request.t(), non_neg_integer) :: {:resp_ke, KeyExchangeResponse.t()}
-  def gen_resp_crypto(_ets, identity, _request, _proxy_seq) do
-    # TODO
+  @spec gen_resp_crypto(binary, KeyExchangeInit.t()) :: %{crypto_headers: {:resp_ke, KeyExchangeResponse.t()}, asymmetric_key: binary}
+  def gen_resp_crypto(identity, _crypto_struct) do
+    # TODO generate asymmetric key and signatures
+    asymm_key = <<>>
     ephem_pk = <<>>
     generator = <<>>
     ring_pk = <<>>
     signature = <<>>
     ring_signature = <<>>
-    {:ok, RequestHelper.build_resp_crypto(identity, ephem_pk, generator, ring_pk, signature, ring_signature)}
+    crypto_hdr = RequestHelper.build_resp_crypto(identity, ephem_pk, generator, ring_pk, signature, ring_signature)
+    %{crypto_headers: crypto_hdr, asymmetric_key: asymm_key}
   end
 
-  @spec gen_fin_crypto(:ets.tid(), binary, Request.t(), non_neg_integer) :: {:fin_ke, KeyExchangeFinal.t()}
-  def gen_fin_crypto(_ets, _identity, _request, _proxy_seq) do
-    # TODO generate
+  @spec gen_fin_crypto(KeyExchangeResponse.t()) :: %{crypto_headers: {:fin_ke, KeyExchangeFinal.t()}, asymmetric_key: binary}
+  def gen_fin_crypto(_crypto_struct) do
+    # TODO generate asymmetric key and signature
+    asymm_key = <<>>
     ring_signature = <<>>
-    {:ok, RequestHelper.build_fin_crypto(ring_signature)}
+    crypto_hdr = RequestHelper.build_fin_crypto(ring_signature)
+    %{crypto_headers: crypto_hdr, asymmetric_key: asymm_key}
   end
 
   @spec gen_key_rotation() :: {:key_rot, KeyRotation.t()}
   def gen_key_rotation() do
     aes_key = :crypto.strong_rand_bytes(32)
-    {:ok, RequestHelper.build_key_rotation(aes_key)}
+    RequestHelper.build_key_rotation(aes_key)
   end
 end
