@@ -1,6 +1,6 @@
 defmodule LAP2.Crypto.CryptoManager do
   @moduledoc """
-  Module for managing cryptographic keys and operations.
+  Module for managing the state of cryptographic information for proxy connections.
   """
 
   use GenServer
@@ -35,43 +35,70 @@ defmodule LAP2.Crypto.CryptoManager do
     IO.puts("[i] CryptoManager: Starting GenServer")
     state = %{
       ets: :ets.new(:key_manager, [:set, :private]),
-      identity: config.identity}
+      temp_crypto: %{},
+      config: config,
+    }
     {:ok, state}
   end
 
   # ---- GenServer Callbacks (Key Exchange) ----
-  @spec handle_call({:init_exchange, Request.t(), non_neg_integer}, map) :: {:reply, tuple, map}
-  def handle_call({:init_exchange, request, proxy_seq}, state) do
-    {_crypt_type, _crypt_struct} = CryptoStructHelper.gen_init_crypto(state.identity, request, proxy_seq)
-    resp = {:ok, %EncryptedRequest{}} # TODO
-    {:reply, resp, state}
+  @spec handle_call({:init_exchange, non_neg_integer}, map) :: {:reply, tuple, map}
+  def handle_call({:init_exchange, clove_seq}, state) do
+    %{temp_crypto_struct: temp_crypto_struct, encrypted_request: resp} = CryptoStructHelper.gen_init_crypto(state.config.identity)
+    # Update the temporary crypto state for a given clove_seq.
+    # If a response is received, its migrated to long-term ETS storage
+    new_state = set_temp_crypto(state, temp_crypto_struct, clove_seq)
+    {:reply, resp, new_state}
   end
 
-  @spec handle_call({:respond_exchange, Request.t(), non_neg_integer}, map) :: {:reply, tuple, map}
-  def handle_call({:respond_exchange, request, proxy_seq}, state) do
+  @spec handle_call({:gen_response, Request.t(), non_neg_integer}, map) :: {:reply, tuple, map}
+  def handle_call({:gen_response, request, proxy_seq}, state) do
+    # TODO trace the proxy_seq number, make sure its generated and not the clove_seq
     # Generate cryptography primitives
-    crypto_struct = CryptoStructHelper.gen_resp_crypto(state.identity, request.crypto)
+    %{crypto_struct: crypto_struct, encrypted_request: resp} = CryptoStructHelper.gen_resp_crypto(state.config.identity, request.crypto)
+
     # Update proxy crypto state in ETS
-    recv_init(state.ets, request.crypto, proxy_seq, crypto_struct.asymmetric_key)
-    # TODO generate response
-    resp = {:ok, %EncryptedRequest{}} # TODO
+    recv_init(state.ets, crypto_struct, proxy_seq)
     {:reply, resp, state}
   end
 
-  @spec handle_call({:send_finalise_exchange, Request.t(), non_neg_integer}, map) :: {:reply, tuple, map}
-  def handle_call({:send_finalise_exchange, request, proxy_seq}, state) do
-    crypto_struct = CryptoStructHelper.gen_fin_crypto(request.crypto)
-    recv_resp(state.ets, request.crypto, proxy_seq, crypto_struct.asymmetric_key)
-    resp = {:ok, %EncryptedRequest{}} # TODO
-    {:reply, resp, state}
+  @spec handle_call({:gen_finalise_exchange, Request.t(), non_neg_integer, non_neg_integer}, map) :: {:reply, tuple, map}
+  def handle_call({:gen_finalise_exchange, request, clove_seq, proxy_seq}, state) do
+    %{crypto_struct: crypto_struct, encrypted_request: resp} = CryptoStructHelper.gen_fin_crypto(request.crypto)
+    # TODO migrate the temporary crypto state (clove_seq key) to the long-term ETS storage (proxy_seq)
+    new_state = delete_temp_crypto(state, clove_seq)
+    recv_resp(state.ets, crypto_struct, proxy_seq)
+    {:reply, resp, new_state}
   end
 
   @spec handle_call({:recv_finalise_exchange, Request.t(), non_neg_integer}, map) :: {:reply, tuple, map}
-  def handle_call({:recv_finalise_exchange, _request, proxy_seq}, state) do
+  def handle_call({:recv_finalise_exchange, request, proxy_seq}, state) do
+    # Verify the validity of the signature
+    cond do
+      CryptoStructHelper.verify_ring_signature(request.crypto, proxy_seq) ->
+        # Initiate key rotation
+        resp = GenServer.call({:global, state.config.name}, {:init_key_rotation, proxy_seq})
+        {:reply, resp, state}
+      true -> {:reply, {:error, :invalid_signature}, state}
+    end
+
+  end
+
+  @spec handle_call({:init_key_rotation, non_neg_integer}, map) :: {:reply, tuple, map}
+  def handle_call({:init_key_rotation, proxy_seq}, state) do
+    %{crypto_struct: crypto_struct, encrypted_request: resp} = CryptoStructHelper.gen_key_rotation(proxy_seq, state.config.registry_table.crypto_manager)
+    rot_keys(state.ets, crypto_struct, proxy_seq)
+    {:reply, resp, state}
+  end
+
+  @spec handle_call({:rotate_keys, Request.t(), non_neg_integer}, map) :: {:noreply, tuple, map}
+  def handle_call({:rotate_keys, request, proxy_seq}, state) do
     # TODO sanitise the request and get the appropraite map
-    {_crypt_type, crypt_struct} = CryptoStructHelper.gen_key_rotation()
-    recv_rot(state.ets, crypt_struct, proxy_seq)
-    resp = {:ok, %EncryptedRequest{}} # TODO
+    crypto_struct = %{
+      symmetric_key: request.crypto.symmetric_key,
+    }
+    rot_keys(state.ets, crypto_struct, proxy_seq)
+    resp = CryptoStructHelper.ack_key_rotation(proxy_seq, request.request_id, state.config.registry_table.crypto_manager)
     {:reply, resp, state}
   end
 
@@ -92,13 +119,14 @@ defmodule LAP2.Crypto.CryptoManager do
     {:reply, response, state}
   end
 
+  # TODO important: for debugging only, remove once finished
   def handle_call({:add_crypto_struct, key, proxy_seq}, state) do
-    # TODO important: for debugging only, remove once finished
     ets_add_crypto_struct(state.ets, key, proxy_seq)
     {:noreply, state}
   end
 
-  def handle_call({:remove_crypto_struct, proxy_seq}, state) do
+  @spec handle_cast({:remove_crypto_struct, non_neg_integer}, map) :: {:noreply, map}
+  def handle_cast({:remove_crypto_struct, proxy_seq}, state) do
     ets_remove_crypto_struct(state.ets, proxy_seq)
     {:noreply, state}
   end
@@ -115,30 +143,31 @@ defmodule LAP2.Crypto.CryptoManager do
   Initiate a key exchange with a remote proxy.
   """
   @spec init_exchange(Request.t(), non_neg_integer, atom) :: {:ok, EncryptedRequest.t()} | {:error, atom}
-  def init_exchange(request, proxy_seq, name \\ :crypto_manager) do
-    GenServer.call({:global, name}, {:init_exchange, proxy_seq, request})
+  def init_exchange(request, clove_seq, name \\ :crypto_manager) do
+    GenServer.call({:global, name}, {:init_exchange, request, clove_seq})
   end
 
   @doc """
   Respond to a key exchange request from a remote proxy.
   """
-  @spec respond_exchange(Request.t(), non_neg_integer, atom) :: {:ok, EncryptedRequest.t()} | {:error, atom}
-  def respond_exchange(request, proxy_seq, name \\ :crypto_manager) do
-    GenServer.call({:global, name}, {:respond_exchange, proxy_seq, request})
+  @spec gen_response(Request.t(), non_neg_integer, atom) :: {:ok, EncryptedRequest.t()} | {:error, atom}
+  def gen_response(request, proxy_seq, name \\ :crypto_manager) do
+    GenServer.call({:global, name}, {:gen_response, request, proxy_seq})
   end
 
   @doc """
   Finish a key exchange with a remote proxy.
   Different from recv_finalise_exchange as this is called by the initiator.
   """
-  @spec send_finalise_exchange(Request.t(), non_neg_integer, atom) :: {:ok, EncryptedRequest.t()} | {:error, atom}
-  def send_finalise_exchange(request, proxy_seq, name \\ :crypto_manager) do
-    GenServer.call({:global, name}, {:send_finalise_exchange, request, proxy_seq})
+  @spec gen_finalise_exchange(Request.t(), non_neg_integer, atom) :: {:ok, EncryptedRequest.t()} | {:error, atom}
+  def gen_finalise_exchange(request, proxy_seq, clove_seq, name \\ :crypto_manager) do
+    # TODO trace the clove_seq number
+    GenServer.call({:global, name}, {:gen_finalise_exchange, request, clove_seq, proxy_seq})
   end
 
   @doc """
   Finish a key exchange with a remote proxy.
-  Different from send_finalise_exchange as this is called by the receiver proxy.
+  Different from gen_finalise_exchange as this is called by the receiver proxy.
   """
   @spec recv_finalise_exchange(Request.t(), non_neg_integer, atom) :: {:ok, EncryptedRequest.t()} | {:error, atom}
   def recv_finalise_exchange(request, proxy_seq, name \\ :crypto_manager) do
@@ -146,11 +175,19 @@ defmodule LAP2.Crypto.CryptoManager do
   end
 
   @doc """
-  Generate new keys and create key rotation request struct with them.
+  Initiate key rotation with a remote proxy.
   """
-  @spec rotate_keys(non_neg_integer, atom) :: {:ok, EncryptedRequest.t()} | {:error, atom}
-  def rotate_keys(proxy_seq, name \\ :crypto_manager) do
-    GenServer.call({:global, name}, {:rotate_keys, proxy_seq})
+  @spec init_key_rotation(non_neg_integer, atom) :: {:ok, EncryptedRequest.t()} | {:error, atom}
+  def init_key_rotation(proxy_seq, name \\ :crypto_manager) do
+    GenServer.call({:global, name}, {:init_key_rotation, proxy_seq})
+  end
+
+  @doc """
+  Perform key rotation request with a remote proxy.
+  """
+  @spec rotate_keys(Request.t(), non_neg_integer, atom) :: :ok
+  def rotate_keys(request, proxy_seq, name \\ :crypto_manager) do
+    GenServer.call({:global, name}, {:rotate_keys, request, proxy_seq})
   end
 
   # ---- Public Functions (Crypto Operations) ----
@@ -254,40 +291,52 @@ defmodule LAP2.Crypto.CryptoManager do
   end
 
   # Update ETS with key exchange initialisation info
-  @spec recv_init(:ets.tid(), KeyExchangeInit.t(), non_neg_integer, binary) :: :ok
-  defp recv_init(ets, %KeyExchangeInit{} = crypto_struct, proxy_seq, asymmetric_key) do
+  @spec recv_init(:ets.tid(), map, non_neg_integer) :: :ok
+  defp recv_init(ets, crypto_struct, proxy_seq) do
     # TODO, also figure out whats up with the proxy sequence
     new_struct = %{
       identity: crypto_struct.identity,
-      long_term_rs_pk: crypto_struct.ring_pk,
-      ephemeral_dh_pk: crypto_struct.ephemeral_pk,
-      asymmetric_key: asymmetric_key
+      long_term_rs_pk: crypto_struct.long_term_rs_pk,
+      ephemeral_dh_pk: crypto_struct.ephemeral_dh_pk,
+      asymmetric_key: crypto_struct.asymmetric_key
     }
     ets_add_crypto_struct(ets, new_struct, proxy_seq)
     :ok
   end
 
   # Update ETS with key exchange response info
-  @spec recv_resp(:ets.tid(), KeyExchangeResponse.t(), non_neg_integer, binary) :: :ok
-  defp recv_resp(ets, %KeyExchangeResponse{} = crypto_struct, proxy_seq, asymmetric_key) do
+  @spec recv_resp(:ets.tid(), map, non_neg_integer) :: :ok
+  defp recv_resp(ets, crypto_struct, proxy_seq) do
     # Append info to crypto struct
     new_struct = %{
       identity: crypto_struct.identity,
-      long_term_rs_pk: crypto_struct.ring_pk,
-      ephemeral_dh_pk: crypto_struct.ephemeral_pk,
-      asymmetric_key: asymmetric_key
+      long_term_rs_pk: crypto_struct.long_term_rs_pk,
+      ephemeral_dh_pk: crypto_struct.ephemeral_dh_pk,
+      asymmetric_key: crypto_struct.asymmetric_key
     }
     ets_add_crypto_struct(ets, new_struct, proxy_seq)
     :ok
   end
 
   # Update ETS with key rotation request info
-  @spec recv_rot(:ets.tid(), KeyRotation.t(), non_neg_integer) :: :ok
-  defp recv_rot(ets, %KeyRotation{} = crypto_struct, proxy_seq) do
-    new_struct = %{
-      symmetric_key: crypto_struct.new_key,
-    }
-    ets_update_crypto_struct(ets, new_struct, proxy_seq)
+  @spec rot_keys(:ets.tid(), map, non_neg_integer) :: :ok
+  defp rot_keys(ets, %{symmetric_key: _} = crypto_struct, proxy_seq) do
+    ets_update_crypto_struct(ets, crypto_struct, proxy_seq)
     :ok
+  end
+
+  # ---- Private Functions (State Operations) ----
+  # Set the temp crypto struct inside the state map
+  @spec set_temp_crypto(map, map, non_neg_integer) :: map
+  defp set_temp_crypto(state, temp_crypto, clove_seq) do
+    Map.put(state, :temp_crypto, Map.put(state.temp_crypto, clove_seq, temp_crypto))
+  end
+
+  # Delete the temp crypto struct from the state map
+  @spec delete_temp_crypto(map, non_neg_integer) :: map
+  defp delete_temp_crypto(state, clove_seq) do
+    # TODO figure out if the old crypto state is needed
+    _temp_crypto = Map.get(state.temp_crypto, clove_seq)
+    Map.put(state, :temp_crypto, Map.delete(state.temp_crypto, clove_seq))
   end
 end
