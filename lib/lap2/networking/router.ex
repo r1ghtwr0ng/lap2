@@ -64,53 +64,62 @@ defmodule LAP2.Networking.Router do
         {:noreply, state}
 
       {:random_walk, rand_neighbor} ->
-        Remote.relay_proxy_discovery(state, source, rand_neighbor, clove)
+        new_state = Remote.relay_proxy_discovery(state, source, rand_neighbor, clove)
+        {:noreply, new_state}
 
       # Proxy request
       :proxy_request ->
-        Local.handle_proxy_request(state, source, clove)
+        new_state = Local.handle_proxy_request(state, source, clove)
+        {:noreply, new_state}
 
       # Route discovery response to share handler
       :recv_discovery ->
-        Local.receive_discovery_response(state, source, clove)
+        new_state = Local.receive_discovery_response(state, source, clove)
+        {:noreply, new_state}
 
       # Route discovery response
       {:discovery_response, ^source} ->
-        Remote.relay_discovery_response(state, source, clove)
+        new_state = Remote.relay_discovery_response(state, source, clove)
+        {:noreply, new_state}
 
       # Relay clove to local
       {:relay, :share_handler} ->
-        Local.relay_clove(state, clove)
+        new_state = Local.relay_clove(state, clove)
+        {:noreply, new_state}
 
       # Relay clove to remote
       {:relay, dest} when is_tuple(dest) ->
-        Remote.relay_clove(state, dest, clove)
+        new_state = Remote.relay_clove(state, dest, clove)
+        {:noreply, new_state}
 
       # Drop clove
       _ ->
-        IO.puts("[+] Router: Dropping clove")
+        Logger.info("[+] Router GenServer: Dropping clove")
         {:noreply, state}
     end
   end
 
-  # Route outbound proxy cloves
-  @spec handle_cast({:regular_proxy, {String.t(), non_neg_integer}, non_neg_integer, binary}, map) ::
+  # Route outbound cloves
+  @spec handle_cast({:route_outbound, {String.t(), non_neg_integer}, Clove.t()}, map) ::
           {:noreply, map}
-  def handle_cast({:regular_proxy, dest, proxy_seq, data}, state) do
-    Remote.route_outbound_proxy(state, dest, proxy_seq, data)
+  def handle_cast({:route_outbound, dest, clove}, state) do
+    Logger.info("[+] Router GenServer: In route outbound handle cast")
+    new_state = Remote.route_outbound(state, dest, clove)
+    {:noreply, new_state}
   end
 
   # Route outbound proxy discovery cloves
-  @spec handle_cast({:proxy_discovery, {String.t(), non_neg_integer}, non_neg_integer, binary},
+  @spec handle_cast({:outbound_discovery, {String.t(), non_neg_integer}, Clove.t()},
     map) :: {:noreply, map}
-  def handle_cast({:proxy_discovery, dest, clove_seq, data}, state) do
-    IO.puts("[+] Router GenServer: In proxy discovery handle cast")
-    Remote.route_outbound_discovery(state, dest, clove_seq, data)
+  def handle_cast({:outbound_discovery, dest, clove}, state) do
+    Logger.info("[+] Router GenServer: In proxy discovery handle cast")
+    new_state = Remote.route_outbound_discovery(state, dest, clove)
+    {:noreply, new_state}
   end
 
   # Add a proxy relay to relay table
-  @spec handle_cast({:add_proxy_relay, non_neg_integer, list({String.t(), non_neg_integer})}, map) :: {:noreply, map}
-  def handle_cast({:add_proxy_relay, proxy_seq, relays}, state) do
+  @spec handle_cast({:add_proxy_relays, non_neg_integer, list({String.t(), non_neg_integer})}, map) :: {:noreply, map}
+  def handle_cast({:add_proxy_relays, proxy_seq, relays}, state) do
     new_state = Enum.reduce(relays, state, fn relay_node, acc ->
       State.add_proxy_relay(acc, proxy_seq, relay_node)
     end)
@@ -175,24 +184,24 @@ defmodule LAP2.Networking.Router do
   @doc """
   Route data to the appropriate destination.
   """
-  @spec route_outbound_proxy({String.t(), non_neg_integer}, non_neg_integer, binary, map) :: :ok
-  def route_outbound_proxy(dest, proxy_seq, data, name) do
+  @spec route_outbound({String.t(), non_neg_integer}, Clove.t(), map) :: :ok
+  def route_outbound(dest, clove, name) do
     IO.puts("[+] Router: Routing outbound clove")
-    GenServer.cast({:global, name}, {:regular_proxy, dest, proxy_seq, data})
+    GenServer.cast({:global, name}, {:route_outbound, dest, clove})
   end
 
-  @spec route_outbound_discovery({String.t(), non_neg_integer}, non_neg_integer, binary, atom) :: :ok
-  def route_outbound_discovery(dest, clove_seq, data, name) do
+  @spec route_outbound_discovery({String.t(), non_neg_integer}, Clove.t(), atom) :: :ok
+  def route_outbound_discovery(dest, clove, name) do
     IO.puts("[+] Router: Routing outbound discovery")
-    GenServer.cast({:global, name}, {:proxy_discovery, dest, clove_seq, data})
+    GenServer.cast({:global, name}, {:outbound_discovery, dest, clove})
   end
 
   @doc """
   Accept and reply to a proxy request, update state accordingly.
   """
-  @spec add_proxy_relay(non_neg_integer, list({String.t(), non_neg_integer}), atom) :: :ok
-  def add_proxy_relay(proxy_seq, relays, name \\ :router) do
-    GenServer.cast({:global, name}, {:add_proxy_relay, proxy_seq, relays})
+  @spec add_proxy_relays(non_neg_integer, list({String.t(), non_neg_integer}), atom) :: :ok
+  def add_proxy_relays(proxy_seq, relays, name \\ :router) do
+    GenServer.cast({:global, name}, {:add_proxy_relays, proxy_seq, relays})
   end
 
   @doc """

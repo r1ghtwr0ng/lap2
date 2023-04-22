@@ -48,7 +48,11 @@ defmodule LAP2.Networking.Routing.State do
   """
   @spec add_own_clove(map, non_neg_integer) :: map
   def add_own_clove(state, clove_seq) do
-    Map.put(state, :own_cloves, [clove_seq | state.own_cloves])
+    cond do
+      Enum.member?(state.own_cloves, clove_seq) -> state
+
+      true -> Map.put(state, :own_cloves, [clove_seq | state.own_cloves])
+    end
   end
 
   @doc """

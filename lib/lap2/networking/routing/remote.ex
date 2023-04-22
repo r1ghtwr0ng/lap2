@@ -11,110 +11,94 @@ defmodule LAP2.Networking.Routing.Remote do
   @doc """
   Relay a proxy discovery clove to a random neighbour.
   """
-  @spec relay_proxy_discovery(map, {String.t(), integer}, binary, map) :: {:noreply, map}
+  @spec relay_proxy_discovery(map, {String.t(), integer}, binary, map) :: map
   def relay_proxy_discovery(
         state,
         source,
         neighbor_addr,
-        %Clove{
-          data: data,
-          headers:
-            {:proxy_discovery,
-             %ProxyDiscoveryHeader{clove_seq: clove_seq, drop_probab: drop_prob}}
-        } = clove
+        %Clove{headers: {:proxy_discovery, _}} = clove
       ) do
     dest = state.routing_table[neighbor_addr]
     IO.puts("[+] Remote: Relaying via random walk to #{inspect(dest)}")
     new_state = State.cache_clove(state, source, dest, clove)
     udp_name = state.config.registry_table.udp_server
 
-    route_clove(
-      dest,
-      [data],
-      %{clove_seq: clove_seq, drop_probab: drop_prob},
-      udp_name,
-      :proxy_discovery
-    )
-
-    {:noreply, new_state}
+    route_clove(dest, clove, udp_name)
+    new_state
   end
 
   @doc """
   Route a discovery response along its path.
   """
-  @spec relay_discovery_response(map, {String.t(), integer}, map) :: {:noreply, map}
-  def relay_discovery_response(state, source, %Clove{
-        data: data,
-        headers:
-          {:proxy_response,
-           %ProxyResponseHeader{clove_seq: cseq, proxy_seq: pseq, hop_count: hops}}
-      }) do
+  @spec relay_discovery_response(map, {String.t(), integer}, map) :: map
+  def relay_discovery_response(state, source, %Clove{headers:
+      {:proxy_response, %ProxyResponseHeader{clove_seq: cseq, proxy_seq: pseq, hop_count: hops}}} = clove) do
     dest = state.clove_cache[cseq].prv_hop
     IO.puts("[+] Remote: Relaying discovery response to #{inspect(dest)}")
-    headers = %{clove_seq: cseq, proxy_seq: pseq, hop_count: hops + 1}
+    {hdr_type, hdr} = clove.headers
+    new_header = {hdr_type, Map.put(hdr, :hop_count, hops + 1)}
+    clove = Map.put(clove, :headers, new_header)
 
-    new_state =
-      state
-      |> State.add_relay(pseq, source, dest)
-      |> State.evict_clove(cseq)
-
+    # Route the clove
     udp_name = state.config.registry_table.udp_server
-    route_clove(dest, [data], headers, udp_name, :proxy_response)
-    {:noreply, new_state}
+    route_clove(dest, clove, udp_name)
+
+    # Update the relay state
+    state
+    |> State.add_relay(pseq, source, dest)
+    |> State.evict_clove(cseq)
   end
 
   @doc """
   Relay a proxy request along its path.
   """
-  @spec relay_clove(map, {String.t(), integer}, map) :: {:noreply, map}
-  def relay_clove(state, dest, %Clove{
-        data: data,
-        headers: {:regular_proxy, %RegularProxyHeader{proxy_seq: pseq}}
-      }) do
+  @spec relay_clove(map, {String.t(), integer}, map) :: map
+  def relay_clove(state, dest, %Clove{headers: {:regular_proxy, %RegularProxyHeader{proxy_seq: pseq}}} = clove) do
     # Debug
     IO.puts("[+] Remote: Relaying clove to #{inspect(dest)}")
     udp_name = state.config.registry_table.udp_server
-    route_clove(dest, [data], %{proxy_seq: pseq}, udp_name, :regular_proxy)
-    new_state = State.update_relay_timestamp(state, pseq)
-    {:noreply, new_state}
+    route_clove(dest, clove, udp_name)
+    State.update_relay_timestamp(state, pseq)
   end
 
   # ---- Public outbound routing functions ----
   @doc """
   Route a clove to a remote destination.
   """
-  @spec route_outbound_discovery(map, {String.t(), integer}, integer, binary) :: {:noreply, map}
-  def route_outbound_discovery(state, dest, clove_seq, data) do
+  @spec route_outbound_discovery(map, {String.t(), integer}, Clove.t()) :: map
+  def route_outbound_discovery(state, dest, clove) do
     IO.puts("[+] Remote: Routing outbound discovery")
-    drop_probab = CloveHelper.gen_drop_probab(0.7, 1.0)
-    headers = %{clove_seq: clove_seq, drop_probab: drop_probab}
-    new_state = State.add_own_clove(state, clove_seq)
+    # Set random drop probability
+    {hdr_type, hdr} = clove.headers
+    new_header = {hdr_type, Map.put(hdr, :drop_probab, CloveHelper.gen_drop_probab(0.7, 1.0))}
+    clove = Map.put(clove, :headers, new_header)
+    # Route clove
     udp_name = state.config.registry_table.udp_server
-    route_clove(dest, [data], headers, udp_name, :proxy_discovery)
-    {:noreply, new_state}
+    route_clove(dest, clove, udp_name)
+    # Add clove to own clove cache
+    State.add_own_clove(state, clove.clove_seq)
   end
 
   @doc """
   Route a clove to a remote destination.
   """
-  @spec route_outbound_proxy(map, {String.t(), integer}, integer, binary) :: {:noreply, map}
-  def route_outbound_proxy(state, dest, proxy_seq, data) do
+  @spec route_outbound(map, {String.t(), integer}, Clove.t()) :: map
+  def route_outbound(state, dest, clove) do
     IO.puts("[+] Remote: Routing outbound clove")
-    headers = %{proxy_seq: proxy_seq}
+    # Route clove
     udp_name = state.config.registry_table.udp_server
-    route_clove(dest, [data], headers, udp_name, :regular_proxy)
-    {:noreply, state}
+    route_clove(dest, clove, udp_name)
+    # Add clove to own clove cache
+    State.add_own_clove(state, clove.clove_seq)
   end
 
   # ---- Private functions ----
   # MAJOR TODO: Update timestamps whenever accessed to prevent deletion
   # Deliver the clove to the appropriate receiver, either local or remote
-  @spec route_clove({String.t(), integer}, list, map, atom, atom) :: :ok
-  defp route_clove(_receiver, [], _headers), do: :ok
-
-  defp route_clove(dest, [data | tail], headers, udp_name, clove_type) do
+  @spec route_clove({String.t(), non_neg_integer}, Clove.t(), atom) :: :ok
+  defp route_clove(dest, clove, udp_name) do
     IO.puts("[+] Remote: Delivering to remote")
-    Task.async(fn -> Lap2Socket.send_clove(dest, data, headers, udp_name, clove_type) end)
-    route_clove(dest, tail, headers)
+    Task.async(fn -> Lap2Socket.send_clove(dest, clove, udp_name) end)
+    :ok
   end
 end
