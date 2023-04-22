@@ -6,9 +6,6 @@ defmodule LAP2.Math.Matrix do
   """
   @on_load :load_nif
 
-  # Added for the sake of my sanity, makes dialyzer shut up about a function which works perfectly fine
-  @dialyzer {:nowarn_function, load_nif: 0}
-
   # Cached inverse lookup array for finite field Z/257
   @inverse_lookup [0, 1, 129, 86, 193, 103, 43, 147, 225, 200, 180, 187, 150, 178,
   202, 120, 241, 121, 100, 230, 90, 49, 222, 190, 75, 72, 89, 238, 101, 195, 60,
@@ -28,7 +25,7 @@ defmodule LAP2.Math.Matrix do
 
   @spec load_nif :: :ok | {:error, any}
   def load_nif() do
-    :erlang.load_nif("./lib/nifs/matrix", 0)
+    :erlang.load_nif('./lib/nifs/matrix', 0)
   end
 
   @doc """
