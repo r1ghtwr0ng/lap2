@@ -40,7 +40,7 @@ defmodule LAP2.Networking.Routing.Local do
       request_type: :discovery_response,
       proxy_seq: pseq,
       clove_seq: cseq,
-      relay: source,
+      relays: source,
       hop_count: hops
     }
 
