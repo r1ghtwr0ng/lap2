@@ -139,7 +139,7 @@ defmodule LAP2.Utils.ProtoBuf.RequestHelper do
   @doc """
   Serialise a request struct.
   """
-  @spec serialise(Request.t()) :: {:ok, binary} | {:error, any}
+  @spec serialise(Request.t() | EncryptedRequest.t()) :: {:ok, binary} | {:error, any}
   def serialise(request) do
     # Serialise the request
     case ProtoBuf.serialise(request) do

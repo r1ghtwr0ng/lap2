@@ -24,7 +24,6 @@ defmodule LAP2.Main.Proxy do
 
     state = %{
       proxy_pool: %{},
-      # TODO add request_id => stream_id to ETS table
       request_ets: :ets.new(:request_mapper, [:set, :protected]),
       config: config
     }
@@ -37,7 +36,10 @@ defmodule LAP2.Main.Proxy do
   @spec handle_call(:get_state, map) :: {:reply, map, map}
   def handle_call(:get_state, state), do: {:reply, state, state}
 
-  @spec handle_cast({:proxy_request, Request.t(), map}, map) :: {:noreply, map}
+  @spec handle_cast({:proxy_request, Request.t(), %{
+    proxy_seq: non_neg_integer,
+    clove_seq: non_neg_integer,
+    relays: list}}, map) :: {:noreply, map}
   def handle_cast({:proxy_request, request, aux_data}, state) do
     proxy_limit = state.config.proxy_limit
 
@@ -46,7 +48,6 @@ defmodule LAP2.Main.Proxy do
         new_state = ProxyHelper.accept_proxy_request(request, aux_data, state)
         {:noreply, new_state}
 
-      false ->
         {:noreply, state}
     end
   end
