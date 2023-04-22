@@ -4,9 +4,10 @@ defmodule LAP2.Math.Matrix do
   The functions used for performing the vandermonde matrix operations are based on the
   follwoing repository: https://github.com/mmtan/IDA
   """
+
   @on_load :load_nif
 
-  # Cached inverse lookup array for finite field Z/257
+  # Pre-computed inverse lookup array for finite field Z/257
   @inverse_lookup [0, 1, 129, 86, 193, 103, 43, 147, 225, 200, 180, 187, 150, 178,
   202, 120, 241, 121, 100, 230, 90, 49, 222, 190, 75, 72, 89, 238, 101, 195, 60,
   199, 249, 148, 189, 235, 50, 132, 115, 145, 45, 163, 153, 6, 111, 40, 95, 175,
@@ -66,15 +67,9 @@ defmodule LAP2.Math.Matrix do
   end
 
   @spec matrix_product(non_neg_integer, non_neg_integer, non_neg_integer, non_neg_integer, binary, binary) :: binary
-  defp matrix_product(a_rows, a_cols, b_cols, p, a, b) do
-    # It's a NIF function, Dialyzer won't shut up about it and I can't seem to disable the warnings so just live with it
-    :matrix.matrix_product(a_rows, a_cols, b_cols, p, a, b)
-    |> case do
-      {:ok, matrix} ->
-        matrix
-      :error ->
-        raise "matrix_product_nif returned an error"
-    end
+  defp matrix_product(_a_rows, _a_cols, _b_cols, _p, _a, _b) do
+    # If this function gets executed, the C NIF has not been bound on load, therefore raise an error
+    raise "matrix_product_nif not bound"
   end
 
   @doc """
