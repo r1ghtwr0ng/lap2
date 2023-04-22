@@ -10,7 +10,16 @@ defmodule LAP2Test do
       main_supervisor: %{name: String.to_atom("lap2_daemon_#{addr}")},
       task_supervisor: %{max_children: 10, name: String.to_atom("lap2_superv_#{addr}")},
       crypto_manager: %{name: String.to_atom("crypto_manager_#{addr}"),
-        identity: "IDENT_#{addr}"},
+        identity: "IDENT_#{addr}",
+        registry_table: %{
+          share_handler: String.to_atom("share_handler_#{addr}"),
+          router: String.to_atom("router_#{addr}"),
+          main_supervisor: String.to_atom("lap2_daemon_#{addr}"),
+          task_supervisor: String.to_atom("lap2_superv_#{addr}"),
+          tcp_server: String.to_atom("tcp_server_#{addr}"),
+          udp_server: String.to_atom("udp_server_#{addr}"),
+          crypto_manager: String.to_atom("crypto_manager_#{addr}")
+        }},
       router: %{
         clove_cache_size: 1000,
         clove_cache_ttl: 30000,
@@ -24,7 +33,8 @@ defmodule LAP2Test do
           main_supervisor: String.to_atom("lap2_daemon_#{addr}"),
           task_supervisor: String.to_atom("lap2_superv_#{addr}"),
           tcp_server: String.to_atom("tcp_server_#{addr}"),
-          udp_server: String.to_atom("udp_server_#{addr}")
+          udp_server: String.to_atom("udp_server_#{addr}"),
+          crypto_manager: String.to_atom("crypto_manager_#{addr}")
         },
         relay_table_size: 5000,
         relay_table_ttl: 1_800_000
@@ -39,7 +49,8 @@ defmodule LAP2Test do
           main_supervisor: String.to_atom("lap2_daemon_#{addr}"),
           task_supervisor: String.to_atom("lap2_superv_#{addr}"),
           tcp_server: String.to_atom("tcp_server_#{addr}"),
-          udp_server: String.to_atom("udp_server_#{addr}")
+          udp_server: String.to_atom("udp_server_#{addr}"),
+          crypto_manager: String.to_atom("crypto_manager_#{addr}")
         },
         req_timeout: 50000,
         tcp_port: 3001
@@ -55,7 +66,8 @@ defmodule LAP2Test do
           main_supervisor: String.to_atom("lap2_daemon_#{addr}"),
           task_supervisor: String.to_atom("lap2_superv_#{addr}"),
           tcp_server: String.to_atom("tcp_server_#{addr}"),
-          udp_server: String.to_atom("udp_server_#{addr}")
+          udp_server: String.to_atom("udp_server_#{addr}"),
+          crypto_manager: String.to_atom("crypto_manager_#{addr}")
         },
         req_timeout: 50000,
         udp_port: udp_port
@@ -68,7 +80,8 @@ defmodule LAP2Test do
           main_supervisor: String.to_atom("lap2_daemon_#{addr}"),
           task_supervisor: String.to_atom("lap2_superv_#{addr}"),
           tcp_server: String.to_atom("tcp_server_#{addr}"),
-          udp_server: String.to_atom("udp_server_#{addr}")
+          udp_server: String.to_atom("udp_server_#{addr}"),
+          crypto_manager: String.to_atom("crypto_manager_#{addr}")
         },
         share_ttl: 60000
       }

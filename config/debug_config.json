@@ -8,7 +8,8 @@
     },
     "crypto_manager": {
         "name": "crypto_manager",
-        "identity": "IDENTITY"
+        "identity": "IDENTITY",
+        "registry_table": null
     },
     "share_handler": {
         "name": "share_handler",
