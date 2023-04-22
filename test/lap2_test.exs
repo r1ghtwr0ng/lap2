@@ -3,6 +3,7 @@ defmodule LAP2Test do
   doctest LAP2
 
   alias LAP2.Networking.Router
+  alias LAP2.Utils.ProtoBuf.CloveHelper
 
   # Configs
   defp make_config(addr, udp_port) do
@@ -151,16 +152,15 @@ defmodule LAP2Test do
                          {bstrp_ip, bstrp_port},
                          main_config.router.name
                        )
-
+              # Create the clove
               data = "Hello World"
-              # TODO more complex data exchange
-              clove_seq = LAP2.Utils.ProtoBuf.CloveHelper.gen_seq_num()
+              hdr = %{clove_seq: LAP2.Utils.ProtoBuf.CloveHelper.gen_seq_num(), drop_probab: 0.7}
+              clove = CloveHelper.create_clove(data, hdr, :proxy_discovery)
 
               assert :ok ==
                        Router.route_outbound_discovery(
                          {bstrp_ip, bstrp_port},
-                         clove_seq,
-                         data,
+                         clove,
                          main_config.router.name
                        )
 

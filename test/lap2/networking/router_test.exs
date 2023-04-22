@@ -19,7 +19,7 @@ defmodule LAP2.Networking.RouterTest do
     {:ok, router: router, config: config}
   end
 
-  describe "add_proxy_relay/3" do
+  describe "add_proxy_relays/3" do
     test "Add proxy relay", _context do
       # Prepare the necessary data and expected state
       proxy_seq = 1
@@ -27,7 +27,7 @@ defmodule LAP2.Networking.RouterTest do
       node_2 = {"127.0.0.3", 12346}
       Router.append_dht("NODE_1", node_1, :router)
       Router.append_dht("NODE_2", node_2, :router)
-      Router.add_proxy_relay(proxy_seq, [node_1, node_2], :router)
+      Router.add_proxy_relays(proxy_seq, [node_1, node_2], :router)
 
       # Verify that the state has been updated as expected
       state = Router.debug(:router)

@@ -1,6 +1,7 @@
 defmodule LAP2.Networking.Sockets.Lap2SocketTest do
   use ExUnit.Case, async: true
 
+  alias LAP2.Utils.ProtoBuf.CloveHelper
   alias LAP2.Networking.Sockets.Lap2Socket
 
   setup do
@@ -33,8 +34,9 @@ defmodule LAP2.Networking.Sockets.Lap2SocketTest do
       data = "Test data"
       headers = %{proxy_seq: 1}
       dest = {"127.0.0.1", 8081}
+      clove = CloveHelper.create_clove(data, headers, :regular_proxy)
 
-      assert Lap2Socket.send_clove(dest, data, headers, context.udp_name, :regular_proxy) == :ok
+      assert Lap2Socket.send_clove(dest, clove, context.udp_name) == :ok
     end
   end
 end
