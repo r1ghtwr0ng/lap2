@@ -21,17 +21,17 @@
 - [x] Efficient UDP datagram buffering and handling
 - [x] UDP communication module
 - [x] ProtoBuff serialisation/deserialisation
-- [ ] Peer connection and discovery
+- [x] Peer connection and discovery
 - [ ] Distributeed hash table
 - [x] Clove storage and relay
 - [ ] Introduction Points
-- [ ] Proxy routing
+- [x] Proxy routing
 - [ ] Connection supervisor module
 
 ## *Garlic Cast*
 - [x] Rabin's IDA
 - [x] Security Enchansed IDA
-- [ ] Proxy discovery
+- [x] Proxy discovery
 
 ## *Crypto*
 - [ ] Key exchange
