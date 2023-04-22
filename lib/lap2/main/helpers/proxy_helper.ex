@@ -26,7 +26,8 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
     case CryptoManager.gen_response(request, proxy_seq, state.config.registry_table.crypto_manager) do
       {:ok, enc_response} -> # Successfully updated crypto state and generated response
         relay_pool = Map.get(new_pool, proxy_seq, [])
-        case OutboundPipelines.send_proxy_accept(enc_response, proxy_seq, clove_seq, relay_pool) do
+        router_name = state.config.registry_table.router
+        case OutboundPipelines.send_proxy_accept(enc_response, proxy_seq, clove_seq, relay_pool, router_name) do
           :ok ->
             Map.put(state, :proxy_pool, new_pool)
 
@@ -66,7 +67,8 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
         case CryptoManager.gen_finalise_exchange(request, proxy_seq, clove_seq, state.config.registry_table.crypto_manager) do
           {:ok, enc_response} ->
             relay_pool = Map.get(new_pool, proxy_seq, [])
-            OutboundPipelines.send_regular_response(enc_response, proxy_seq, relay_pool)
+            router_name = state.config.registry_table.router
+            OutboundPipelines.send_regular_response(enc_response, proxy_seq, relay_pool, router_name)
 
             {:ok, Map.put(state, :proxy_pool, new_pool)}
 
@@ -88,7 +90,8 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
     case CryptoManager.recv_finalise_exchange(request, proxy_seq, crypt_name) do
       {:ok, response} ->
         relay_pool = Map.get(state.proxy_pool, proxy_seq, [])
-        OutboundPipelines.send_regular_response(response, proxy_seq, relay_pool)
+        router_name = state.config.registry_table.router
+        OutboundPipelines.send_regular_response(response, proxy_seq, relay_pool, router_name)
 
       _ ->
         Logger.error("Error occured while responding to proxy: #{proxy_seq}, Request type: FIN_KEY_REQUEST")
@@ -107,7 +110,8 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
     case CryptoManager.rotate_keys(request, proxy_seq, crypt_name) do
       {:ok, response} ->
         relay_pool = Map.get(state.proxy_pool, proxy_seq, [])
-        OutboundPipelines.send_regular_response(response, proxy_seq, relay_pool)
+        router_name = state.config.registry_table.router
+        OutboundPipelines.send_regular_response(response, proxy_seq, relay_pool, router_name)
 
       _ ->
         Logger.error("Error occured while responding to proxy: #{proxy_seq}, Request type: KEY_ROTATION")
@@ -171,7 +175,7 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
   @spec add_relays(map, non_neg_integer, list({String.t(), non_neg_integer}), atom) :: map
   defp add_relays(proxy_pool, _proxy_seq, [], _router_name), do: proxy_pool
   defp add_relays(proxy_pool, proxy_seq, relays, router_name) when is_map_key(proxy_pool, proxy_seq) do
-    Router.add_proxy_relay(proxy_seq, relays, router_name)
+    Router.add_proxy_relays(proxy_seq, relays, router_name)
     Enum.reduce(relays, proxy_pool, fn relay, acc ->
       cond do
         Enum.member?(acc[proxy_seq], relay) ->
@@ -184,7 +188,7 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
     end)
   end
   defp add_relays(proxy_pool, proxy_seq, relays, router_name) do
-    Router.add_proxy_relay(proxy_seq, relays, router_name)
+    Router.add_proxy_relays(proxy_seq, relays, router_name)
     Map.put(proxy_pool, proxy_seq, relays)
   end
 end

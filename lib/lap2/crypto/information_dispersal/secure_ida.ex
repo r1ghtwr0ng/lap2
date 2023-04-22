@@ -15,7 +15,7 @@ defmodule LAP2.Crypto.InformationDispersal.SecureIDA do
   m is the number of shares required to reconstruct the data (threshold).
   n is the number of shares to split the data into.
   """
-  @spec disperse(binary, integer, integer, integer) :: list
+  @spec disperse(binary, integer, integer, integer) :: list(Share.t())
   def disperse(data, n, m, message_id) do
     # Generate and split an ephemeral AES key and IV
     # Split the key and IV with Shamir's Secret Sharing
