@@ -24,11 +24,7 @@ defmodule LAP2.Networking.Helpers.RelaySelector do
     # Split data into shares, then create cloves
     proxy_discovery_hdr = %{clove_seq: clove_seq, drop_probab: CloveHelper.gen_drop_probab(0.7, 1.0)}
     target_neighbors = Enum.take_random(random_neighbors, clove_limit)
-    cloves = SecureIDA.disperse(data, 2, 2, CloveHelper.gen_seq_num())
-    |> Enum.map(fn share ->
-      {:ok, share_data} = ShareHelper.serialise(share)
-      CloveHelper.create_clove(share_data, proxy_discovery_hdr, :proxy_discovery) # TODO
-    end)
+    cloves = split_into_cloves(data, proxy_discovery_hdr, :proxy_discovery)
 
     # Send cloves to neighbors
     Enum.with_index(target_neighbors, fn neighbor, idx ->
@@ -41,15 +37,29 @@ defmodule LAP2.Networking.Helpers.RelaySelector do
   @doc """
   Disperse the provided data and send it via the appropriate relays to the desired proxy.
   """
-  @spec disperse_and_send(binary, non_neg_integer, non_neg_integer, list, atom) :: :ok | :error
-  def disperse_and_send(_data, _proxy_seq, _clove_seq, _relay_list, _router_name) do
-    # TODO verify that there are enough relays in the list
-    # TODO select an appropriate number of relays
-    # TODO split data into the appropriate number of chunks (depends on how many relays will be used)
-    # Note that currently, only 2 relays are used per path
-    # Another note: 1/2 threshold reconstruction can be used in case packets are dropped on one path
-    # TODO Serialise shares, wrap with Clove struct (while setting proxy_seq)
-    # TODO send outbound cloves
+  @spec disperse_and_send(binary, map, list, atom) :: :ok | :error
+  def disperse_and_send(_data, _clove_header, relay_list, _router_name) when length(relay_list) < 2 do
+    # Validate that there are enough relays in the list
+    :error
+  end
+  def disperse_and_send(data, clove_header, relay_list, router_name) do
+    # Split data into shares, then create cloves
+    outbound = Enum.zip(Enum.take_random(relay_list, 2), split_into_cloves(data, clove_header, :proxy_response))
+
+    # Send cloves via relays
+    Enum.each(outbound, fn {relay, clove} ->
+      Router.route_outbound(relay, clove, router_name)
+    end)
     :ok
+  end
+
+  # Split data into two shares and create cloves from them
+  @spec split_into_cloves(binary, map, :proxy_discovery | :regular_proxy | :proxy_response) :: list
+  defp split_into_cloves(data, clove_hdr, clove_type) do
+    SecureIDA.disperse(data, 2, 2, CloveHelper.gen_seq_num())
+    |> Enum.map(fn share ->
+      {:ok, share_data} = ShareHelper.serialise(share)
+      CloveHelper.create_clove(share_data, clove_hdr, clove_type)
+    end)
   end
 end

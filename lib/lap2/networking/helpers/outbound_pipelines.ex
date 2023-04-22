@@ -35,7 +35,8 @@ defmodule LAP2.Networking.Helpers.OutboundPipelines do
 
     case RequestHelper.serialise(enc_request) do
       {:ok, data} ->
-        RelaySelector.disperse_and_send(data, proxy_seq, clove_seq, relay_pool, router_name)
+        response_header = %{proxy_seq: proxy_seq, clove_seq: clove_seq, hop_count: 0}
+        RelaySelector.disperse_and_send(data, response_header, relay_pool, router_name)
 
       _ ->
         Logger.error("Failed to serialise EncryptedRequest: OutboundPipeleines.send_proxy_accept/4")
@@ -49,11 +50,11 @@ defmodule LAP2.Networking.Helpers.OutboundPipelines do
   @spec send_regular_response(EncryptedRequest.t(), non_neg_integer, list, atom) :: :ok
   def send_regular_response(enc_request, proxy_seq, relay_pool, router_name) do
     Logger.info("[i] Sending response")
-    clove_seq = CloveHelper.gen_seq_num()
 
     case RequestHelper.serialise(enc_request) do
       {:ok, data} ->
-        RelaySelector.disperse_and_send(data, proxy_seq, clove_seq, relay_pool, router_name)
+        regular_header = %{proxy_seq: proxy_seq}
+        RelaySelector.disperse_and_send(data, regular_header, relay_pool, router_name)
 
       _ ->
         Logger.error("Failed to serialise EncryptedRequest: OutboundPipelines.fin_key_exchange/3")
