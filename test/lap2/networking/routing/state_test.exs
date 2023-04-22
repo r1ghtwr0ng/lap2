@@ -6,6 +6,7 @@ defmodule LAP2.Networking.Routing.StateTest do
     own_cloves: [],
     clove_cache: %{},
     drop_rules: %{clove_seq: [], ip_addr: [], proxy_seq: []},
+    routing_table: %{},
     relay_table: %{
       2 => %{relays: %{{"1.2.3.4", 1234} => :share_handler, {"1.1.1.1", 4444} => :share_handler}},
       timestamp: :os.system_time(:millisecond),
@@ -123,27 +124,52 @@ defmodule LAP2.Networking.Routing.StateTest do
     end
   end
 
-  describe "add_relay/5" do
-    test "Add a relay route as proxy" do
+  describe "add_proxy_relay/3" do
+    test "Add one relay" do
       relay_seq = 1
-      relay_1 = {"1.2.3.4", 1234}
-      relay_2 = {"127.0.0.1", 5678}
-      new_state = State.add_relay(@valid_state, relay_seq, relay_1, relay_2, :proxy)
+      relay = {"1.2.3.4", 1234}
+      state = %{@valid_state |
+      routing_table: %{"NODE_1" => relay}}
+      new_state = State.add_proxy_relay(state, relay_seq, relay)
 
       assert is_map_key(new_state.relay_table, relay_seq)
       assert new_state.relay_table[relay_seq].type == :proxy
 
-      assert new_state.relay_table[relay_seq].relays == %{
-               relay_1 => :share_handler,
-               relay_2 => :share_handler
-             }
+      assert new_state.relay_table[relay_seq].relays == %{relay => :share_handler}
     end
 
-    test "Add a relay route as relay" do
+    test "Add multiple relays" do
       relay_seq = 1
       relay_1 = {"1.2.3.4", 1234}
       relay_2 = {"127.0.0.1", 5678}
-      new_state = State.add_relay(@valid_state, relay_seq, relay_1, relay_2, :relay)
+      relay_3 = {"0.0.0.0", 5678}
+
+      state = %{@valid_state |
+      routing_table: %{"NODE_1" => relay_1, "NODE_2" => relay_2, "NODE_3" => relay_3}}
+
+      expected_map = %{relay_1 => :share_handler,
+        relay_2 => :share_handler,
+        relay_3 => :share_handler
+      }
+
+      new_state = State.add_proxy_relay(state, relay_seq, relay_1)
+      |> State.add_proxy_relay(relay_seq, relay_2)
+      |> State.add_proxy_relay(relay_seq, relay_3)
+
+      assert is_map_key(new_state.relay_table, relay_seq)
+      assert new_state.relay_table[relay_seq].type == :proxy
+      assert new_state.relay_table[relay_seq].relays == expected_map
+    end
+  end
+
+  describe "add_relay/4" do
+    test "Add a relay route" do
+      relay_seq = 1
+      relay_1 = {"1.2.3.4", 1234}
+      relay_2 = {"127.0.0.1", 5678}
+      state = %{@valid_state |
+      routing_table: %{"NODE_1" => relay_1, "NODE_2" => relay_2}}
+      new_state = State.add_relay(state, relay_seq, relay_1, relay_2)
 
       assert is_map_key(new_state.relay_table, relay_seq)
       assert new_state.relay_table[relay_seq].type == :relay

@@ -19,13 +19,16 @@ defmodule LAP2.Networking.RouterTest do
     {:ok, router: router, config: config}
   end
 
-  describe "accept_proxy/4" do
-    test "Accept proxy request and update state", _context do
+  describe "add_proxy_relay/3" do
+    test "Add proxy relay", _context do
       # Prepare the necessary data and expected state
       proxy_seq = 1
       node_1 = {"127.0.0.2", 12345}
       node_2 = {"127.0.0.3", 12346}
-      Router.accept_proxy(proxy_seq, node_1, node_2, :router)
+      Router.append_dht("NODE_1", node_1, :router)
+      Router.append_dht("NODE_2", node_2, :router)
+      Router.add_proxy_relay(proxy_seq, [node_1, node_2], :router)
+
       # Verify that the state has been updated as expected
       state = Router.debug(:router)
       assert is_map_key(state.relay_table, proxy_seq)
