@@ -19,8 +19,8 @@ defmodule LAP2.Main.Helpers.SendPipelines do
   @doc """
   Build and send a proxy accept acknowledgement.
   """
-  @spec ack_proxy_request(EncryptedRequest.t(), non_neg_integer, map) :: :ok
-  def ack_proxy_request(_request, _proxy_seq, _proxy_pool) do
+  @spec ack_proxy_request(EncryptedRequest.t(), non_neg_integer, non_neg_integer, map) :: :ok
+  def ack_proxy_request(_request, _proxy_seq, _clove_seq, _proxy_pool) do
     # TODO
     Logger.info("[i] Acking proxy request")
   end
@@ -49,6 +49,15 @@ defmodule LAP2.Main.Helpers.SendPipelines do
   def ack_key_exchange(_request, _proxy_seq, _proxy_pool) do
     # TODO
     Logger.info("[i] Acking key exchange")
+  end
+
+  @doc """
+  Acknowledge the key rotation process.
+  """
+  @spec ack_key_rotation(EncryptedRequest.t(), non_neg_integer) :: :ok
+  def ack_key_rotation(_response, _proxy_seq) do
+    # TODO
+    Logger.info("[i] Acking key rotation")
   end
 
   @doc """

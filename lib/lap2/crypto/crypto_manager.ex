@@ -161,7 +161,6 @@ defmodule LAP2.Crypto.CryptoManager do
   """
   @spec gen_finalise_exchange(Request.t(), non_neg_integer, atom) :: {:ok, EncryptedRequest.t()} | {:error, atom}
   def gen_finalise_exchange(request, proxy_seq, clove_seq, name \\ :crypto_manager) do
-    # TODO trace the clove_seq number
     GenServer.call({:global, name}, {:gen_finalise_exchange, request, clove_seq, proxy_seq})
   end
 
@@ -185,7 +184,7 @@ defmodule LAP2.Crypto.CryptoManager do
   @doc """
   Perform key rotation request with a remote proxy.
   """
-  @spec rotate_keys(Request.t(), non_neg_integer, atom) :: :ok
+  @spec rotate_keys(Request.t(), non_neg_integer, atom) :: {:ok, EncryptedRequest.t()} | {:error, atom}
   def rotate_keys(request, proxy_seq, name \\ :crypto_manager) do
     GenServer.call({:global, name}, {:rotate_keys, request, proxy_seq})
   end

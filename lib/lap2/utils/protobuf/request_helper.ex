@@ -104,15 +104,16 @@ defmodule LAP2.Utils.ProtoBuf.RequestHelper do
   end
 
   @doc """
-  Deserialise to EncryptedRequest struct.
+  Deserialise to EncryptedRequest then finally to Request struct.
   If unencrypted, deserialise wrapped data.
   If encrypted, unwrap and decrypt request.
   """
+  @spec deserialise_and_unwrap(binary) :: {:ok, Request.t()} | {:error, atom}
   def deserialise_and_unwrap(enc_request) do
     case deserialise(enc_request, EncryptedRequest) do
       {:ok, enc_req_struct} ->
         cond do
-          enc_req_struct.is_encrypted -> # Encrypted
+          enc_req_struct.is_encrypted -> # Encrypted (shouldn't happen)
             Logger.error("Invalid request: encrypted request received without proxy sequence")
             {:error, :encrypted}
           true -> # Unencrypted

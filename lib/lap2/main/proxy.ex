@@ -51,6 +51,8 @@ defmodule LAP2.Main.Proxy do
     end
   end
 
+  # TODO below
+
   @spec handle_cast({:discovery_response, Request.t(), map}, map) :: {:noreply, map}
   def handle_cast({:discovery_response, request, aux_data}, state) do
     case ProxyHelper.handle_discovery_response(request, aux_data, state) do
@@ -92,12 +94,13 @@ defmodule LAP2.Main.Proxy do
   Handle a regular proxy request/response.
   """
   @spec handle_regular_proxy(Request.t(), non_neg_integer, atom) :: :ok | :error
-  def handle_regular_proxy(request, pseq, proxy_name)
+  def handle_regular_proxy(%Request{crypto: {:sym_key, _}} = request, pseq, proxy_name)
       when request.request_type == "regular_proxy_request" do
     state = GenServer.call({:global, proxy_name}, :get_state)
-    ProxyHelper.handle_proxy_request(request, state.request_ets, pseq, state.config.registry_table.crypto_manager)
+    ProxyHelper.handle_proxy_query(request, state.request_ets, pseq, state.config.registry_table.crypto_manager)
+    :ok
   end
-  def handle_regular_proxy(request, pseq, proxy_name)
+  def handle_regular_proxy(%Request{crypto: {:sym_key, _}} = request, pseq, proxy_name)
       when request.request_type == "regular_proxy_response" do
     state = GenServer.call({:global, proxy_name}, :get_state)
 
@@ -107,16 +110,26 @@ defmodule LAP2.Main.Proxy do
       pseq,
       state.config.registry_table.crypto_manager
     )
+    :ok
   end
-  def handle_regular_proxy(request, pseq, proxy_name)
-      when request.request_type == "fin_key_exchange" do
+  def handle_regular_proxy(%Request{crypto: {:fin_ke, _}} = request, pseq, proxy_name) do
     state = GenServer.call({:global, proxy_name}, :get_state)
     ProxyHelper.handle_fin_key_exhange(request, pseq, state)
-    # TODO implement this
+  end
+  def handle_regular_proxy(%Request{crypto: {:key_rot, _}} = request, pseq, proxy_name) do
+    state = GenServer.call({:global, proxy_name}, :get_state)
+    ProxyHelper.handle_key_rotation(request, pseq, state.config.registry_table.crypto_manager)
+    :ok
+  end
+  def handle_regular_proxy(%Request{crypto: {:sym_key, _}} = request, pseq, proxy_name)
+      when request.request_type == "ack_key_rotation" do
+    state = GenServer.call({:global, proxy_name}, :get_state)
+    ProxyHelper.handle_key_rotation_ack(request, pseq, state.config.registry_table.crypto_manager)
     :ok
   end
   def handle_regular_proxy(request, _, _) do
     Logger.error("Invalid request type: #{request.request_type}")
+    :error
   end
 
   @doc """

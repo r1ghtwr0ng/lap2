@@ -31,7 +31,7 @@ defmodule LAP2.Networking.Routing.Local do
   @spec receive_discovery_response(map, {binary, integer}, map) :: {:noreply, map}
   def receive_discovery_response(state, source, %Clove{
         data: data,
-        headers: {:proxy_response, %ProxyResponseHeader{proxy_seq: pseq, hop_count: hops}}
+        headers: {:proxy_response, %ProxyResponseHeader{proxy_seq: pseq, clove_seq: cseq, hop_count: hops}}
       }) do
     # TODO remove debug print
     IO.puts("[+] Local: Relaying discovery response to share handler")
@@ -39,6 +39,7 @@ defmodule LAP2.Networking.Routing.Local do
     aux_data = %{
       request_type: :discovery_response,
       proxy_seq: pseq,
+      clove_seq: cseq,
       relay: source,
       hop_count: hops
     }

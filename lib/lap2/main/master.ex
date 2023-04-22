@@ -29,8 +29,19 @@ defmodule LAP2.Main.Master do
     {:ok, state}
   end
 
-  @spec handle_call({:deliver_response, binary, binary}, any, map) :: {:noreply, map}
-  def handle_call({:deliver_response, data, stream_id}, _from, state) do
+  @spec handle_cast({:deliver_query, binary, binary}, any, map) :: {:noreply, map}
+  def handle_cast({:deliver_query, data, stream_id}, _from, state) do
+    case get_listener(stream_id, state) do
+      # TODO send data to TCP listener
+      {:ok, listener} -> IO.puts("[+] Delivering data: #{inspect(data)} to: #{inspect(listener)}")
+      {:error, _} -> Logger.error("No listener registered for stream ID #{stream_id}")
+    end
+
+    {:noreply, state}
+  end
+
+  @spec handle_cast({:deliver_response, binary, binary}, any, map) :: {:noreply, map}
+  def handle_cast({:deliver_response, data, stream_id}, _from, state) do
     case get_listener(stream_id, state) do
       # TODO send data to TCP listener
       {:ok, listener} -> IO.puts("[+] Delivering data: #{inspect(data)} to: #{inspect(listener)}")
@@ -41,16 +52,16 @@ defmodule LAP2.Main.Master do
   end
 
   # TODO specify listener type
-  @spec handle_call({:register_listener, binary, any}, any, map) :: {:noreply, map}
-  def handle_call({:register_listener, stream_id, listener}, _from, state) do
+  @spec handle_cast({:register_listener, binary, any}, any, map) :: {:noreply, map}
+  def handle_cast({:register_listener, stream_id, listener}, _from, state) do
     IO.puts("[+] Registering listener: #{inspect(listener)} for stream ID: #{inspect(stream_id)}")
     new_state = %{state | listeners: Map.put(state.listeners, stream_id, listener)}
     {:noreply, new_state}
   end
 
   # TODO specify listener type
-  @spec handle_call({:deregister_listener, binary}, any, map) :: {:noreply, map}
-  def handle_call({:deregister_listener, stream_id}, _from, state) do
+  @spec handle_cast({:deregister_listener, binary}, any, map) :: {:noreply, map}
+  def handle_cast({:deregister_listener, stream_id}, _from, state) do
     IO.puts("[+] Deregistering listener for stream ID: #{inspect(stream_id)}")
     new_state = %{state | listeners: Map.delete(state.listeners, stream_id)}
     {:noreply, new_state}
@@ -66,11 +77,11 @@ defmodule LAP2.Main.Master do
   end
 
   @doc """
-  Send a request to the appropriate listener socket.
+  Send a query to the appropriate listener socket.
   """
-  @spec deliver_request(binary, binary, atom) :: :ok
-  def deliver_request(data, stream_id, master_name \\ :master) do
-    GenServer.cast({:global, master_name}, {:deliver_request, data, stream_id})
+  @spec deliver_query(binary, binary, atom) :: :ok
+  def deliver_query(data, stream_id, master_name \\ :master) do
+    GenServer.cast({:global, master_name}, {:deliver_query, data, stream_id})
     :ok
   end
 
