@@ -55,7 +55,7 @@ defmodule LAP2.Networking.Routing.Remote do
 
     new_state =
       state
-      |> State.add_relay(pseq, source, dest, :relay)
+      |> State.add_relay(pseq, source, dest)
       |> State.evict_clove(cseq)
 
     udp_name = state.config.registry_table.udp_server

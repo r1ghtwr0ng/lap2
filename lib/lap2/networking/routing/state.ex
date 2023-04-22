@@ -99,42 +99,63 @@ defmodule LAP2.Networking.Routing.State do
     Map.put(state, :clove_cache, new_cache)
   end
 
-  # Add entry to relay table
-  @spec add_relay(map, non_neg_integer, {binary, integer}, {binary, integer}, atom) :: map
-  def add_relay(state, relay_seq, relay_1, relay_2, :proxy) do
+  @doc """
+  Add entry to relay table
+  """
+  @spec add_proxy_relay(map, non_neg_integer, {String.t(), integer}) :: map
+  def add_proxy_relay(state, proxy_seq, relay_node) do
     # TODO drop unused routes, based on priority values (first introduce priority values in the route struct)
-    IO.puts("[+] State: Added route #{inspect({relay_1, relay_2})} to relay table as proxy")
+    IO.puts("[+] State: Added route #{inspect(relay_node)} to relay table for proxy_seq: #{proxy_seq}")
 
-    relay_entry = %{
-      type: :proxy,
-      relays: %{relay_1 => :share_handler, relay_2 => :share_handler},
-      timestamp: :os.system_time(:millisecond)
-    }
+    relay_entry = case Map.get(state.relay_table, proxy_seq) do
+      %{type: :proxy, relays: relays} -> %{type: :proxy,
+          relays: Map.put(relays, relay_node, :share_handler),
+          timestamp: :os.system_time(:millisecond)
+        }
 
-    # TODO check if this is correct
-    Map.put(state, :relay_table, Map.put(state.relay_table, relay_seq, relay_entry))
+      _ -> %{type: :proxy,
+          relays: %{relay_node => :share_handler},
+          timestamp: :os.system_time(:millisecond)
+        }
+    end
+
+    # Reverse lookup LAP2 address from IP address
+    case reverse_lookup(state.routing_table, relay_node) do
+      nil -> # LAP2 address cannot be resolved by the lookup table
+        Logger.error("Failed to resolve LAP2 reverse lookup for IP address: #{inspect relay_node}")
+        state
+
+      lap2_addr ->
+        # Update state by removing random neighbor
+        state
+        |> remove_neighbor(lap2_addr)
+        |> Map.put(:relay_table, Map.put(state.relay_table, proxy_seq, relay_entry))
+    end
   end
 
-  def add_relay(state, relay_seq, relay_1, relay_2, :relay) do
-    # TODO drop unused routes, based on priority values (first introduce priority values in the route struct)
+  @spec add_relay(map, non_neg_integer, {String.t(), non_neg_integer}, {String.t(), non_neg_integer}) :: map
+  def add_relay(state, proxy_seq, relay_1, relay_2) do
     IO.puts("[+] State: Added route #{inspect({relay_1, relay_2})} to routing table as relay")
-    # TODO fix relay lookup
+
     relay_entry = %{
       type: :relay,
       relays: %{relay_1 => relay_2, relay_2 => relay_1},
       timestamp: :os.system_time(:millisecond)
     }
 
-    updated_relays = Map.put(state.relay_table, relay_seq, relay_entry)
-    # TODO check if this is correct
-    Map.put(state, :relay_table, updated_relays)
+    updated_relays = Map.put(state.relay_table, proxy_seq, relay_entry)
+
+    state
+    |> remove_neighbor(reverse_lookup(state.routing_table, relay_1))
+    |> remove_neighbor(reverse_lookup(state.routing_table, relay_2))
+    |> Map.put(:relay_table, updated_relays)
   end
 
   @doc """
   Get routing information from state
   """
   @spec get_route(map, {String.t(), non_neg_integer}, Clove.t()) ::
-          atom | {atom, {String.t(), non_neg_integer} | atom | binary}
+    atom | {atom, {String.t(), non_neg_integer} | atom | binary}
   def get_route(state, source, clove) do
     cond do
       drop?(state, source, clove) -> :drop
@@ -272,4 +293,13 @@ defmodule LAP2.Networking.Routing.State do
   @spec random_neighbor(map) :: binary
   defp random_neighbor(%{random_neighbors: []}), do: nil
   defp random_neighbor(%{random_neighbors: random_neighbors}), do: Enum.random(random_neighbors)
+
+  # Resolve IP:Port to LAP2 address
+  @spec reverse_lookup(map, {String.t(), non_neg_integer}) :: String.t() | nil
+  defp reverse_lookup(lookup_table, ip_addr) do
+    case Enum.find(lookup_table, fn {_k, v} -> v == ip_addr; end) do
+      {lap2_addr, _} -> lap2_addr
+      nil -> nil
+    end
+  end
 end

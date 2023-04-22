@@ -7,6 +7,7 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
   alias LAP2.Main.Master
   alias LAP2.Utils.EtsHelper
   alias LAP2.Crypto.CryptoManager
+  alias LAP2.Networking.Router
   alias LAP2.Networking.Helpers.OutboundPipelines
 
   @doc """
@@ -20,12 +21,14 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
     relays: list}, map) :: map
   def accept_proxy_request(request, %{proxy_seq: proxy_seq, clove_seq: clove_seq, relays: relays}, state) do
     Logger.info("[i] Accepting proxy request")
-    new_pool = add_relays(state.proxy_pool, proxy_seq, relays)
+    router_name = state.config.registry_table.router
+    new_pool = add_relays(state.proxy_pool, proxy_seq, relays, router_name)
     case CryptoManager.gen_response(request, proxy_seq, state.config.registry_table.crypto_manager) do
       {:ok, enc_response} -> # Successfully updated crypto state and generated response
         relay_pool = Map.get(new_pool, proxy_seq, [])
         case OutboundPipelines.send_proxy_accept(enc_response, proxy_seq, clove_seq, relay_pool) do
-          :ok -> Map.put(state, :proxy_pool, new_pool)
+          :ok ->
+            Map.put(state, :proxy_pool, new_pool)
 
           :error -> state
         end
@@ -45,7 +48,7 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
         %{
           proxy_seq: proxy_seq,
           clove_seq: clove_seq,
-          relay: source,
+          relays: relays,
           hop_count: hops
         },
         state
@@ -58,11 +61,13 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
         {:error, :hop_count}
 
       true ->
-        new_pool = add_relays(state.proxy_pool, proxy_seq, [source])
+        router_name = state.config.registry_table.router
+        new_pool = add_relays(state.proxy_pool, proxy_seq, relays, router_name)
         case CryptoManager.gen_finalise_exchange(request, proxy_seq, clove_seq, state.config.registry_table.crypto_manager) do
           {:ok, enc_response} ->
             relay_pool = Map.get(new_pool, proxy_seq, [])
             OutboundPipelines.send_regular_response(enc_response, proxy_seq, relay_pool)
+
             {:ok, Map.put(state, :proxy_pool, new_pool)}
 
           err ->
@@ -163,23 +168,23 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
   end
 
   # Add a proxy to the proxy pool
-  @spec add_relays(map, non_neg_integer, list) :: map
-  defp add_relays(proxy_pool, _proxy_id, []), do: proxy_pool
-  defp add_relays(proxy_pool, proxy_id, [relay | tail]) when is_map_key(proxy_pool, proxy_id) do
-    new_state =
+  @spec add_relays(map, non_neg_integer, list({String.t(), non_neg_integer}), atom) :: map
+  defp add_relays(proxy_pool, _proxy_seq, [], _router_name), do: proxy_pool
+  defp add_relays(proxy_pool, proxy_seq, relays, router_name) when is_map_key(proxy_pool, proxy_seq) do
+    Router.add_proxy_relay(proxy_seq, relays, router_name)
+    Enum.reduce(relays, proxy_pool, fn relay, acc ->
       cond do
-        Enum.member?(proxy_pool[proxy_id], relay) ->
+        Enum.member?(acc[proxy_seq], relay) ->
           Logger.warn("[!] Relay already in pool: #{inspect(relay)}")
-          proxy_pool
+          acc
 
         true ->
-          Map.put(proxy_pool, proxy_id, [relay | proxy_pool[proxy_id]])
+          Map.put(acc, proxy_seq, [relay | acc[proxy_seq]])
       end
-
-    add_relays(new_state, proxy_id, tail)
+    end)
   end
-  defp add_relays(proxy_pool, proxy_id, [relay | tail]) do
-    new_state = Map.put(proxy_pool, proxy_id, [relay])
-    add_relays(new_state, proxy_id, tail)
+  defp add_relays(proxy_pool, proxy_seq, relays, router_name) do
+    Router.add_proxy_relay(proxy_seq, relays, router_name)
+    Map.put(proxy_pool, proxy_seq, relays)
   end
 end
