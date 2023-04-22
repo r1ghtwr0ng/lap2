@@ -72,7 +72,7 @@ defmodule LAP2.Utils.ProtoBuf.RequestHelper do
     }}
   end
 
-  @spec build_request({atom, struct()}, binary, binary, integer) :: Request.t()
+  @spec build_request({atom, struct()}, binary, binary, non_neg_integer) :: Request.t()
   def build_request(crypto, data, req_type, req_id) do
     %Request{
       hmac: nil,
@@ -150,16 +150,13 @@ defmodule LAP2.Utils.ProtoBuf.RequestHelper do
   @doc """
   Encrypt a Request struct and serialise to EncryptedRequest struct.
   """
-  @spec encrypte_and_serialise(Request.t(), non_neg_integer, atom) :: {:ok, binary} | {:error, any}
-  def encrypte_and_serialise(request, proxy_seq, crypto_mgr_name \\ :crypto_manager) do
+  @spec encrypt_and_wrap(Request.t(), non_neg_integer, atom) :: {:ok, EncryptedRequest.t()} | {:error, atom}
+  def encrypt_and_wrap(request, proxy_seq, crypto_mgr_name \\ :crypto_manager) do
     # Serialise the request
     case ProtoBuf.serialise(request) do
       {:ok, data} ->
         # Encrypt the request
-        case CryptoManager.encrypt_request(data, proxy_seq, crypto_mgr_name) do
-          {:ok, enc_request} -> ProtoBuf.serialise(enc_request)
-          err -> err
-        end
+        CryptoManager.encrypt_request(data, proxy_seq, crypto_mgr_name)
 
         err -> err
     end

@@ -31,12 +31,12 @@ defmodule LAP2.Main.StructHandlers.RequestHandler do
 
   def handle_request(enc_request_bin,
         %{request_type: :regular_proxy, proxy_seq: pseq},
-        %{proxy: proxy, crypto_manager: crypt_mgr}
+        %{proxy: proxy_name, crypto_manager: crypt_mgr_name}
       ) do
     Logger.info("[i] Handling regular proxy request")
     # Deserialise the request
-    case RequestHelper.deserialise_and_unwrap(enc_request_bin, pseq, crypt_mgr) do
-      {:ok, request} -> Proxy.handle_regular_proxy(request, pseq, proxy)
+    case RequestHelper.deserialise_and_unwrap(enc_request_bin, pseq, crypt_mgr_name) do
+      {:ok, request} -> Proxy.handle_regular_proxy(request, pseq, proxy_name)
       err -> err
     end
   end

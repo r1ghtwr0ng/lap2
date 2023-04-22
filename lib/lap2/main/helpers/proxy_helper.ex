@@ -18,9 +18,15 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
   def accept_proxy_request(request, %{proxy_seq: pseq, relays: relays}, state) do
     Logger.info("[i] Accepting proxy request")
     new_pool = add_relays(state.proxy_pool, pseq, relays)
-    response = CryptoManager.respond_exchange(request, pseq, state.config.registry_table.crypto_manager)
-    SendPipelines.ack_proxy_request(response, pseq, new_pool)
-    Map.put(state, :proxy_pool, new_pool)
+    case CryptoManager.gen_response(request, pseq, state.config.registry_table.crypto_manager) do
+      {:ok, response} -> # Successfully updated crypto state and generated response
+        SendPipelines.ack_proxy_request(response, pseq, new_pool)
+        Map.put(state, :proxy_pool, new_pool)
+      {:error, reason} -> # Failed to update crypto state or generate response
+        Logger.error("Error occured while responding to proxy: #{pseq}, Request type: PROXY_REQUEST")
+        Logger.error("Error: #{reason}")
+        state
+    end
   end
 
   @doc """
@@ -45,7 +51,7 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
 
       true ->
         new_relay = add_relays(state.proxy_pool, pseq, [source])
-        case CryptoManager.send_finalise_exchange(request, pseq, state.config.registry_table.crypto_manager) do
+        case CryptoManager.gen_finalise_exchange(request, pseq, state.config.registry_table.crypto_manager) do
           {:ok, response_data} ->
             SendPipelines.fin_key_exchange(response_data, pseq, new_relay)
             {:ok, Map.put(state, :proxy_pool, new_relay)}
