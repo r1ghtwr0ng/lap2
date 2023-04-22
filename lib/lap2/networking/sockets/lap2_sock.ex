@@ -24,10 +24,9 @@ defmodule LAP2.Networking.Sockets.Lap2Socket do
   @doc """
   Send a clove to a destination address and port.
   """
-  @spec send_clove({String.t(), non_neg_integer}, binary, map, atom, atom) :: :ok | :error
-  def send_clove({dest_addr, port}, data, headers, udp_name, clove_type \\ :regular_proxy) do
-    data
-    |> CloveHelper.create_clove(headers, clove_type)
+  @spec send_clove({String.t(), non_neg_integer}, Clove.t(), atom) :: :ok | :error
+  def send_clove({dest_addr, port}, clove, udp_name) do
+    clove
     |> CloveHelper.serialise()
     |> case do
       {:ok, dgram} ->
