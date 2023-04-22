@@ -1,49 +1,5 @@
 syntax = "proto3";
 
-// Structure sent over the wire.
-// Contains routing information needed by network relays.
-message Clove {
-    uint32 checksum = 1;
-    bytes data = 2;
-
-    oneof headers {
-        ProxyDiscoveryHeader proxy_discovery = 3;
-        ProxyResponseHeader proxy_response = 4;
-        RegularProxyHeader regular_proxy = 5;
-    }
-}
-// Clove header used in the proxy discovery phase.
-message ProxyDiscoveryHeader {
-    uint64 clove_seq = 1;
-    float drop_probab = 2;
-}
-// Clove header used in the proxy response phase.
-message ProxyResponseHeader {
-    uint64 proxy_seq = 1;
-    uint64 clove_seq = 2;
-    uint32 hop_count = 3;
-}
-// Clove header used for established proxies
-message RegularProxyHeader {
-    uint64 proxy_seq = 1;
-}
-
-// Structure of the Clove's data field.
-// Contains info for IDA reconstruction.
-message Share {
-    uint64 message_id = 1;
-    uint32 total_shares = 2;
-    uint32 share_idx = 3;
-    uint32 share_threshold = 4;
-    KeyShare key_share = 5;
-    bytes data = 6;
-}
-// Contains info for reconstructing the symmetric key.
-message KeyShare {
-    bytes aes_key = 1;
-    bytes iv = 2;
-}
-
 // Structure of the reconstructed message.
 // Contains cryptographic information needed to decrypt the request.
 message EncryptedRequest {

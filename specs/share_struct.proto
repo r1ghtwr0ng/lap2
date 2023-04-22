@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+// Structure of the Clove's data field.
+// Contains info for IDA reconstruction.
+message Share {
+    uint64 message_id = 1;
+    uint32 total_shares = 2;
+    uint32 share_idx = 3;
+    uint32 share_threshold = 4;
+    KeyShare key_share = 5;
+    bytes data = 6;
+}
+// Contains info for reconstructing the symmetric key.
+message KeyShare {
+    bytes aes_key = 1;
+    bytes iv = 2;
+}
