@@ -25,7 +25,7 @@ defmodule LAP2.Main.StructHandlers.ShareHandler do
     # Ensure that the ETS gets cleaned up on exit
     Process.flag(:trap_exit, true)
     # Initialise data handler state
-    IO.puts("[i] ShareHandler: Starting GenServer")
+    IO.puts("[i] ShareHandler (#{config.name}): Starting GenServer")
 
     state = %{
       ets: :ets.new(:clove_ets, [:set, :private]),
@@ -110,7 +110,7 @@ defmodule LAP2.Main.StructHandlers.ShareHandler do
             registry_table
           )
         end)
-        Logger.info("Reconstructed: #{reconstructed_data}")
+        Logger.info("[+] Reconstructed: #{reconstructed_data}")
 
       {:error, _reason} ->
         Logger.error("Reconstruction failed")

@@ -19,7 +19,7 @@ defmodule LAP2.Main.Master do
   @spec init(map) :: {:ok, map}
   def init(config) do
     # Initialise data handler state
-    IO.puts("[i] ShareHandler: Starting GenServer")
+    Logger.info("[i] Master (#{config.name}): Starting GenServer")
 
     state = %{
       listeners: %{},
@@ -33,7 +33,7 @@ defmodule LAP2.Main.Master do
   def handle_cast({:deliver_query, data, stream_id}, _from, state) do
     case get_listener(stream_id, state) do
       # TODO send data to TCP listener
-      {:ok, listener} -> IO.puts("[+] Delivering data: #{inspect(data)} to: #{inspect(listener)}")
+      {:ok, listener} -> Logger.info("[+] Delivering data: #{inspect(data)} to: #{inspect(listener)}")
       {:error, _} -> Logger.error("No listener registered for stream ID #{stream_id}")
     end
 
@@ -44,7 +44,7 @@ defmodule LAP2.Main.Master do
   def handle_cast({:deliver_response, data, stream_id}, _from, state) do
     case get_listener(stream_id, state) do
       # TODO send data to TCP listener
-      {:ok, listener} -> IO.puts("[+] Delivering data: #{inspect(data)} to: #{inspect(listener)}")
+      {:ok, listener} -> Logger.info("[+] Delivering data: #{inspect(data)} to: #{inspect(listener)}")
       {:error, _} -> Logger.error("No listener registered for stream ID #{stream_id}")
     end
 
@@ -54,7 +54,7 @@ defmodule LAP2.Main.Master do
   # TODO specify listener type
   @spec handle_cast({:register_listener, binary, any}, any, map) :: {:noreply, map}
   def handle_cast({:register_listener, stream_id, listener}, _from, state) do
-    IO.puts("[+] Registering listener: #{inspect(listener)} for stream ID: #{inspect(stream_id)}")
+    Logger.info("[+] Registering listener: #{inspect(listener)} for stream ID: #{inspect(stream_id)}")
     new_state = %{state | listeners: Map.put(state.listeners, stream_id, listener)}
     {:noreply, new_state}
   end
@@ -62,7 +62,7 @@ defmodule LAP2.Main.Master do
   # TODO specify listener type
   @spec handle_cast({:deregister_listener, binary}, any, map) :: {:noreply, map}
   def handle_cast({:deregister_listener, stream_id}, _from, state) do
-    IO.puts("[+] Deregistering listener for stream ID: #{inspect(stream_id)}")
+    Logger.info("[+] Deregistering listener for stream ID: #{inspect(stream_id)}")
     new_state = %{state | listeners: Map.delete(state.listeners, stream_id)}
     {:noreply, new_state}
   end

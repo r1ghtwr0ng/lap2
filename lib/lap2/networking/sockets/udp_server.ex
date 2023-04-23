@@ -16,7 +16,7 @@ defmodule LAP2.Networking.Sockets.UdpServer do
   @spec init(map) :: {:ok, map} | {:stop, atom}
   def init(config) do
     # Open UDP socket
-    IO.puts("[i] UDP: Starting UDP server")
+    Logger.info("[i] UDP (#{inspect config.name}): Starting UDP server")
     # TODO test the default values
     state = %{
       port: config[:udp_port] || 1442,
@@ -86,10 +86,7 @@ defmodule LAP2.Networking.Sockets.UdpServer do
     |> case do
       {:ok, ip_tuple} ->
         case :gen_udp.send(state.udp_sock, ip_tuple, dest_port, dgram) do
-          :ok ->
-            # Debug
-            IO.puts("[+] UDP: Sent datagram successfully to #{dest_ip}:#{dest_port}")
-            {:noreply, state}
+          :ok -> {:noreply, state}
 
           {:error, reason} ->
             Logger.error("Error sending datagram: #{inspect(reason)}")
@@ -113,9 +110,7 @@ defmodule LAP2.Networking.Sockets.UdpServer do
     case Task.Supervisor.start_child(LAP2.TaskSupervisor, fn ->
            Lap2Socket.parse_dgram(source, bin_dgram, state.registry_table.router)
          end) do
-      {:ok, _pid} ->
-        # Logger.debug("Started task to parse datagrams")
-        {:noreply, %{state | queue: tail}}
+      {:ok, _pid} -> {:noreply, %{state | queue: tail}}
 
       {:error, :max_children} ->
         # Logger.debug("Cannot send datagram from queue, max children reached")
@@ -137,7 +132,7 @@ defmodule LAP2.Networking.Sockets.UdpServer do
   end
 
   def terminate(_reason, %{udp_sock: udp_sock}) do
-    IO.puts("[i] UDP: Stopping UDP server")
+    Logger.info("[i] UDP: Stopping UDP server")
     :gen_udp.close(udp_sock)
   end
 

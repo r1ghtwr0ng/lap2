@@ -3,7 +3,9 @@ defmodule LAP2.Utils.ProtoBuf.CloveHelper do
   Helper functions for generating clove information, checksums, splitting and reconstructing cloves, padding, etc.
   Handles serialising and deserialising cloves (simplifies serial data types).
   """
+
   require CRC
+  require Logger
   alias LAP2.Networking.Router
   alias LAP2.Networking.ProtoBuf
 
@@ -61,14 +63,11 @@ defmodule LAP2.Utils.ProtoBuf.CloveHelper do
     # Verify clove validity
     cond do
       verify_clove(clove) ->
-        # DEBUG
-        IO.puts("[+] CloveHelper: Valid clove")
         Task.async(fn -> Router.route_inbound(source, clove, router_name) end)
         :ok
 
       true ->
-        # DEBUG
-        IO.puts("[-] CloveHelper: Invalid clove")
+        Logger.error("[-] CloveHelper: Invalid clove")
         :error
     end
   end

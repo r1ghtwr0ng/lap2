@@ -20,7 +20,7 @@ defmodule LAP2.Main.Proxy do
   @spec init(map) :: {:ok, map}
   def init(config) do
     # Initialise data handler state
-    IO.puts("[i] ShareHandler: Starting GenServer")
+    Logger.info("[i] Proxy (#{config.name}): Starting GenServer")
 
     state = %{
       proxy_pool: %{},

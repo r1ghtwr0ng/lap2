@@ -36,11 +36,11 @@ defmodule LAP2.Utils.ProtoBuf.ShareHelper do
   @doc """
   Reconstruct the data from the shares
   """
-  @spec reconstruct(list(Share.t())) :: {:ok, binary} | {:error, any}
+  @spec reconstruct(list(Share.t())) :: {:ok, binary} | {:error, atom}
   def reconstruct(shares) do
     cond do
       valid_shares?(shares) -> SecureIDA.reconstruct(shares)
-      true -> {:error, "Invalid shares"}
+      true -> {:error, :invalid_shares}
     end
   end
 

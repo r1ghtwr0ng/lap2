@@ -20,7 +20,7 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
     clove_seq: non_neg_integer,
     relays: list}, map) :: map
   def accept_proxy_request(request, %{proxy_seq: proxy_seq, clove_seq: clove_seq, relays: relays}, state) do
-    Logger.info("[i] Accepting proxy request")
+    Logger.info("[i] Accepting proxy request: #{proxy_seq}")
     router_name = state.config.registry_table.router
     new_pool = add_relays(state.proxy_pool, proxy_seq, relays, router_name)
     case CryptoManager.gen_response(request, proxy_seq, state.config.registry_table.crypto_manager) do
@@ -34,8 +34,7 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
           :error -> state
         end
       {:error, reason} -> # Failed to update crypto state or generate response
-        Logger.error("Error occured while responding to proxy: #{proxy_seq}, Request type: PROXY_REQUEST")
-        Logger.error("Error: #{reason}")
+        Logger.error("Error: #{reason} occured while responding to proxy: #{proxy_seq}, Request type: PROXY_REQUEST")
         state
     end
   end

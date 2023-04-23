@@ -1,4 +1,9 @@
 defmodule LAP2.Networking.Sockets.Lap2Socket do
+  @moduledoc """
+  Module for serialising/deserialising ProtoBuf cloves and sending/receiving them over UDP.
+  """
+
+  require Logger
   alias LAP2.Networking.Sockets.UdpServer
   alias LAP2.Utils.ProtoBuf.CloveHelper
 
@@ -8,7 +13,6 @@ defmodule LAP2.Networking.Sockets.Lap2Socket do
   """
   @spec parse_dgram({String.t(), non_neg_integer}, binary, atom) :: :ok | :error
   def parse_dgram(source, dgram, router_name) do
-    IO.puts("[+] Lap2Socket: Received datagram #{inspect(dgram)}")
     # DEBUG: Sleep for 1 second to simulate (unrealistically large) processing time
     # Process.sleep(1000)
     # Deserialise dgram
@@ -16,7 +20,7 @@ defmodule LAP2.Networking.Sockets.Lap2Socket do
       CloveHelper.handle_deserialised_clove(source, clove, router_name)
     else
       {:error, reason} ->
-        IO.puts("[!] Lap2Socket: Error deserialising datagram: #{inspect(reason)}")
+        Logger.error("[!] Lap2Socket: Error deserialising datagram: #{inspect(reason)}")
         :error
     end
   end
@@ -34,7 +38,7 @@ defmodule LAP2.Networking.Sockets.Lap2Socket do
         :ok
 
       {:error, reason} ->
-        IO.puts("[!] Lap2Socket: Error serialising clove: #{inspect(reason)}")
+        Logger.error("[!] Lap2Socket: Error serialising clove: #{inspect(reason)}")
         :error
     end
   end
