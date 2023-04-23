@@ -7,6 +7,7 @@ defmodule LAP2.Networking.Router do
   """
   use GenServer
   require Logger
+  alias LAP2.Networking.Resolver
   alias LAP2.Networking.Routing.{Remote, Local, State}
 
   @doc """
@@ -23,7 +24,7 @@ defmodule LAP2.Networking.Router do
   @spec init(map) :: {:ok, map}
   def init(config) do
     # Initialise router state
-    IO.puts("[i] Router: Starting router")
+    Logger.info("[i] Router (#{config.lap2_addr}): Starting router")
 
     state = %{
       clove_cache: %{},
@@ -60,7 +61,7 @@ defmodule LAP2.Networking.Router do
     |> case do
       # Proxy discovery
       {:random_walk, nil} ->
-        IO.puts("No random neighbor found")
+        Logger.info("[-] Router GenServer (#{state.config.lap2_addr}): No random neighbor found")
         {:noreply, state}
 
       {:random_walk, rand_neighbor} ->
@@ -94,7 +95,6 @@ defmodule LAP2.Networking.Router do
 
       # Drop clove
       _ ->
-        Logger.info("[+] Router GenServer: Dropping clove")
         {:noreply, state}
     end
   end
@@ -103,18 +103,25 @@ defmodule LAP2.Networking.Router do
   @spec handle_cast({:route_outbound, {String.t(), non_neg_integer}, Clove.t()}, map) ::
           {:noreply, map}
   def handle_cast({:route_outbound, dest, clove}, state) do
-    Logger.info("[+] Router GenServer: In route outbound handle cast")
+    Logger.info("[+] Router GenServer (#{state.config.lap2_addr}): In route outbound handle cast")
     new_state = Remote.route_outbound(state, dest, clove)
     {:noreply, new_state}
   end
 
   # Route outbound proxy discovery cloves
-  @spec handle_cast({:outbound_discovery, {String.t(), non_neg_integer}, Clove.t()},
+  @spec handle_cast({:outbound_discovery, String.t(), Clove.t()},
     map) :: {:noreply, map}
-  def handle_cast({:outbound_discovery, dest, clove}, state) do
-    Logger.info("[+] Router GenServer: In proxy discovery handle cast")
-    new_state = Remote.route_outbound_discovery(state, dest, clove)
-    {:noreply, new_state}
+  def handle_cast({:outbound_discovery, lap2_addr, clove}, state) do
+    case Resolver.resolve_addr(lap2_addr, state.routing_table) do
+      {:ok, dest} ->
+        Logger.info("[+] Router GenServer (#{state.config.lap2_addr}): In proxy discovery handle cast")
+        new_state = Remote.route_outbound_discovery(state, dest, clove)
+        {:noreply, new_state}
+
+      _ ->
+        Logger.error("[-] Router GenServer (#{state.config.lap2_addr}): Unable to resolve address: #{lap2_addr}")
+        {:noreply, state}
+    end
   end
 
   # Add a proxy relay to relay table
@@ -141,15 +148,25 @@ defmodule LAP2.Networking.Router do
   # Update the router's routing table.
   @spec handle_cast({:append_dht, String.t(), {String.t(), non_neg_integer}}, map) ::
     {:noreply, map}
-  def handle_cast({:append_dht, lap2_addr, dest}, state) do
-    new_router = Map.put(state.routing_table, lap2_addr, dest)
+  def handle_cast({:append_dht, lap2_addr, ip_addr}, state) do
+    cond do
+      lap2_addr == state.config.lap2_addr ->
+        Logger.info("[i] Ignoring DHT update for self")
+        {:noreply, state}
 
-    new_state =
-      state
-      |> Map.put(:routing_table, new_router)
-      |> Map.put(:random_neighbors, [lap2_addr | state.random_neighbors])
+      Map.has_key?(state.routing_table, lap2_addr) ->
+        Logger.info("[i] Ignoring DHT update for existing entry")
+        {:noreply, state}
 
-    {:noreply, new_state}
+      true ->
+        Logger.info("[+] Appending DHT entry")
+        new_router = Map.put(state.routing_table, lap2_addr, ip_addr)
+        new_state = state
+        |> Map.put(:routing_table, new_router)
+        |> Map.put(:random_neighbors, [lap2_addr | state.random_neighbors])
+
+        {:noreply, new_state}
+    end
   end
 
   @spec handle_call({:debug}, any, map) :: {:reply, map, map}
@@ -169,7 +186,7 @@ defmodule LAP2.Networking.Router do
   """
   @spec terminate(any, map) :: :ok
   def terminate(reason, _) do
-    Logger.error("Router terminated. Reason: #{inspect(reason)}")
+    Logger.info("[i] Router terminated. Reason: #{inspect(reason)}")
   end
 
   # ---- Public functions ----
@@ -178,6 +195,7 @@ defmodule LAP2.Networking.Router do
   """
   @spec route_inbound({String.t(), non_neg_integer}, Clove.t(), atom) :: :ok
   def route_inbound(source, clove, name \\ :router) do
+    Logger.info("[+] Router (#{name}): Routing inbound clove")
     GenServer.cast({:global, name}, {:route_inbound, source, clove})
   end
 
@@ -186,14 +204,14 @@ defmodule LAP2.Networking.Router do
   """
   @spec route_outbound({String.t(), non_neg_integer}, Clove.t(), map) :: :ok
   def route_outbound(dest, clove, name) do
-    IO.puts("[+] Router: Routing outbound clove")
+    Logger.info("[+] Router (#{name}): Routing outbound clove")
     GenServer.cast({:global, name}, {:route_outbound, dest, clove})
   end
 
-  @spec route_outbound_discovery({String.t(), non_neg_integer}, Clove.t(), atom) :: :ok
-  def route_outbound_discovery(dest, clove, name) do
-    IO.puts("[+] Router: Routing outbound discovery")
-    GenServer.cast({:global, name}, {:outbound_discovery, dest, clove})
+  @spec route_outbound_discovery(String.t(), Clove.t(), atom) :: :ok
+  def route_outbound_discovery(lap2_addr, clove, name) do
+    Logger.info("[+] Router (#{name}): Routing outbound discovery")
+    GenServer.cast({:global, name}, {:outbound_discovery, lap2_addr, clove})
   end
 
   @doc """
@@ -208,8 +226,8 @@ defmodule LAP2.Networking.Router do
   Update the DHT with a new entry in the state
   """
   @spec append_dht(binary, {String.t(), non_neg_integer}, atom) :: :ok
-  def append_dht(lap2_addr, dest, name \\ :router) do
-    GenServer.cast({:global, name}, {:append_dht, lap2_addr, dest})
+  def append_dht(lap2_addr, ip_addr, name \\ :router) do
+    GenServer.cast({:global, name}, {:append_dht, lap2_addr, ip_addr})
   end
 
   @doc """

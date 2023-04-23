@@ -29,7 +29,7 @@ defmodule LAP2.Networking.Helpers.RelaySelector do
     # Send cloves to neighbors
     Enum.with_index(target_neighbors, fn neighbor, idx ->
       clove = Enum.at(cloves, Integer.mod(idx, length(cloves)))
-      Router.route_outbound(neighbor, clove, router_name)
+      Router.route_outbound_discovery(neighbor, clove, router_name)
     end)
     :ok
   end

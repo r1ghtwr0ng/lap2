@@ -62,7 +62,7 @@ defmodule LAP2.Networking.Routing.Local do
       }) do
     # TODO remove debug print
     Logger.info("[+] Local: Relaying via proxy request from #{inspect(source)}")
-    prev_hop = state.clove_cache[cseq].prv_hop
+    prev_hop = state.clove_cache[cseq].prev_hop
     proxy_seq = CloveHelper.gen_seq_num()
 
     aux_data = %{

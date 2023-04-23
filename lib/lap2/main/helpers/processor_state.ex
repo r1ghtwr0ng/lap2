@@ -50,7 +50,7 @@ defmodule LAP2.Main.Helpers.ProcessorState do
       timestamp: :os.system_time(:millisecond)
     }
 
-    new_share_info = Map.put(state.sharet_info, msg_id, new_entry)
+    new_share_info = Map.put(state.share_info, msg_id, new_entry)
     %{state | share_info: new_share_info}
   end
 

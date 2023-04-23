@@ -14,6 +14,7 @@ defmodule LAP2.Networking.Routing.StateTest do
     },
     random_neighbors: [],
     config: %{
+      lap2_addr: "TEST_ADDR",
       clove_cache_ttl: 60_000,
       relay_table_ttl: 60_000
     }

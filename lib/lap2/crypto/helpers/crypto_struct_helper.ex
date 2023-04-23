@@ -13,7 +13,7 @@ defmodule LAP2.Crypto.Helpers.CryptoStructHelper do
   @spec set_hmac(Request.t()) :: Request.t()
   def set_hmac(request) do
     hmac_key = :crypto.strong_rand_bytes(32)
-    hmac = <<>> # TODO calculate HMAC
+    hmac = 0 # TODO calculate HMAC
     {crypto_type, crypto_struct} = request.crypto
     request
     |> Map.put(:crypto, {crypto_type, Map.put(crypto_struct, :hmac_key, hmac_key)})
