@@ -86,14 +86,14 @@ defmodule LAP2.Networking.Routing.State do
   @doc """
   Add a clove to the local cache.
   """
-  @spec cache_clove(map, {binary, integer}, {binary, integer}, map) :: map
+  @spec cache_clove(map, {binary, integer}, {binary, integer}, Clove.t()) :: map
   def cache_clove(%{clove_cache: cache} = state, source, dest, %Clove{
         data: data,
         headers: {:proxy_discovery, %ProxyDiscoveryHeader{clove_seq: clove_seq}}
-      }) do
+      } = clove) do
     cache_entry = %{
       hash: :erlang.phash2(data),
-      data: data,
+      clove: clove,
       prev_hop: source,
       next_hop: dest,
       timestamp: :os.system_time(:millisecond)

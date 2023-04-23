@@ -85,7 +85,9 @@ defmodule LAP2.Networking.Routing.StateTest do
         | clove_cache: %{
             2 => %{
               hash: :erlang.phash2("Test data"),
-              data: "Test data",
+              clove: %Clove{data: "Test data", headers: {:proxy_discovery, %ProxyDiscoveryHeader{
+                clove_seq: 2, drop_probab: 0.5
+              }}, checksum: CRC.crc_32("Test data")},
               prev_hop: {"10.10.10.1", 1111},
               next_hop: {"10.10.10.2", 2222},
               timestamp: :os.system_time(:millisecond)
@@ -119,7 +121,7 @@ defmodule LAP2.Networking.Routing.StateTest do
       new_state = State.cache_clove(@valid_state, source, dest, clove)
 
       assert is_map_key(new_state.clove_cache, clove_seq)
-      assert new_state.clove_cache[clove_seq].data == data
+      assert new_state.clove_cache[clove_seq].clove == clove
       assert new_state.clove_cache[clove_seq].prev_hop == source
       assert new_state.clove_cache[clove_seq].next_hop == dest
     end
@@ -196,7 +198,9 @@ defmodule LAP2.Networking.Routing.StateTest do
         | clove_cache: %{
             1 => %{
               hash: :erlang.phash2("Test data"),
-              data: "Test data",
+              clove: %Clove{data: "Test data", headers: {:proxy_discovery, %ProxyDiscoveryHeader{
+                clove_seq: 2, drop_probab: 0.5
+              }}, checksum: CRC.crc_32("Test data")},
               prev_hop: {"10.10.10.1", 1111},
               next_hop: {"10.10.10.2", 2222},
               timestamp: :os.system_time(:millisecond)
@@ -278,7 +282,9 @@ defmodule LAP2.Networking.Routing.StateTest do
         | clove_cache: %{
             2 => %{
               hash: :erlang.phash2("Test data"),
-              data: "Test data",
+              clove: %Clove{data: "Test data", headers: {:proxy_discovery, %ProxyDiscoveryHeader{
+                clove_seq: 2, drop_probab: 1.0
+              }}, checksum: CRC.crc_32("Test data")},
               prev_hop: {"10.10.10.1", 1111},
               next_hop: {"10.10.10.2", 2222},
               timestamp: :os.system_time(:millisecond)

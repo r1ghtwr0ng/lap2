@@ -3,6 +3,7 @@ defmodule LAP2.Main.Helpers.ProcessorState do
   Helper functions for processing the share handler state.
   """
 
+  require Logger
   alias LAP2.Utils.ProtoBuf.ShareHelper
   alias LAP2.Utils.EtsHelper
 
@@ -18,6 +19,7 @@ defmodule LAP2.Main.Helpers.ProcessorState do
       true ->
         :drop
     end
+    |> IO.inspect(label: "ProcessorState.route_share/2 return:")
   end
 
   # ---- State Management ----
@@ -27,6 +29,7 @@ defmodule LAP2.Main.Helpers.ProcessorState do
   @spec cache_share(map, Share.t()) :: map
   def cache_share(state, %Share{message_id: msg_id, share_idx: share_idx})
       when is_map_key(state.share_info, msg_id) do
+    Logger.info("[i] ShareHandler (#{state.config.registry_table.main_supervisor}): Caching share #{msg_id}")
     current_entry = Map.get(state.share_info, msg_id)
 
     new_entry = %{
@@ -44,6 +47,7 @@ defmodule LAP2.Main.Helpers.ProcessorState do
         share_idx: share_idx,
         share_threshold: threshold
       }) do
+    Logger.info("[i] ShareHandler (#{state.config.registry_table.main_supervisor}): Caching share #{msg_id}")
     new_entry = %{
       threshold: threshold,
       share_idxs: [share_idx],
@@ -78,6 +82,7 @@ defmodule LAP2.Main.Helpers.ProcessorState do
   @spec add_share_to_ets(:ets.tid(), Share.t(), map) :: :ok
   def add_share_to_ets(ets, share, aux_data) do
     # Check if share.message_id is in ets
+    Logger.info("[+] ProcessorState.add_share_to_ets/3: Adding share #{share.message_id} to ETS")
     new_struct =
       case EtsHelper.get_value(ets, share.message_id) do
         {:error, :not_found} ->
@@ -107,6 +112,7 @@ defmodule LAP2.Main.Helpers.ProcessorState do
       share.share_idx in share_cache.share_idxs -> :drop
       true -> check_share_count(share_cache)
     end
+    |> IO.inspect(label: "ProcessorState.handle_valid_share/2 return:")
   end
 
   defp handle_valid_share(_, _), do: :cache
@@ -118,5 +124,6 @@ defmodule LAP2.Main.Helpers.ProcessorState do
       length(share_cache.share_idxs) >= share_cache.threshold - 1 -> :reassemble
       true -> :cache
     end
+    |> IO.inspect(label: "ProcessorState.check_share_count/1 return:")
   end
 end

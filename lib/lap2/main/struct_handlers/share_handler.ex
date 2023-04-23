@@ -45,6 +45,7 @@ defmodule LAP2.Main.StructHandlers.ShareHandler do
 
     case ProcessorState.route_share(state, share) do
       :reassemble ->
+        Logger.info("[+] ShareHandler (#{state.config.name}): Reassembling shares <<<<<<<<<<==================================")
         reassemble(state, share, aux_data)
 
       :cache ->
@@ -70,6 +71,7 @@ defmodule LAP2.Main.StructHandlers.ShareHandler do
   """
   @spec deliver(binary, map, atom) :: :ok
   def deliver(data, aux_data, name) do
+    Logger.info("[+] ShareHandler (#{name}): Delivering data to GenServer")
     GenServer.cast({:global, name}, {:deliver, data, aux_data})
   end
 
@@ -83,6 +85,7 @@ defmodule LAP2.Main.StructHandlers.ShareHandler do
     aux_list = [aux_data | ets_struct.aux_data]
     case ShareHelper.format_aux_data(aux_list) do
       {:ok, formatted_aux_data} ->
+        Logger.info("[+] Formatted AUX DATA: #{formatted_aux_data} <<<<<<<<<<==================================")
         cast_reconstructed(all_shares, formatted_aux_data, state.config.registry_table)
 
       {:error, _reason} ->
@@ -110,7 +113,7 @@ defmodule LAP2.Main.StructHandlers.ShareHandler do
             registry_table
           )
         end)
-        Logger.info("[+] Reconstructed: #{reconstructed_data}")
+        Logger.info("[+] Reconstructed: #{reconstructed_data} <<<<<<<<<<==================================")
 
       {:error, _reason} ->
         Logger.error("Reconstruction failed")
