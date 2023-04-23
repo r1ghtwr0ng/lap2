@@ -139,7 +139,7 @@ defmodule LAP2.Networking.Routing.State do
 
   @spec add_relay(map, non_neg_integer, {String.t(), non_neg_integer}, {String.t(), non_neg_integer}) :: map
   def add_relay(state, proxy_seq, relay_1, relay_2) do
-    IO.puts("[+] State: Added route #{inspect({relay_1, relay_2})} to routing table as relay")
+    Logger.info("[+] State (#{state.config.lap2_addr}): Added route #{inspect({relay_1, relay_2})} to routing table as relay")
 
     relay_entry = %{
       type: :relay,
@@ -165,7 +165,7 @@ defmodule LAP2.Networking.Routing.State do
       drop?(state, source, clove) -> :drop
       true -> handle_clove(state, source, clove)
     end
-    |> IO.inspect(label: "[+] State: get_route response")
+    |> IO.inspect(label: "[+] State (#{state.config.lap2_addr}): get_route response")
   end
 
   @doc """
@@ -179,14 +179,15 @@ defmodule LAP2.Networking.Routing.State do
   # ---- Private handler functions ----
   # Handle proxy discovery clove
   @spec handle_clove(map, {Strint.t(), non_neg_integer}, Clove.t()) :: atom | {atom, any}
-  defp handle_clove(state, _source, %Clove{
+  defp handle_clove(state, source, %Clove{
          data: data,
          headers: {:proxy_discovery, %ProxyDiscoveryHeader{clove_seq: clove_seq}}
        }) do
-    IO.puts("[+] State: Received proxy discovery clove [#{clove_seq}")
 
+    # Ensure that the request isn't sent back to the source
+    src_lap2 = reverse_lookup(state.routing_table, source)
     case Map.get(state.clove_cache, clove_seq) do
-      nil -> {:random_walk, random_neighbor(state)}
+      nil -> {:random_walk, random_neighbor(state, src_lap2)}
       cached_clove -> handle_clove_cache_hit(:erlang.phash2(data), cached_clove)
     end
   end
@@ -195,7 +196,6 @@ defmodule LAP2.Networking.Routing.State do
   defp handle_clove(state, _source, %Clove{
          headers: {:proxy_response, %ProxyResponseHeader{clove_seq: clove_seq}}
        }) do
-    IO.puts("[+] State: Received proxy response clove [#{clove_seq}")
 
     cond do
       clove_seq in state.own_cloves ->
@@ -213,7 +213,6 @@ defmodule LAP2.Networking.Routing.State do
   defp handle_clove(state, source, %Clove{
          headers: {:regular_proxy, %RegularProxyHeader{proxy_seq: proxy_seq}}
        }) do
-    IO.puts("[+] State: Received regular proxy clove [#{proxy_seq}")
 
     case Map.get(state.relay_table, proxy_seq) do
       nil -> :drop
@@ -231,7 +230,6 @@ defmodule LAP2.Networking.Routing.State do
   # Get rid of outdated clove cache entries
   @spec clean_clove_cache(map) :: map
   defp clean_clove_cache(%{clove_cache: cache, config: %{clove_cache_ttl: cache_ttl}} = state) do
-    IO.puts("[+] State: Deleting outdated clove cache entries")
 
     updated_cache =
       cache
@@ -248,7 +246,6 @@ defmodule LAP2.Networking.Routing.State do
   defp clean_relay_table(
          %{relay_table: relay_table, config: %{relay_table_ttl: relay_ttl}} = state
        ) do
-    IO.puts("[+] State: Deleting outdated relay table entries")
 
     updated_relay_table =
       relay_table
@@ -268,7 +265,6 @@ defmodule LAP2.Networking.Routing.State do
            {:proxy_discovery,
             %ProxyDiscoveryHeader{clove_seq: clove_seq, drop_probab: drop_probab}}
        }) do
-    IO.puts("[+] State: Checking drop rules for proxy discovery clove [#{clove_seq}]")
     can_drop = clove_seq not in state.own_cloves
 
     can_drop and
@@ -280,7 +276,6 @@ defmodule LAP2.Networking.Routing.State do
   defp drop?(state, {ip_addr, _}, %Clove{
          headers: {:proxy_response, %ProxyResponseHeader{proxy_seq: proxy_seq}}
        }) do
-    IO.puts("[+] State: Checking drop rules for proxy response clove [#{proxy_seq}]")
     proxy_seq in state.drop_rules.proxy_seq or ip_addr in state.drop_rules.ip_addr
   end
 
@@ -288,15 +283,14 @@ defmodule LAP2.Networking.Routing.State do
   defp drop?(state, {ip_addr, _}, %Clove{
          headers: {:regular_proxy, %RegularProxyHeader{proxy_seq: proxy_seq}}
        }) do
-    IO.puts("[+] State: Checking drop rules for regular proxy clove [#{proxy_seq}]")
     proxy_seq in state.drop_rules.proxy_seq or ip_addr in state.drop_rules.ip_addr
   end
 
   # ---- Misc functions ----
   # Select random neighbor
-  @spec random_neighbor(map) :: binary
-  defp random_neighbor(%{random_neighbors: []}), do: nil
-  defp random_neighbor(%{random_neighbors: random_neighbors}), do: Enum.random(random_neighbors)
+  @spec random_neighbor(map, binary) :: binary
+  defp random_neighbor(%{random_neighbors: []}, _), do: nil
+  defp random_neighbor(%{random_neighbors: random_neighbors}, source), do: Enum.random(List.delete(random_neighbors, source))
 
   # Resolve IP:Port to LAP2 address
   @spec reverse_lookup(map, {String.t(), non_neg_integer}) :: String.t() | nil
