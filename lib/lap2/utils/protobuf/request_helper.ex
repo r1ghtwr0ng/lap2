@@ -11,6 +11,138 @@ defmodule LAP2.Utils.ProtoBuf.RequestHelper do
 
   # ---- Build Requests ----
   @doc """
+  Initiate a key exchange with a remote proxy.
+  """
+  @spec init_exchange(non_neg_integer, atom) ::
+    {:ok, EncryptedRequest.t()} | {:error, atom}
+  def init_exchange(clove_seq, crypto_mgr \\ :crypto_manager) do
+    case CryptoStructHelper.gen_init_crypto(crypto_mgr) do
+      {:ok, %{
+        crypto_struct: temp_crypto_struct,
+        encrypted_request: enc_req
+      }} ->
+        # Update the temporary crypto state for a given clove_seq.
+        # If a response is received, its migrated to long-term ETS storage
+        CryptoManager.add_temp_crypto_struct(temp_crypto_struct, clove_seq, crypto_mgr)
+        {:ok, enc_req}
+
+      err -> err
+    end
+  end
+
+  @doc """
+  Respond to a key exchange request from a remote proxy.
+  """
+  @spec gen_response(Request.t(), non_neg_integer, atom) ::
+    {:ok, EncryptedRequest.t()} | {:error, atom}
+  def gen_response(request, proxy_seq, crypto_mgr \\ :crypto_manager) do
+    # TODO trace the proxy_seq number, make sure its generated and not the clove_seq
+    # Generate cryptography primitives
+    case CryptoStructHelper.gen_resp_crypto(request.crypto, crypto_mgr) do
+      {:ok, %{
+        crypto_struct: crypto_struct,
+        encrypted_request: enc_req
+      }} ->
+        # Build and add crypto struct to long-term ETS storage
+        new_struct = %{
+          identity: crypto_struct.identity,
+          long_term_rs_pk: crypto_struct.long_term_rs_pk,
+          ephemeral_dh_pk: crypto_struct.ephemeral_dh_pk,
+          asymmetric_key: crypto_struct.asymmetric_key
+        }
+        CryptoManager.add_crypto_struct(new_struct, proxy_seq, crypto_mgr)
+        {:ok, enc_req}
+
+      err -> err
+    end
+  end
+
+  @doc """
+  Finish a key exchange with a remote proxy.
+  Different from recv_finalise_exchange as this is called by the initiator.
+  """
+  @spec gen_finalise_exchange(Request.t(), non_neg_integer, non_neg_integer, atom) ::
+    {:ok, EncryptedRequest.t()} | {:error, atom}
+  def gen_finalise_exchange(request, proxy_seq, clove_seq, crypto_mgr \\ :crypto_manager) do
+    case CryptoStructHelper.gen_fin_crypto(request.crypto) do
+      {:ok, %{
+        crypto_struct: crypto_struct,
+        encrypted_request: enc_req
+      }} ->
+        # Delete the temporary crypto record from the CryptoManager state
+        CryptoManager.delete_temp_crypto(clove_seq, crypto_mgr)
+
+        # Build struct and save it to ETS in CryptoManager
+        new_struct = %{
+          identity: crypto_struct.identity,
+          long_term_rs_pk: crypto_struct.long_term_rs_pk,
+          ephemeral_dh_pk: crypto_struct.ephemeral_dh_pk,
+          asymmetric_key: crypto_struct.asymmetric_key
+        }
+        CryptoManager.add_crypto_struct(new_struct, proxy_seq, crypto_mgr)
+        {:ok, enc_req}
+
+      err -> err
+    end
+
+  end
+
+  @doc """
+  Finish a key exchange with a remote proxy.
+  Different from gen_finalise_exchange as this is called by the receiver proxy.
+  """
+  @spec recv_finalise_exchange(Request.t(), non_neg_integer, atom) ::
+    {:ok, EncryptedRequest.t()} | {:error, :invalid_signature}
+  def recv_finalise_exchange(request, proxy_seq, crypto_mgr \\ :crypto_manager) do
+    # Verify the validity of the signature
+    cond do
+      CryptoStructHelper.verify_ring_signature(request.cryoto, proxy_seq) ->
+        # Initiate key rotation
+        init_key_rotation(proxy_seq, crypto_mgr)
+
+      true -> {:error, :invalid_signature}
+    end
+  end
+
+  @doc """
+  Initiate key rotation with a remote proxy.
+  """
+  @spec init_key_rotation(non_neg_integer, atom) ::
+    {:ok, EncryptedRequest.t()} | {:error, atom}
+  def init_key_rotation(proxy_seq, crypto_mgr \\ :crypto_manager) do
+    case CryptoStructHelper.gen_key_rotation(proxy_seq, crypto_mgr) do
+      {:ok, %{
+        crypto_struct: crypto_struct,
+        encrypted_request: enc_req
+      }} ->
+        # Rotate the keys in the ETS table
+        CryptoManager.rotate_keys(crypto_struct, proxy_seq, crypto_mgr)
+        {:ok, enc_req}
+
+      err -> err
+    end
+  end
+
+  @doc """
+  Perform key rotation request with a remote proxy.
+  """
+  @spec rotate_keys(Request.t(), non_neg_integer, atom) :: {:ok, EncryptedRequest.t()} | {:error, :invalid}
+  def rotate_keys(%Request{crypto: {:key_rot, crypto_hdr}} = request, proxy_seq, crypto_mgr \\ :crypto_manager) do
+    # TODO sanitise the request and get the appropraite map
+    crypto_struct = %{
+      symmetric_key: crypto_hdr.symmetric_key,
+    }
+
+    case CryptoStructHelper.ack_key_rotation(proxy_seq, request.request_id, crypto_mgr) do
+      {:ok, enc_req} -> # Rotate the keys in the ETS table
+        CryptoManager.rotate_keys(crypto_struct, proxy_seq, crypto_mgr)
+        {:ok, enc_req}
+
+      err -> err
+    end
+  end
+
+  @doc """
   Build the key exchange initialisation struct
   """
   @spec build_init_crypto(binary, binary, binary, binary, binary) :: {:init_ke, KeyExchangeInit.t()}
@@ -72,7 +204,7 @@ defmodule LAP2.Utils.ProtoBuf.RequestHelper do
     }}
   end
 
-  @spec build_request({atom, struct()}, binary, binary, non_neg_integer) :: Request.t()
+  @spec build_request({atom, map}, binary, binary, non_neg_integer) :: Request.t()
   def build_request(crypto, data, req_type, req_id) do
     %Request{
       hmac: nil,
@@ -87,7 +219,7 @@ defmodule LAP2.Utils.ProtoBuf.RequestHelper do
   @spec wrap_unencrypted(Request.t()) :: {:ok, EncryptedRequest.t()} | {:error, atom}
   def wrap_unencrypted(request) do
     case serialise(request) do
-      {:ok, data} -> %EncryptedRequest{is_encrypted: false, iv: <<>>, data: data}
+      {:ok, data} -> {:ok, %EncryptedRequest{is_encrypted: false, iv: <<>>, data: data}}
       err -> err
     end
   end

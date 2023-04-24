@@ -3,6 +3,7 @@ defmodule LAP2.Crypto.Helpers.CryptoStructHelper do
   Contains helper functions for various cryptographic ops
   """
 
+  alias LAP2.Crypto.CryptoManager
   alias LAP2.Utils.ProtoBuf.CloveHelper
   alias LAP2.Utils.ProtoBuf.RequestHelper
 
@@ -37,8 +38,9 @@ defmodule LAP2.Crypto.Helpers.CryptoStructHelper do
   @doc """
   Generate initial key exchange primitives and response (EncryptedRequest struct)
   """
-  @spec gen_init_crypto(binary) :: %{temp_crypto_struct: map, encrypted_request: {:ok, EncryptedRequest.t()} | {:error, :invalid}}
-  def gen_init_crypto(identity) do
+  @spec gen_init_crypto(atom) ::
+    {:ok, %{crypto_struct: map, encrypted_request: EncryptedRequest.t()}} | {:error, :invalid}
+  def gen_init_crypto(crypto_mgr \\ :crypto_manager) do
     # TODO remove crypto_struct if not needed
     {ephem_pk, ephem_sk} = {<<>>, <<>>} # TODO generate asymmetric key and signatures
     {ring_pk, ring_sk} = {<<>>, <<>>} # TODO generate ring keys
@@ -55,19 +57,21 @@ defmodule LAP2.Crypto.Helpers.CryptoStructHelper do
     }
 
     # Generate (un)encrypted request struct
-    enc_req = RequestHelper.build_init_crypto(identity, ephem_pk, generator, ring_pk, signature)
+    get_identity(crypto_mgr)
+    |> RequestHelper.build_init_crypto(ephem_pk, generator, ring_pk, signature)
     |> RequestHelper.build_request(<<>>, "key_exchange_init", CloveHelper.gen_seq_num())
     |> RequestHelper.wrap_unencrypted()
-
-    %{temp_crypto_struct: temp_crypto_struct, encrypted_request: enc_req}
+    |> build_return(temp_crypto_struct)
   end
 
   @doc """
   Generate key exchange response primitives and response (EncryptedRequest struct)
   """
-  @spec gen_resp_crypto(binary, KeyExchangeInit.t()) :: %{crypto_struct: map, encrypted_request: {:ok, EncryptedRequest.t()} | {:error, :invalid}}
-  def gen_resp_crypto(identity, crypto_hdr) do
+  @spec gen_resp_crypto({:init_ke, KeyExchangeInit.t()}, atom) ::
+    {:ok, %{crypto_struct: map, encrypted_request: EncryptedRequest.t()}} | {:error, atom}
+  def gen_resp_crypto({:init_ke, crypto_hdr}, crypto_mgr) do
     # TODO generate asymmetric key and signatures
+    identity = get_identity(crypto_mgr)
     asymm_key = <<>>
     ephem_pk = <<>>
     generator = <<>>
@@ -82,18 +86,18 @@ defmodule LAP2.Crypto.Helpers.CryptoStructHelper do
     }
 
     # Generate (un)encrypted request struct
-    enc_req = RequestHelper.build_resp_crypto(identity, ephem_pk, generator, ring_pk, signature, ring_signature)
+    RequestHelper.build_resp_crypto(identity, ephem_pk, generator, ring_pk, signature, ring_signature)
     |> RequestHelper.build_request(<<>>, "key_exchange_resp", CloveHelper.gen_seq_num())
     |> RequestHelper.wrap_unencrypted()
-
-    %{crypto_struct: crypto_struct, encrypted_request: enc_req}
+    |> build_return(crypto_struct)
   end
 
   @doc """
   Generate final key exchange primitives and response (EncryptedRequest struct)
   """
-  @spec gen_fin_crypto(KeyExchangeResponse.t()) :: %{crypto_struct: map, encrypted_request: {:ok, EncryptedRequest.t()} | {:error, :invalid}}
-  def gen_fin_crypto(crypto_hdr) do
+  @spec gen_fin_crypto({:resp_ke, KeyExchangeResponse.t()}) ::
+    {:ok, %{crypto_struct: map, encrypted_request: EncryptedRequest.t()}} | {:error, :invalid}
+  def gen_fin_crypto({:resp_ke, crypto_hdr}) do
     # TODO generate asymmetric key and signature
     asymm_key = <<>>
     ring_signature = <<>>
@@ -105,28 +109,27 @@ defmodule LAP2.Crypto.Helpers.CryptoStructHelper do
     }
 
     # Generate (un)encrypted request struct
-    enc_req = RequestHelper.build_fin_crypto(ring_signature)
+    RequestHelper.build_fin_crypto(ring_signature)
     |> RequestHelper.build_request(<<>>, "key_exchange_fin", CloveHelper.gen_seq_num())
     |> RequestHelper.wrap_unencrypted()
-
-    %{crypto_struct: crypto_struct, encrypted_request: enc_req}
+    |> build_return(crypto_struct)
   end
 
   @doc """
   Generate key rotation primitives and response (EncryptedRequest struct)
   """
-  @spec gen_key_rotation(non_neg_integer, atom) :: %{crypto_struct: map, encrypted_request: {:ok, EncryptedRequest.t()} | {:error, :invalid}}
+  @spec gen_key_rotation(non_neg_integer, atom) ::
+    {:ok, %{crypto_struct: map, encrypted_request: EncryptedRequest.t()}} | {:error, :invalid}
   def gen_key_rotation(proxy_seq, crypto_mgr_name) do
     # Generate new symmetric key
     aes_key = :crypto.strong_rand_bytes(32)
     crypto_struct = %{symmetric_key: aes_key}
 
     # Generate encrypted request struct
-    enc_req = RequestHelper.build_key_rotation(aes_key)
+    RequestHelper.build_key_rotation(aes_key)
     |> RequestHelper.build_request(<<>>, "key_rotation", proxy_seq)
     |> RequestHelper.encrypt_and_wrap(proxy_seq, crypto_mgr_name)
-
-    %{crypto_struct: crypto_struct, encrypted_request: enc_req}
+    |> build_return(crypto_struct)
   end
 
   @doc """
@@ -143,8 +146,23 @@ defmodule LAP2.Crypto.Helpers.CryptoStructHelper do
   @doc """
   Verify the validity of the ring signature
   """
-  @spec verify_ring_signature(KeyExchangeFinal.t(), non_neg_integer) :: boolean
-  def verify_ring_signature(%KeyExchangeFinal{}, _proxy_seq) do
+  @spec verify_ring_signature({:fin_ke, KeyExchangeFinal.t()}, non_neg_integer) :: boolean
+  def verify_ring_signature({:fin_ke, %KeyExchangeFinal{}}, _proxy_seq) do
     true # TODO verify ring signature
   end
+
+  # ---- Private functions ----
+  # Fetches the identity from the crypto manager
+  @spec get_identity(atom) :: binary
+  defp get_identity(crypto_mgr) do
+    CryptoManager.get_identity(crypto_mgr)
+  end
+
+  # Builds the return value for the crypto functions
+  @spec build_return({:ok, EncryptedRequest.t()} | {:error, atom}, map) ::
+    {:ok, %{crypto_struct: map, encrypted_request: EncryptedRequest.t()}} | {:error, :invalid}
+  defp build_return({:ok, enc_req}, crypto_struct) do
+    {:ok, %{crypto_struct: crypto_struct, encrypted_request: enc_req}}
+  end
+  defp build_return({:error, _} = err, _), do: err
 end
