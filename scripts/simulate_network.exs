@@ -7,9 +7,25 @@ defmodule ConfigBuilder do
     %{
       main_supervisor: %{name: String.to_atom("lap2_daemon_#{addr}")},
       task_supervisor: %{max_children: 10, name: String.to_atom("lap2_superv_#{addr}")},
+      proxy_manager: %{
+        name: String.to_atom("proxy_manager_#{addr}"),
+        registry_table: %{
+          proxy_manager: String.to_atom("proxy_manager_#{addr}"),
+          share_handler: String.to_atom("share_handler_#{addr}"),
+          router: String.to_atom("router_#{addr}"),
+          main_supervisor: String.to_atom("lap2_daemon_#{addr}"),
+          task_supervisor: String.to_atom("lap2_superv_#{addr}"),
+          tcp_server: String.to_atom("tcp_server_#{addr}"),
+          udp_server: String.to_atom("udp_server_#{addr}"),
+          crypto_manager: String.to_atom("crypto_manager_#{addr}")
+        },
+        proxy_limit: 20,
+        proxy_ttl: 60000
+      },
       crypto_manager: %{name: String.to_atom("crypto_manager_#{addr}"),
         identity: "IDENT_#{addr}",
         registry_table: %{
+          proxy_manager: String.to_atom("proxy_manager_#{addr}"),
           share_handler: String.to_atom("share_handler_#{addr}"),
           router: String.to_atom("router_#{addr}"),
           main_supervisor: String.to_atom("lap2_daemon_#{addr}"),
@@ -26,6 +42,7 @@ defmodule ConfigBuilder do
         proxy_limit: 20,
         proxy_policy: true,
         registry_table: %{
+          proxy_manager: String.to_atom("proxy_manager_#{addr}"),
           share_handler: String.to_atom("share_handler_#{addr}"),
           router: String.to_atom("router_#{addr}"),
           main_supervisor: String.to_atom("lap2_daemon_#{addr}"),
@@ -42,6 +59,7 @@ defmodule ConfigBuilder do
         name: :tcp_server,
         queue_interval: 100,
         registry_table: %{
+          proxy_manager: String.to_atom("proxy_manager_#{addr}"),
           share_handler: String.to_atom("share_handler_#{addr}"),
           router: String.to_atom("router_#{addr}"),
           main_supervisor: String.to_atom("lap2_daemon_#{addr}"),
@@ -59,6 +77,7 @@ defmodule ConfigBuilder do
         name: String.to_atom("udp_server_#{addr}"),
         queue_interval: 100,
         registry_table: %{
+          proxy_manager: String.to_atom("proxy_manager_#{addr}"),
           share_handler: String.to_atom("share_handler_#{addr}"),
           router: String.to_atom("router_#{addr}"),
           main_supervisor: String.to_atom("lap2_daemon_#{addr}"),
@@ -73,6 +92,7 @@ defmodule ConfigBuilder do
       share_handler: %{
         name: String.to_atom("share_handler_#{addr}"),
         registry_table: %{
+          proxy_manager: String.to_atom("proxy_manager_#{addr}"),
           share_handler: String.to_atom("share_handler_#{addr}"),
           router: String.to_atom("router_#{addr}"),
           main_supervisor: String.to_atom("lap2_daemon_#{addr}"),
@@ -97,8 +117,8 @@ Enum.each(configs, fn config ->
 end)
 
 cfg_0 = Enum.at(configs, 0)
-identity_0 = cfg_0.crypto_manager.identity
-%{encrypted_request: enc_req} = CryptoStructHelper.gen_init_crypto(identity_0)
+crypto_mgr = cfg_0.crypto_manager.name
+{:ok, %{encrypted_request: enc_req}} = CryptoStructHelper.gen_init_crypto(crypto_mgr)
 
 current_conf_0 = Router.debug(cfg_0.router.name)
 OutboundPipelines.send_proxy_discovery(enc_req, current_conf_0.random_neighbors, 4, cfg_0.router.name)
