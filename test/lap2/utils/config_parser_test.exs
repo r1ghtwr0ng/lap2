@@ -31,6 +31,8 @@ defmodule LAP2.Utils.ConfigParserTest do
             udp_server: :udp_server,
             crypto_manager: :crypto_manager
           },
+          max_hops: 10,
+          min_hops: 1,
           proxy_limit: 20,
           proxy_ttl: 60000
         },

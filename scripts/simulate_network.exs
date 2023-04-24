@@ -19,6 +19,8 @@ defmodule ConfigBuilder do
           udp_server: String.to_atom("udp_server_#{addr}"),
           crypto_manager: String.to_atom("crypto_manager_#{addr}")
         },
+        max_hops: 10,
+        min_hops: 0,
         proxy_limit: 20,
         proxy_ttl: 60000
       },
@@ -107,13 +109,13 @@ defmodule ConfigBuilder do
   end
 end
 
-configs = Enum.map(12000..12010, fn port -> ConfigBuilder.make_config("#{port}", port); end)
+configs = Enum.map(12000..12025, fn port -> ConfigBuilder.make_config("#{port}", port); end)
 pids = Enum.map(configs, fn config -> {:ok, pid} = LAP2.start(config); pid; end)
 addresses = Enum.map(configs, fn config -> {config[:router][:lap2_addr], {"127.0.0.1", config[:udp_server][:udp_port]}}; end)
 
 # Register DHT entries
 Enum.each(configs, fn config ->
-  Enum.each(Enum.take_random(addresses, 5), fn {lap2_addr, ip_addr} -> Router.append_dht(lap2_addr, ip_addr, config.router.name); end)
+  Enum.each(Enum.take_random(addresses, 12), fn {lap2_addr, ip_addr} -> Router.append_dht(lap2_addr, ip_addr, config.router.name); end)
 end)
 
 cfg_0 = Enum.at(configs, 0)
@@ -121,4 +123,4 @@ crypto_mgr = cfg_0.crypto_manager.name
 {:ok, %{encrypted_request: enc_req}} = CryptoStructHelper.gen_init_crypto(crypto_mgr)
 
 current_conf_0 = Router.debug(cfg_0.router.name)
-OutboundPipelines.send_proxy_discovery(enc_req, current_conf_0.random_neighbors, 4, cfg_0.router.name)
+OutboundPipelines.send_proxy_discovery(enc_req, current_conf_0.random_neighbors, 6, cfg_0.router.name)
