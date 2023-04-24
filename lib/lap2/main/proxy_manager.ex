@@ -1,13 +1,13 @@
-defmodule LAP2.Main.Proxy do
+defmodule LAP2.Main.ProxyManager do
   @moduledoc """
-  Module for handling Proxy requests.
+  Module for handling ProxyManager requests.
   """
   use GenServer
   require Logger
   alias LAP2.Main.Helpers.ProxyHelper
 
   @doc """
-  Start the Proxy process.
+  Start the ProxyManager process.
   """
   @spec start_link(map) :: GenServer.on_start()
   def start_link(config) do
@@ -33,8 +33,8 @@ defmodule LAP2.Main.Proxy do
 
   # ---- GenServer Callbacks ----
   # Cleanup the ETS table on exit
-  @spec handle_call(:get_state, map) :: {:reply, map, map}
-  def handle_call(:get_state, state), do: {:reply, state, state}
+  @spec handle_call(:get_state, any, map) :: {:reply, map, map}
+  def handle_call(:get_state, _from, state), do: {:reply, state, state}
 
   @spec handle_cast({:proxy_request, Request.t(), %{
     proxy_seq: non_neg_integer,
@@ -43,11 +43,12 @@ defmodule LAP2.Main.Proxy do
   def handle_cast({:proxy_request, request, aux_data}, state) do
     proxy_limit = state.config.proxy_limit
 
-    case Enum.count(state.proxy_pool) < proxy_limit do
-      true ->
+    cond do
+      Enum.count(state.proxy_pool) < proxy_limit ->
         new_state = ProxyHelper.accept_proxy_request(request, aux_data, state)
         {:noreply, new_state}
 
+      true ->
         {:noreply, state}
     end
   end

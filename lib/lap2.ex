@@ -73,6 +73,7 @@ defmodule LAP2 do
        ]},
       {LAP2.Networking.Sockets.UdpServer, config.udp_server},
       {LAP2.Networking.Router, config.router},
+      {LAP2.Main.ProxyManager, config.proxy_manager},
       {LAP2.Crypto.CryptoManager, config.crypto_manager},
       {LAP2.Main.StructHandlers.ShareHandler, config.share_handler}
     ]
