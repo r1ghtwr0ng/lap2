@@ -27,6 +27,7 @@ defmodule LAP2.Networking.Helpers.RelaySelector do
     # Send cloves to neighbors
     Enum.with_index(target_neighbors, fn neighbor, idx ->
       clove = Enum.at(cloves, Integer.mod(idx, length(cloves)))
+      #Logger.info("CAST PROXY DISCOVERY OUTBOUND CLOVE (#{router_name})")
       Router.route_outbound_discovery(neighbor, clove, router_name)
     end)
     :ok
@@ -47,6 +48,7 @@ defmodule LAP2.Networking.Helpers.RelaySelector do
 
     # Send cloves via relays
     Enum.each(outbound, fn {relay, clove} ->
+      #IO.inspect(clove, label: "DISPERSE AND SEND OUTBOUND CLOVE (#{router_name})")
       Router.route_outbound(relay, clove, router_name)
     end)
     :ok

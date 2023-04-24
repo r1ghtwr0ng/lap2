@@ -16,7 +16,7 @@ defmodule LAP2.Networking.Sockets.UdpServer do
   @spec init(map) :: {:ok, map} | {:stop, atom}
   def init(config) do
     # Open UDP socket
-    Logger.info("[i] UDP (#{inspect config.name}): Starting UDP server")
+    #Logger.info("[i] UDP (#{inspect config.name}): Starting UDP server")
     # TODO test the default values
     state = %{
       port: config[:udp_port] || 1442,
@@ -132,7 +132,7 @@ defmodule LAP2.Networking.Sockets.UdpServer do
   end
 
   def terminate(_reason, %{udp_sock: udp_sock}) do
-    Logger.info("[i] UDP: Stopping UDP server")
+    #Logger.info("[i] UDP: Stopping UDP server")
     :gen_udp.close(udp_sock)
   end
 

@@ -20,7 +20,7 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
     clove_seq: non_neg_integer,
     relays: list}, map) :: map
   def accept_proxy_request(request, %{proxy_seq: proxy_seq, clove_seq: clove_seq, relays: relays}, state) do
-    Logger.info("[i] Accepting proxy request: #{proxy_seq}")
+    #Logger.info("[i] Accepting proxy request: #{proxy_seq}")
     router_name = state.config.registry_table.router
     new_pool = add_relays(state.proxy_pool, proxy_seq, relays, router_name)
     crypto_mgr = state.config.registry_table.crypto_manager
@@ -54,7 +54,7 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
         },
         state
       ) do
-    Logger.info("[i] Handling discovery response")
+    #Logger.info("[i] Handling discovery response")
 
     cond do
       hops < state.config.max_hops and hops > state.config.min_hops ->
@@ -83,7 +83,7 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
   """
   @spec handle_fin_key_exhange(any, any, any) :: :ok | :error
   def handle_fin_key_exhange(request, proxy_seq, state) do
-    Logger.info("[i] Handling key exchange finalisation")
+    #Logger.info("[i] Handling key exchange finalisation")
     crypt_name = state.config.registry_table.crypto_manager
     case RequestHelper.recv_finalise_exchange(request, proxy_seq, crypt_name) do
       {:ok, response} ->
@@ -102,7 +102,7 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
   """
   @spec handle_key_rotation(Request.t(), non_neg_integer, map) :: :ok | :error
   def handle_key_rotation(request, proxy_seq, state) do
-    Logger.info("[i] Handling key rotation request")
+    #Logger.info("[i] Handling key rotation request")
     crypt_name = state.config.registry_table.crypto_manager
     case RequestHelper.rotate_keys(request, proxy_seq, crypt_name) do
       {:ok, response} ->
@@ -132,7 +132,7 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
   """
   @spec handle_proxy_query(Request.t(), :ets.tid(), non_neg_integer, atom) :: :ok | :error
   def handle_proxy_query(%Request{request_id: rid, data: data}, ets, _pseq, master_name) do
-    Logger.info("[i] Handling proxy query")
+    #Logger.info("[i] Handling proxy query")
     case EtsHelper.get_value(ets, rid) do
       {:ok, stream_id} ->
         Master.deliver_query(data, stream_id, master_name)

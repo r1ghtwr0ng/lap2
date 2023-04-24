@@ -13,6 +13,7 @@ defmodule LAP2.Networking.Resolver do
   def build_query(addr) do
     # TODO build query
     Logger.info("[+] Resolver: remote lookup for #{addr}")
+    :ok
   end
 
   # ---- Helper functions ----

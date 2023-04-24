@@ -14,7 +14,9 @@ defmodule LAP2.Main.StructHandlers.RequestHandler do
   def handle_request(enc_request_bin, %{request_type: :proxy_request} = aux_data, registry_table) do
     # Deserialise the request
     case RequestHelper.deserialise_and_unwrap(enc_request_bin) do
-      {:ok, request} -> ProxyManager.handle_proxy_request(request, aux_data, registry_table.proxy_manager)
+      {:ok, request} ->
+        Logger.info("RequestHandler (#{registry_table.main_supervisor}): Handling proxy request")
+        ProxyManager.handle_proxy_request(request, aux_data, registry_table.proxy_manager)
       err -> err
     end
   end
@@ -22,18 +24,22 @@ defmodule LAP2.Main.StructHandlers.RequestHandler do
   def handle_request(enc_request_bin, %{request_type: :discovery_response} = aux_data, registry_table) do
     # Deserialise the request
     case RequestHelper.deserialise_and_unwrap(enc_request_bin) do
-      {:ok, request} -> ProxyManager.handle_discovery_response(request, aux_data, registry_table.proxy_manager)
+      {:ok, request} ->
+        Logger.info("RequestHandler (#{registry_table.main_supervisor}): Handling discovery response")
+        ProxyManager.handle_discovery_response(request, aux_data, registry_table.proxy_manager)
       err -> err
     end
   end
 
   def handle_request(enc_request_bin,
         %{request_type: :regular_proxy, proxy_seq: pseq},
-        %{proxy: proxy_name, crypto_manager: crypt_mgr_name}
+        registry_table
       ) do
     # Deserialise the request
-    case RequestHelper.deserialise_and_unwrap(enc_request_bin, pseq, crypt_mgr_name) do
-      {:ok, request} -> ProxyManager.handle_regular_proxy(request, pseq, proxy_name)
+    case RequestHelper.deserialise_and_unwrap(enc_request_bin, pseq, registry_table.crypto_manager) do
+      {:ok, request} ->
+        Logger.info("RequestHandler (#{registry_table.main_supervisor}): Handling regular proxy request")
+        ProxyManager.handle_regular_proxy(request, pseq, registry_table.proxy_manager)
       err -> err
     end
   end

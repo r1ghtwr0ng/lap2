@@ -54,7 +54,7 @@ defmodule LAP2.Main.Master do
   # TODO specify listener type
   @spec handle_cast({:register_listener, binary, any}, any, map) :: {:noreply, map}
   def handle_cast({:register_listener, stream_id, listener}, _from, state) do
-    Logger.info("[+] Registering listener: #{inspect(listener)} for stream ID: #{inspect(stream_id)}")
+    #Logger.info("[+] Registering listener: #{inspect(listener)} for stream ID: #{inspect(stream_id)}")
     new_state = %{state | listeners: Map.put(state.listeners, stream_id, listener)}
     {:noreply, new_state}
   end
@@ -62,7 +62,7 @@ defmodule LAP2.Main.Master do
   # TODO specify listener type
   @spec handle_cast({:deregister_listener, binary}, any, map) :: {:noreply, map}
   def handle_cast({:deregister_listener, stream_id}, _from, state) do
-    Logger.info("[+] Deregistering listener for stream ID: #{inspect(stream_id)}")
+    #Logger.info("[+] Deregistering listener for stream ID: #{inspect(stream_id)}")
     new_state = %{state | listeners: Map.delete(state.listeners, stream_id)}
     {:noreply, new_state}
   end

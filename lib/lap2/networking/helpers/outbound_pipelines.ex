@@ -13,7 +13,7 @@ defmodule LAP2.Networking.Helpers.OutboundPipelines do
   """
   @spec send_proxy_discovery(EncryptedRequest.t(), list, non_neg_integer()) :: :ok
   def send_proxy_discovery(enc_request, random_neighbors, clove_limit \\ 20, router_name \\ :router) do
-    Logger.info("[i] OutboundPipelines: Sending proxy discovery")
+    #Logger.info("[i] OutboundPipelines: Sending proxy discovery")
     clove_seq = CloveHelper.gen_seq_num()
 
     case RequestHelper.serialise(enc_request) do
@@ -31,11 +31,12 @@ defmodule LAP2.Networking.Helpers.OutboundPipelines do
   """
   @spec send_proxy_accept(EncryptedRequest.t(), non_neg_integer, non_neg_integer, list, atom) :: :ok | :error
   def send_proxy_accept(enc_request, proxy_seq, clove_seq, relay_pool, router_name \\ :router) do
-    Logger.info("[i] OutboundPipelines: Sending proxy response")
+    #Logger.info("[i] OutboundPipelines: Sending proxy response")
 
     case RequestHelper.serialise(enc_request) do
       {:ok, data} ->
         response_header = %{proxy_seq: proxy_seq, clove_seq: clove_seq, hop_count: 0}
+        IO.inspect(response_header, label: "[+] Response_header")
         RelaySelector.disperse_and_send(data, response_header, relay_pool, router_name)
 
       _ ->
@@ -49,7 +50,7 @@ defmodule LAP2.Networking.Helpers.OutboundPipelines do
   """
   @spec send_regular_response(EncryptedRequest.t(), non_neg_integer, list, atom) :: :ok
   def send_regular_response(enc_request, proxy_seq, relay_pool, router_name) do
-    Logger.info("[i] OutboundPipelines: Sending regular response")
+    #Logger.info("[i] OutboundPipelines: Sending regular response")
 
     case RequestHelper.serialise(enc_request) do
       {:ok, data} ->

@@ -41,17 +41,20 @@ defmodule LAP2.Main.StructHandlers.ShareHandler do
   @spec handle_cast({:deliver, Clove.t(), map}, map) :: {:noreply, map}
   def handle_cast({:deliver, clove, aux_data}, state) do
     # TODO send data for parsing
+    Logger.info("[+] In share handler")
     {:ok, share} = ShareHelper.deserialise(clove.data)
 
     case ProcessorState.route_share(state, share) do
       :reassemble ->
-        Logger.info("[+] ShareHandler (#{state.config.registry_table.share_handler}): Reassembling shares <<<<<<<<<<====================")
+        Logger.info("[+] ShareHandler (#{state.config.registry_table.share_handler}): Reassembling share #{share.message_id}")
         reassemble(state, share, aux_data)
 
       :cache ->
+        Logger.info("[+] Caching clove by ShareHandler (#{state.config.registry_table.share_handler})")
         cache(state, share, aux_data)
 
       :drop ->
+        Logger.error("[!] Dropping clove by ShareHandler (#{state.config.registry_table.share_handler})")
         {:noreply, state}
     end
   end
@@ -90,7 +93,7 @@ defmodule LAP2.Main.StructHandlers.ShareHandler do
     aux_list = [aux_data | ets_struct.aux_data]
     case ShareHelper.format_aux_data(aux_list) do
       {:ok, formatted_aux_data} ->
-        Logger.info("[+] Formatted AUX DATA: #{inspect formatted_aux_data} <<<<<<<<<<==================================")
+        #Logger.info("[+] Formatted AUX DATA: #{inspect formatted_aux_data} <<<<<<<<<<==================================")
         cast_reconstructed(all_shares, formatted_aux_data, state.config.registry_table)
 
       {:error, _reason} ->
@@ -118,7 +121,7 @@ defmodule LAP2.Main.StructHandlers.ShareHandler do
             registry_table
           )
         end)
-        Logger.info("[+] Reconstructed: #{inspect reconstructed_data} <<<<<<<<<<==================================")
+        #Logger.info("[+] Reconstructed: #{inspect reconstructed_data} <<<<<<<<<<==================================")
 
       {:error, _reason} ->
         Logger.error("Reconstruction failed")
