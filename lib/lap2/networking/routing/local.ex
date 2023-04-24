@@ -17,7 +17,7 @@ defmodule LAP2.Networking.Routing.Local do
         headers: {:regular_proxy, %RegularProxyHeader{proxy_seq: pseq}}
       } = clove) do
     # TODO remove debug print
-    Logger.info("[+] Local: Relaying clove to share handler")
+    #Logger.info("[+] Local: Relaying clove to share handler")
     aux_data = %{request_type: :regular_proxy, proxy_seq: pseq}
     processor_name = state.config.registry_table.share_handler
     route_clove(processor_name, clove, aux_data)
@@ -32,7 +32,7 @@ defmodule LAP2.Networking.Routing.Local do
         headers: {:proxy_response, %ProxyResponseHeader{proxy_seq: pseq, clove_seq: cseq, hop_count: hops}}
       } = clove) do
     # TODO remove debug print
-    Logger.info("[+] Local: Relaying discovery response to share handler")
+
 
     aux_data = %{
       request_type: :discovery_response,
@@ -41,6 +41,8 @@ defmodule LAP2.Networking.Routing.Local do
       relays: source,
       hop_count: hops
     }
+
+    Logger.info("[+] Local: Relaying discovery response to share handler. Proxy seq: #{pseq}, clove seq: #{cseq}")
 
     # Route the clove
     processor_name = state.config.registry_table.share_handler
@@ -58,7 +60,7 @@ defmodule LAP2.Networking.Routing.Local do
         headers: {:proxy_discovery, %ProxyDiscoveryHeader{clove_seq: cseq}}
       } = clove) do
     # TODO remove debug print
-    Logger.info("[+] Local: Relaying via proxy request from #{inspect(source)}")
+    #Logger.info("[+] Local: Relaying via proxy request from #{inspect(source)}")
     prev_hop = state.clove_cache[cseq].prev_hop
     proxy_seq = CloveHelper.gen_seq_num()
 
@@ -92,7 +94,8 @@ defmodule LAP2.Networking.Routing.Local do
   @spec route_clove(atom, Clove.t(), map) :: :ok
   defp route_clove(processor_name, clove, aux_data) do
     # TODO remove debug print
-    Logger.info("[+] Local: Delivering to share handler")
+    #Logger.info("[+] Local: Delivering to share handler")
+    #IO.inspect(aux_data, label: "Local clove routing (#{processor_name})")
     Task.async(fn -> ShareHandler.deliver(clove, aux_data, processor_name) end)
     :ok
   end

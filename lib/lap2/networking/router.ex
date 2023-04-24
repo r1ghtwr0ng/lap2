@@ -24,7 +24,7 @@ defmodule LAP2.Networking.Router do
   @spec init(map) :: {:ok, map}
   def init(config) do
     # Initialise router state
-    Logger.info("[i] Router (#{config.lap2_addr}): Starting router")
+    #Logger.info("[i] Router (#{config.lap2_addr}): Starting router")
 
     state = %{
       clove_cache: %{},
@@ -59,42 +59,44 @@ defmodule LAP2.Networking.Router do
     |> State.clean_state()
     |> State.get_route(source, clove)
     |> case do
-      # Proxy discovery
-      {:random_walk, nil} ->
-        Logger.info("[-] Router GenServer (#{state.config.lap2_addr}): No random neighbor found")
-        {:noreply, state}
-
       {:random_walk, rand_neighbor} ->
+        Logger.info("[from #{inspect source}] ----> [via #{state.config.lap2_addr}] ----> [to #{inspect rand_neighbor}] (RANDOM WALK)")
         new_state = Remote.relay_proxy_discovery(state, source, rand_neighbor, clove)
         {:noreply, new_state}
 
       # Proxy request
       :proxy_request ->
+        Logger.info("[from #{inspect source}] ----> [to #{state.config.lap2_addr}] (PROXY REQUEST)")
         new_state = Local.handle_proxy_request(state, source, clove)
         {:noreply, new_state}
 
       # Route discovery response to share handler
       :recv_discovery ->
+        Logger.info("[from #{inspect source}] ----> [to #{state.config.lap2_addr}] (RECV DISCOVERY RESPONSE)")
         new_state = Local.receive_discovery_response(state, source, clove)
         {:noreply, new_state}
 
       # Route discovery response
-      {:discovery_response, ^source} ->
-        new_state = Remote.relay_discovery_response(state, source, clove)
+      {:discovery_response, ^source, dest} ->
+        Logger.info("[from #{inspect source}] ----> [to #{state.config.lap2_addr}] (RECV DISCOVERY RESPONSE)")
+        new_state = Remote.relay_discovery_response(state, source, dest, clove)
         {:noreply, new_state}
 
       # Relay clove to local
       {:relay, :share_handler} ->
+        Logger.info("[from #{inspect source}] ----> [to #{state.config.lap2_addr}] (LOCAL RELAY)")
         new_state = Local.relay_clove(state, clove)
         {:noreply, new_state}
 
       # Relay clove to remote
       {:relay, dest} when is_tuple(dest) ->
+        Logger.info("[from #{inspect source}] ----> [via #{state.config.lap2_addr}] ----> [to #{inspect dest}] (REMOTE RELAY)")
         new_state = Remote.relay_clove(state, dest, clove)
         {:noreply, new_state}
 
       # Drop clove
       _ ->
+        Logger.info("[from #{inspect source}] ----> [dropping #{state.config.lap2_addr}] (DROP CLOVE)")
         {:noreply, state}
     end
   end
@@ -103,7 +105,8 @@ defmodule LAP2.Networking.Router do
   @spec handle_cast({:route_outbound, {String.t(), non_neg_integer}, Clove.t()}, map) ::
           {:noreply, map}
   def handle_cast({:route_outbound, dest, clove}, state) do
-    Logger.info("[+] Router GenServer (#{state.config.lap2_addr}): In route outbound handle cast")
+    #Logger.info("[+] Router GenServer (#{state.config.lap2_addr}): In route outbound handle cast")
+    Logger.info("[from #{state.config.lap2_addr}] ----> [to #{inspect dest}] (OUTBOUND)")
     new_state = Remote.route_outbound(state, dest, clove)
     {:noreply, new_state}
   end
@@ -114,7 +117,8 @@ defmodule LAP2.Networking.Router do
   def handle_cast({:outbound_discovery, lap2_addr, clove}, state) do
     case Resolver.resolve_addr(lap2_addr, state.routing_table) do
       {:ok, dest} ->
-        Logger.info("[+] Router GenServer (#{state.config.lap2_addr}): In proxy discovery handle cast")
+        #Logger.info("[+] Router GenServer (#{state.config.lap2_addr}): In proxy discovery handle cast")
+        Logger.info("[from #{state.config.lap2_addr}] ----> [to #{inspect dest}] (OUTBOUND PROXY DISCOVERY)")
         new_state = Remote.route_outbound_discovery(state, dest, clove)
         {:noreply, new_state}
 
@@ -152,15 +156,15 @@ defmodule LAP2.Networking.Router do
   def handle_cast({:append_dht, lap2_addr, ip_addr}, state) do
     cond do
       lap2_addr == state.config.lap2_addr ->
-        Logger.info("[i] Ignoring DHT update for self")
+        #Logger.info("[i] Ignoring DHT update for self")
         {:noreply, state}
 
       Map.has_key?(state.routing_table, lap2_addr) ->
-        Logger.info("[i] Ignoring DHT update for existing entry")
+        #Logger.info("[i] Ignoring DHT update for existing entry")
         {:noreply, state}
 
       true ->
-        Logger.info("[+] Appending DHT entry")
+        #Logger.info("[+] Appending DHT entry")
         new_router = Map.put(state.routing_table, lap2_addr, ip_addr)
         new_state = state
         |> Map.put(:routing_table, new_router)
@@ -196,7 +200,7 @@ defmodule LAP2.Networking.Router do
   """
   @spec route_inbound({String.t(), non_neg_integer}, Clove.t(), atom) :: :ok
   def route_inbound(source, clove, name \\ :router) do
-    Logger.info("[+] Router (#{name}): Routing inbound clove")
+    #Logger.info("[+] Router (#{name}): Routing inbound clove")
     GenServer.cast({:global, name}, {:route_inbound, source, clove})
   end
 
@@ -205,13 +209,13 @@ defmodule LAP2.Networking.Router do
   """
   @spec route_outbound({String.t(), non_neg_integer}, Clove.t(), map) :: :ok
   def route_outbound(dest, clove, name) do
-    Logger.info("[+] Router (#{name}): Routing outbound clove")
+    #Logger.info("[+] Router (#{name}): Routing outbound clove")
     GenServer.cast({:global, name}, {:route_outbound, dest, clove})
   end
 
   @spec route_outbound_discovery(String.t(), Clove.t(), atom) :: :ok
   def route_outbound_discovery(lap2_addr, clove, name) do
-    Logger.info("[+] Router (#{name}): Routing outbound discovery")
+    #Logger.info("[+] Router (#{name}): Routing outbound discovery")
     GenServer.cast({:global, name}, {:outbound_discovery, lap2_addr, clove})
   end
 

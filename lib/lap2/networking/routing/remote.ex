@@ -22,7 +22,7 @@ defmodule LAP2.Networking.Routing.Remote do
     # Resolve network address to IP address
     case Resolver.resolve_addr(neighbor_addr, state.routing_table) do
       {:ok, dest} ->
-        Logger.info("[+] Remote (#{state.config.lap2_addr}): Relaying via random walk to #{inspect(dest)}")
+        #Logger.info("[+] Remote (#{state.config.lap2_addr}): Relaying via random walk to #{inspect(dest)}")
         udp_name = state.config.registry_table.udp_server
 
         route_clove(dest, clove, udp_name)
@@ -37,11 +37,10 @@ defmodule LAP2.Networking.Routing.Remote do
   @doc """
   Route a discovery response along its path.
   """
-  @spec relay_discovery_response(map, {String.t(), integer}, map) :: map
-  def relay_discovery_response(state, source, %Clove{headers:
+  @spec relay_discovery_response(map, {String.t(), non_neg_integer}, {String.t(), non_neg_integer}, map) :: map
+  def relay_discovery_response(state, source, dest, %Clove{headers:
       {:proxy_response, %ProxyResponseHeader{clove_seq: cseq, proxy_seq: pseq, hop_count: hops}}} = clove) do
-    dest = state.clove_cache[cseq].prev_hop
-    Logger.info("[+] Remote (#{state.config.lap2_addr}): Relaying discovery response to #{inspect(dest)}")
+    #Logger.info("[+] Remote (#{state.config.lap2_addr}): Relaying discovery response to #{inspect(dest)}")
     {hdr_type, hdr} = clove.headers
     new_header = {hdr_type, Map.put(hdr, :hop_count, hops + 1)}
     clove = Map.put(clove, :headers, new_header)
@@ -62,7 +61,7 @@ defmodule LAP2.Networking.Routing.Remote do
   @spec relay_clove(map, {String.t(), integer}, map) :: map
   def relay_clove(state, dest, %Clove{headers: {:regular_proxy, %RegularProxyHeader{proxy_seq: pseq}}} = clove) do
     # Debug
-    Logger.info("[+] Remote (#{state.config.lap2_addr}): Relaying clove to #{inspect(dest)}")
+    #Logger.info("[+] Remote (#{state.config.lap2_addr}): Relaying clove to #{inspect(dest)}")
     udp_name = state.config.registry_table.udp_server
     route_clove(dest, clove, udp_name)
     State.update_relay_timestamp(state, pseq)
@@ -103,6 +102,7 @@ defmodule LAP2.Networking.Routing.Remote do
   # Deliver the clove to the appropriate receiver, either local or remote
   @spec route_clove({String.t(), non_neg_integer}, Clove.t(), atom) :: :ok
   defp route_clove(dest, clove, udp_name) do
+    #Logger.info("[+] (#{udp_name}) Sending clove: #{inspect clove} to #{inspect(dest)}")
     Task.async(fn -> Lap2Socket.send_clove(dest, clove, udp_name) end)
     :ok
   end

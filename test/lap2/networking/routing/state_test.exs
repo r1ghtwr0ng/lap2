@@ -248,7 +248,7 @@ defmodule LAP2.Networking.Routing.StateTest do
       header = %ProxyResponseHeader{clove_seq: clove_seq, proxy_seq: 1, hop_count: 0}
       clove = %Clove{data: data, headers: {:proxy_response, header}, checksum: CRC.crc_32(data)}
 
-      expected_route = {:discovery_response, {{"10.10.10.2", 2222}, {"10.10.10.1", 1111}}}
+      expected_route = {:discovery_response, {"10.10.10.2", 2222}, {"10.10.10.1", 1111}}
       assert State.get_route(state, source, clove) == expected_route
     end
 
