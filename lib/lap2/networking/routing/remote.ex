@@ -74,7 +74,6 @@ defmodule LAP2.Networking.Routing.Remote do
   """
   @spec route_outbound_discovery(map, {String.t(), integer}, Clove.t()) :: map
   def route_outbound_discovery(state, dest, clove) do
-    Logger.info("[+] Remote (#{state.config.lap2_addr}): Routing outbound discovery")
     # Set random drop probability
     {hdr_type, hdr} = clove.headers
     new_header = {hdr_type, Map.put(hdr, :drop_probab, CloveHelper.gen_drop_probab(0.7, 1.0))}
@@ -91,7 +90,6 @@ defmodule LAP2.Networking.Routing.Remote do
   """
   @spec route_outbound(map, {String.t(), integer}, Clove.t()) :: map
   def route_outbound(state, dest, clove) do
-    Logger.info("[+] Remote (#{state.config.lap2_addr}): Routing outbound clove")
     # Route clove
     udp_name = state.config.registry_table.udp_server
     route_clove(dest, clove, udp_name)

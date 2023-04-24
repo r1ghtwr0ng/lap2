@@ -16,10 +16,8 @@ defmodule LAP2.Networking.Helpers.RelaySelector do
   """
   @spec cast_proxy_discovery(binary, non_neg_integer, list, non_neg_integer, atom) :: :ok | :error
   def cast_proxy_discovery(_data, _clove_seq, random_neighbors, clove_limit, _router_name)
-    when length(random_neighbors) < clove_limit or clove_limit < 2 do
-    # Validate that there is enough random neighbors to cast cloves
-    :error
-  end
+    when length(random_neighbors) < clove_limit or clove_limit < 2, do: :error
+
   def cast_proxy_discovery(data, clove_seq, random_neighbors, clove_limit, router_name) do
     # Split data into shares, then create cloves
     proxy_discovery_hdr = %{clove_seq: clove_seq, drop_probab: CloveHelper.gen_drop_probab(0.7, 1.0)}
@@ -40,6 +38,7 @@ defmodule LAP2.Networking.Helpers.RelaySelector do
   @spec disperse_and_send(binary, map, list, atom) :: :ok | :error
   def disperse_and_send(_data, _clove_header, relay_list, _router_name) when length(relay_list) < 2 do
     # Validate that there are enough relays in the list
+    Logger.error("Not enough relays in list to send cloves")
     :error
   end
   def disperse_and_send(data, clove_header, relay_list, router_name) do

@@ -52,7 +52,7 @@ defmodule LAP2.Networking.Router do
 
   # TODO append lap2_addr to the config
   # Handle received cloves
-  @spec handle_cast({:route_inbound, {String.t(), non_neg_integer}, Clove}, map) ::
+  @spec handle_cast({:route_inbound, {String.t(), non_neg_integer}, Clove.t()}, map) ::
           {:noreply, map}
   def handle_cast({:route_inbound, source, clove}, state) do
     state
@@ -127,6 +127,7 @@ defmodule LAP2.Networking.Router do
   # Add a proxy relay to relay table
   @spec handle_cast({:add_proxy_relays, non_neg_integer, list({String.t(), non_neg_integer})}, map) :: {:noreply, map}
   def handle_cast({:add_proxy_relays, proxy_seq, relays}, state) do
+    IO.inspect(relays, label: "Router GenServer : Adding relays:")
     new_state = Enum.reduce(relays, state, fn relay_node, acc ->
       State.add_proxy_relay(acc, proxy_seq, relay_node)
     end)
