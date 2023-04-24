@@ -10,9 +10,25 @@ defmodule LAP2Test do
     %{
       main_supervisor: %{name: String.to_atom("lap2_daemon_#{addr}")},
       task_supervisor: %{max_children: 10, name: String.to_atom("lap2_superv_#{addr}")},
+      proxy_manager: %{
+        name: String.to_atom("proxy_manager_#{addr}"),
+        registry_table: %{
+          proxy_manager: String.to_atom("proxy_manager_#{addr}"),
+          share_handler: String.to_atom("share_handler_#{addr}"),
+          router: String.to_atom("router_#{addr}"),
+          main_supervisor: String.to_atom("lap2_daemon_#{addr}"),
+          task_supervisor: String.to_atom("lap2_superv_#{addr}"),
+          tcp_server: String.to_atom("tcp_server_#{addr}"),
+          udp_server: String.to_atom("udp_server_#{addr}"),
+          crypto_manager: String.to_atom("crypto_manager_#{addr}")
+        },
+        proxy_limit: 20,
+        proxy_ttl: 60000
+      },
       crypto_manager: %{name: String.to_atom("crypto_manager_#{addr}"),
         identity: "IDENT_#{addr}",
         registry_table: %{
+          proxy_manager: String.to_atom("proxy_manager_#{addr}"),
           share_handler: String.to_atom("share_handler_#{addr}"),
           router: String.to_atom("router_#{addr}"),
           main_supervisor: String.to_atom("lap2_daemon_#{addr}"),
@@ -29,6 +45,7 @@ defmodule LAP2Test do
         proxy_limit: 20,
         proxy_policy: true,
         registry_table: %{
+          proxy_manager: String.to_atom("proxy_manager_#{addr}"),
           share_handler: String.to_atom("share_handler_#{addr}"),
           router: String.to_atom("router_#{addr}"),
           main_supervisor: String.to_atom("lap2_daemon_#{addr}"),
@@ -45,6 +62,7 @@ defmodule LAP2Test do
         name: :tcp_server,
         queue_interval: 100,
         registry_table: %{
+          proxy_manager: String.to_atom("proxy_manager_#{addr}"),
           share_handler: String.to_atom("share_handler_#{addr}"),
           router: String.to_atom("router_#{addr}"),
           main_supervisor: String.to_atom("lap2_daemon_#{addr}"),
@@ -62,6 +80,7 @@ defmodule LAP2Test do
         name: String.to_atom("udp_server_#{addr}"),
         queue_interval: 100,
         registry_table: %{
+          proxy_manager: String.to_atom("proxy_manager_#{addr}"),
           share_handler: String.to_atom("share_handler_#{addr}"),
           router: String.to_atom("router_#{addr}"),
           main_supervisor: String.to_atom("lap2_daemon_#{addr}"),
@@ -76,6 +95,7 @@ defmodule LAP2Test do
       share_handler: %{
         name: String.to_atom("share_handler_#{addr}"),
         registry_table: %{
+          proxy_manager: String.to_atom("proxy_manager_#{addr}"),
           share_handler: String.to_atom("share_handler_#{addr}"),
           router: String.to_atom("router_#{addr}"),
           main_supervisor: String.to_atom("lap2_daemon_#{addr}"),
@@ -102,7 +122,7 @@ defmodule LAP2Test do
           assert :ok == Supervisor.stop(pid)
 
         {:error, reason} ->
-          IO.puts("[!] Unable to start daemon: #{reason}")
+          Logger.error("[!] Unable to start daemon: #{reason}")
       end
     end
   end
@@ -123,7 +143,7 @@ defmodule LAP2Test do
           assert :ok == Supervisor.stop(pid)
 
         {:error, reason} ->
-          IO.puts("[!] Unable to start daemon: #{reason}")
+          Logger.error("[!] Unable to start daemon: #{reason}")
       end
     end
   end
@@ -168,12 +188,12 @@ defmodule LAP2Test do
               assert :ok == Supervisor.stop(bstrp_pid)
 
             {:error, reason} ->
-              IO.puts("[!] Unable to start bootstrap proc daemon: #{reason}")
+              Logger.error("[!] Unable to start bootstrap proc daemon: #{reason}")
               assert :ok == Supervisor.stop(main_pid)
           end
 
         {:error, reason} ->
-          IO.puts("[!] Unable to start daemon: #{reason}")
+          Logger.error("[!] Unable to start daemon: #{reason}")
       end
     end
   end
@@ -203,7 +223,7 @@ defmodule LAP2Test do
           assert :ok == Supervisor.stop(pid)
 
         {:error, reason} ->
-          IO.puts("[!] Unable to start daemon: #{reason}")
+          Logger.error("[!] Unable to start daemon: #{reason}")
       end
     end
   end

@@ -9,6 +9,7 @@ defmodule LAP2.Utils.ConfigParserTest do
         crypto_manager: %{name: :crypto_manager,
         identity: "IDENTITY",
         registry_table: %{
+          proxy_manager: :proxy_manager,
           main_supervisor: :lap2_deamon,
           router: :router,
           share_handler: :share_handler,
@@ -18,6 +19,21 @@ defmodule LAP2.Utils.ConfigParserTest do
           crypto_manager: :crypto_manager
         }},
         main_supervisor: %{name: :lap2_deamon},
+        proxy_manager: %{
+          name: :proxy_manager,
+          registry_table: %{
+            proxy_manager: :proxy_manager,
+            main_supervisor: :lap2_deamon,
+            router: :router,
+            share_handler: :share_handler,
+            task_supervisor: :lap2_superv,
+            tcp_server: :tcp_server,
+            udp_server: :udp_server,
+            crypto_manager: :crypto_manager
+          },
+          proxy_limit: 20,
+          proxy_ttl: 60000
+        },
         router: %{
           clove_cache_size: 1000,
           clove_cache_ttl: 30_000,
@@ -26,6 +42,7 @@ defmodule LAP2.Utils.ConfigParserTest do
           proxy_limit: 20,
           proxy_policy: true,
           registry_table: %{
+            proxy_manager: :proxy_manager,
             main_supervisor: :lap2_deamon,
             router: :router,
             share_handler: :share_handler,
@@ -40,6 +57,7 @@ defmodule LAP2.Utils.ConfigParserTest do
         share_handler: %{
           name: :share_handler,
           registry_table: %{
+            proxy_manager: :proxy_manager,
             main_supervisor: :lap2_deamon,
             router: :router,
             share_handler: :share_handler,
@@ -56,6 +74,7 @@ defmodule LAP2.Utils.ConfigParserTest do
           name: :tcp_server,
           queue_interval: 100,
           registry_table: %{
+            proxy_manager: :proxy_manager,
             main_supervisor: :lap2_deamon,
             router: :router,
             share_handler: :share_handler,
@@ -73,6 +92,7 @@ defmodule LAP2.Utils.ConfigParserTest do
           name: :udp_server,
           queue_interval: 100,
           registry_table: %{
+            proxy_manager: :proxy_manager,
             main_supervisor: :lap2_deamon,
             router: :router,
             share_handler: :share_handler,

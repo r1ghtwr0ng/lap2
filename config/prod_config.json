@@ -11,6 +11,12 @@
         "identity": "IDENTITY",
         "registry_table": null
     },
+    "proxy_manager": {
+        "name": "proxy_manager",
+        "registry_table": null,
+        "proxy_limit": 20,
+        "proxy_ttl": 60000
+    },
     "share_handler": {
         "name": "share_handler",
         "registry_table": null,
