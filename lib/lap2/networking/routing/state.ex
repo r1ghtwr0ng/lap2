@@ -21,9 +21,11 @@ defmodule LAP2.Networking.Routing.State do
   Update the cache entry timestamp.
   """
   @spec update_clove_timestamp(map, non_neg_integer) :: map
+  def update_clove_timestamp(state, clove_seq)
+    when is_map_key(state.clove_cache, clove_seq), do: state
   def update_clove_timestamp(state, clove_seq) do
     new_cache =
-      Map.update(state.clove_cache, clove_seq, nil, fn entry ->
+      Map.update(state.clove_cache, clove_seq, %{timestamp: :os.system_time(:millisecond)}, fn entry ->
         Map.put(entry, :timestamp, :os.system_time(:millisecond))
       end)
 
@@ -36,7 +38,7 @@ defmodule LAP2.Networking.Routing.State do
   @spec update_relay_timestamp(map, non_neg_integer) :: map
   def update_relay_timestamp(state, proxy_seq) do
     new_table =
-      Map.update(state.relay_table, proxy_seq, nil, fn entry ->
+      Map.update(state.relay_table, proxy_seq, %{}, fn entry ->
         Map.put(entry, :timestamp, :os.system_time(:millisecond))
       end)
 
@@ -109,7 +111,7 @@ defmodule LAP2.Networking.Routing.State do
   @spec add_proxy_relay(map, non_neg_integer, {String.t(), integer}) :: map
   def add_proxy_relay(state, proxy_seq, relay_node) do
     # TODO drop unused routes, based on priority values (first introduce priority values in the route struct)
-    IO.puts("[+] State: Added route #{inspect(relay_node)} to relay table for proxy_seq: #{proxy_seq}")
+    Logger.info("[+] State: Added route #{inspect(relay_node)} to relay table for proxy_seq: #{proxy_seq}")
 
     relay_entry = case Map.get(state.relay_table, proxy_seq) do
       %{type: :proxy, relays: relays} -> %{type: :proxy,
@@ -127,7 +129,7 @@ defmodule LAP2.Networking.Routing.State do
     case reverse_lookup(state.routing_table, relay_node) do
       nil -> # LAP2 address cannot be resolved by the lookup table
         Logger.error("Failed to resolve LAP2 reverse lookup for IP address: #{inspect relay_node}")
-        state
+        Map.put(state, :relay_table, Map.put(state.relay_table, proxy_seq, relay_entry))
 
       lap2_addr ->
         # Update state by removing random neighbor
@@ -233,8 +235,9 @@ defmodule LAP2.Networking.Routing.State do
 
     updated_cache =
       cache
-      |> Enum.filter(fn {_clove_seq, %{timestamp: timestamp}} ->
-        timestamp > :os.system_time(:millisecond) - cache_ttl
+      |> Enum.filter(fn
+        {_clove_seq, %{timestamp: timestamp}} -> timestamp > :os.system_time(:millisecond) - cache_ttl
+        {_clove_seq, nil} -> false
       end)
       |> Map.new()
 

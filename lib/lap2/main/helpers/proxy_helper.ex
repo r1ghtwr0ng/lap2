@@ -6,7 +6,7 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
   require Logger
   alias LAP2.Main.Master
   alias LAP2.Utils.EtsHelper
-  alias LAP2.Crypto.CryptoManager
+  alias LAP2.Utils.ProtoBuf.RequestHelper
   alias LAP2.Networking.Router
   alias LAP2.Networking.Helpers.OutboundPipelines
 
@@ -23,7 +23,8 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
     Logger.info("[i] Accepting proxy request: #{proxy_seq}")
     router_name = state.config.registry_table.router
     new_pool = add_relays(state.proxy_pool, proxy_seq, relays, router_name)
-    case CryptoManager.gen_response(request, proxy_seq, state.config.registry_table.crypto_manager) do
+    crypto_mgr = state.config.registry_table.crypto_manager
+    case RequestHelper.gen_response(request, proxy_seq, crypto_mgr) do
       {:ok, enc_response} -> # Successfully updated crypto state and generated response
         relay_pool = Map.get(new_pool, proxy_seq, [])
         router_name = state.config.registry_table.router
@@ -63,17 +64,16 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
       true ->
         router_name = state.config.registry_table.router
         new_pool = add_relays(state.proxy_pool, proxy_seq, relays, router_name)
-        case CryptoManager.gen_finalise_exchange(request, proxy_seq, clove_seq, state.config.registry_table.crypto_manager) do
+        relay_pool = Map.get(new_pool, proxy_seq, [])
+        router_name = state.config.registry_table.router
+        case RequestHelper.gen_finalise_exchange(request, proxy_seq, clove_seq, state.config.registry_table.crypto_manager) do
           {:ok, enc_response} ->
-            relay_pool = Map.get(new_pool, proxy_seq, [])
-            router_name = state.config.registry_table.router
             OutboundPipelines.send_regular_response(enc_response, proxy_seq, relay_pool, router_name)
-
             {:ok, Map.put(state, :proxy_pool, new_pool)}
 
-          err ->
-          Logger.error("Error occured while responding to proxy: #{proxy_seq}, Request type: FIN_KEY_REQUEST")
-          err
+          {:error, reason} ->
+            Logger.error("Error: #{reason} occured while responding to proxy: #{proxy_seq}, Request type: DISCOVERY_RESPONSE")
+            {:error, reason}
         end
     end
   end
@@ -81,19 +81,18 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
   @doc """
   Finalise the key exchange.
   """
-  @spec handle_fin_key_exhange(Request.t(), non_neg_integer, map) :: :ok | :error
+  @spec handle_fin_key_exhange(any, any, any) :: :ok | :error
   def handle_fin_key_exhange(request, proxy_seq, state) do
     Logger.info("[i] Handling key exchange finalisation")
     crypt_name = state.config.registry_table.crypto_manager
-
-    case CryptoManager.recv_finalise_exchange(request, proxy_seq, crypt_name) do
+    case RequestHelper.recv_finalise_exchange(request, proxy_seq, crypt_name) do
       {:ok, response} ->
         relay_pool = Map.get(state.proxy_pool, proxy_seq, [])
         router_name = state.config.registry_table.router
         OutboundPipelines.send_regular_response(response, proxy_seq, relay_pool, router_name)
 
-      _ ->
-        Logger.error("Error occured while responding to proxy: #{proxy_seq}, Request type: FIN_KEY_REQUEST")
+      {:error, reason} ->
+        Logger.error("Error: #{reason} occured while responding to proxy: #{proxy_seq}, Request type: FIN_KEY_REQUEST")
         :error
     end
   end
@@ -105,8 +104,7 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
   def handle_key_rotation(request, proxy_seq, state) do
     Logger.info("[i] Handling key rotation request")
     crypt_name = state.config.registry_table.crypto_manager
-
-    case CryptoManager.rotate_keys(request, proxy_seq, crypt_name) do
+    case RequestHelper.rotate_keys(request, proxy_seq, crypt_name) do
       {:ok, response} ->
         relay_pool = Map.get(state.proxy_pool, proxy_seq, [])
         router_name = state.config.registry_table.router
@@ -174,6 +172,7 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
   @spec add_relays(map, non_neg_integer, list({String.t(), non_neg_integer}), atom) :: map
   defp add_relays(proxy_pool, _proxy_seq, [], _router_name), do: proxy_pool
   defp add_relays(proxy_pool, proxy_seq, relays, router_name) when is_map_key(proxy_pool, proxy_seq) do
+    IO.inspect(relays, label: "The following relays will be added to the proxy pool:")
     Router.add_proxy_relays(proxy_seq, relays, router_name)
     Enum.reduce(relays, proxy_pool, fn relay, acc ->
       cond do

@@ -66,7 +66,7 @@ defmodule LAP2.Utils.ProtoBuf.ShareHelper do
     total_shares = Enum.at(shares, 0).total_shares
 
     Enum.all?(shares, fn share ->
-      verify_share(share) && share.threshold == threshold && share.total_shares == total_shares
+      verify_share(share) && share.share_threshold == threshold && share.total_shares == total_shares
     end)
   end
 
@@ -92,7 +92,7 @@ defmodule LAP2.Utils.ProtoBuf.ShareHelper do
        when is_map_key(aux_data, :relays) and is_map_key(aux_data, :hop_count) do
     case Map.delete(Map.delete(aux_data, :relays), :hop_count) ===
            Map.delete(Map.delete(acc, :relays), :hop_count) do
-      true -> {:ok, Map.merge(acc, aux_data, fn _k, v1, v2 -> List.flatten([v1 | v2]) end)}
+      true -> {:ok, Map.merge(acc, aux_data, fn _k, v1, v2 -> [v1 | v2] |> List.flatten() |> Enum.uniq() end)}
       false -> {:error, :invalid_aux_data}
     end
   end
@@ -102,7 +102,7 @@ defmodule LAP2.Utils.ProtoBuf.ShareHelper do
       true ->
         {:ok,
          Map.merge(acc, aux_data, fn
-           :relays, v1, v2 -> List.flatten([v1, v2])
+           :relays, v1, v2 -> [v1, v2] |> List.flatten() |> Enum.uniq()
             _k, v1, _v2 -> v1
          end)}
 

@@ -38,14 +38,14 @@ defmodule LAP2.Main.StructHandlers.ShareHandler do
   end
 
   # ---- GenServer Callbacks ----
-  @spec handle_cast({:deliver, binary, map}, map) :: {:noreply, map}
-  def handle_cast({:deliver, data, aux_data}, state) do
+  @spec handle_cast({:deliver, Clove.t(), map}, map) :: {:noreply, map}
+  def handle_cast({:deliver, clove, aux_data}, state) do
     # TODO send data for parsing
-    {:ok, share} = ShareHelper.deserialise(data)
+    {:ok, share} = ShareHelper.deserialise(clove.data)
 
     case ProcessorState.route_share(state, share) do
       :reassemble ->
-        Logger.info("[+] ShareHandler (#{state.config.name}): Reassembling shares <<<<<<<<<<==================================")
+        Logger.info("[+] ShareHandler (#{state.config.registry_table.share_handler}): Reassembling shares <<<<<<<<<<====================")
         reassemble(state, share, aux_data)
 
       :cache ->
@@ -54,6 +54,11 @@ defmodule LAP2.Main.StructHandlers.ShareHandler do
       :drop ->
         {:noreply, state}
     end
+  end
+
+  @spec handle_info(any, map) :: {:noreply, map}
+  def handle_info(_, state) do
+    {:noreply, state}
   end
 
   @doc """
@@ -85,7 +90,7 @@ defmodule LAP2.Main.StructHandlers.ShareHandler do
     aux_list = [aux_data | ets_struct.aux_data]
     case ShareHelper.format_aux_data(aux_list) do
       {:ok, formatted_aux_data} ->
-        Logger.info("[+] Formatted AUX DATA: #{formatted_aux_data} <<<<<<<<<<==================================")
+        Logger.info("[+] Formatted AUX DATA: #{inspect formatted_aux_data} <<<<<<<<<<==================================")
         cast_reconstructed(all_shares, formatted_aux_data, state.config.registry_table)
 
       {:error, _reason} ->
@@ -113,7 +118,7 @@ defmodule LAP2.Main.StructHandlers.ShareHandler do
             registry_table
           )
         end)
-        Logger.info("[+] Reconstructed: #{reconstructed_data} <<<<<<<<<<==================================")
+        Logger.info("[+] Reconstructed: #{inspect reconstructed_data} <<<<<<<<<<==================================")
 
       {:error, _reason} ->
         Logger.error("Reconstruction failed")
