@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="ExDoc v0.29.4">
+    <meta name="project" content="LAP2 v0.1.0">
+
+    <title>LAP2.Crypto.CryptoManager — LAP2 v0.1.0</title>
+    <link rel="stylesheet" href="dist/html-elixir-HHVY3JYD.css" />
+
+
+    <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
+    <script src="dist/handlebars.templates-XWGFFSCD.js"></script>
+    <script src="dist/sidebar_items-66474A1B.js"></script>
+
+      <script src="docs_config.js"></script>
+
+    <script async src="dist/html-JDI3AVDD.js"></script>
+
+
+  </head>
+  <body data-type="modules" class="page-module">
+    <script>
+
+      try {
+        var settings = JSON.parse(localStorage.getItem('ex_doc:settings') || '{}');
+
+        if (settings.theme === 'dark' ||
+           ((settings.theme === 'system' || settings.theme == null) &&
+             window.matchMedia('(prefers-color-scheme: dark)').matches)
+           ) {
+          document.body.classList.add('dark')
+        }
+      } catch (error) { }
+    </script>
+
+<div class="main">
+
+<button class="sidebar-button sidebar-toggle" aria-label="toggle sidebar">
+  <i class="ri-menu-line ri-lg" title="Collapse/expand sidebar"></i>
+</button>
+
+<section class="sidebar">
+  <form class="sidebar-search" action="search.html">
+    <button type="submit" class="search-button" aria-label="Submit Search">
+      <i class="ri-search-2-line" aria-hidden="true" title="Submit search"></i>
+    </button>
+    <button type="button" tabindex="-1" class="search-close-button" aria-label="Cancel Search">
+      <i class="ri-close-line ri-lg" aria-hidden="true" title="Cancel search"></i>
+    </button>
+    <label class="search-label">
+      <p class="sr-only">Search</p>
+      <input name="q" type="text" class="search-input" placeholder="Search..." aria-label="Input your search terms" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+    </label>
+  </form>
+
+  <div class="autocomplete">
+    <div class="autocomplete-results">
+    </div>
+  </div>
+
+  <div class="sidebar-header">
+
+      <a href="http://github.com/r1ghtwr0ng/lap2">
+        <img src="assets/logo.png" alt="LAP2" class="sidebar-projectImage">
+      </a>
+
+    <div class="sidebar-projectDetails">
+      <a href="http://github.com/r1ghtwr0ng/lap2" class="sidebar-projectName" translate="no">
+LAP2
+      </a>
+      <div class="sidebar-projectVersion" translate="no">
+        v0.1.0
+      </div>
+    </div>
+    <ul class="sidebar-listNav">
+      <li><a id="extras-list-link" href="#full-list">Pages</a></li>
+
+        <li><a id="modules-list-link" href="#full-list">Modules</a></li>
+
+
+    </ul>
+  </div>
+
+  <div class="gradient"></div>
+  <ul id="full-list"></ul>
+</section>
+
+<section class="content">
+  <output role="status" id="toast"></output>
+  <div class="content-outer">
+    <div id="content" class="content-inner">
+
+<h1>
+<button class="icon-action display-settings">
+  <i class="ri-settings-3-line"></i>
+  <span class="sr-only">Settings</span>
+</button>
+
+
+    <a href="https://github.com/r1ghtwr0ng/lap2/blob/true/lib/lap2/crypto/crypto_manager.ex#L1" title="View Source" class="icon-action" rel="help">
+      <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+      <span class="sr-only">View Source</span>
+    </a>
+
+  <span translate="no">LAP2.Crypto.CryptoManager</span> 
+  <small class="app-vsn" translate="no">(LAP2 v0.1.0)</small>
+
+</h1>
+
+
+  <section id="moduledoc">
+<p>Module for managing the state of cryptographic information for proxy connections.</p>
+  </section>
+
+
+  <section id="summary" class="details-list">
+    <h1 class="section-heading">
+      <a class="hover-link" href="#summary">
+        <i class="ri-link-m" aria-hidden="true"></i>
+        <span class="sr-only">Link to this section</span>
+      </a>
+      Summary
+    </h1>
+<div class="summary-functions summary">
+  <h2>
+    <a href="#functions">Functions</a>
+  </h2>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#add_crypto_struct/3" translate="no">add_crypto_struct(crypto_struct, proxy_seq, name \\ :crypto_manager)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Add a crypto struct to the ETS table.
+TODO this is for testing ONLY, remove for final version (as well as its genserver call)</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#add_temp_crypto_struct/3" translate="no">add_temp_crypto_struct(crypto_struct, clove_seq, name \\ :crypto_manager)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Add a temporary crypto struct to the ETS table.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#child_spec/1" translate="no">child_spec(init_arg)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Returns a specification to start this module under a supervisor.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#decrypt_request/3" translate="no">decrypt_request(enc_request, proxy_seq, name \\ :crypto_manager)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Decrypt a request using the key stored in the ETS table.
+Return binary for deserialisation.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#delete_temp_crypto/2" translate="no">delete_temp_crypto(clove_seq, name \\ :crypto_manager)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Add a temporary crypto struct to the ETS table.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#encrypt_request/3" translate="no">encrypt_request(data, proxy_seq, name \\ :crypto_manager)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Encrypt a serialised (binary) request, returning an EncryptedRequest struct.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#get_identity/1" translate="no">get_identity(name \\ :crypto_manager)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Fetch the crypto identity from the GenServer state.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#init/1" translate="no">init(config)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Initialise the data handler GenServer.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#remove_crypto_struct/2" translate="no">remove_crypto_struct(proxy_seq, name \\ :crypto_manager)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Remove a crypto struct from the ETS table.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#rotate_keys/3" translate="no">rotate_keys(crypto_struct, proxy_seq, name \\ :crypto_manager)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Perform key rotation request with a remote proxy.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#start_link/1" translate="no">start_link(config)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Start the CryptoManager process.</p></div>
+
+    </div>
+
+</div>
+
+  </section>
+
+
+  <section id="functions" class="details-list">
+    <h1 class="section-heading">
+      <a class="hover-link" href="#functions">
+        <i class="ri-link-m" aria-hidden="true"></i>
+        <span class="sr-only">Link to this section</span>
+      </a>
+Functions
+    </h1>
+    <div class="functions-list">
+<section class="detail" id="add_crypto_struct/3">
+
+    <span id="add_crypto_struct/2"></span>
+
+  <div class="detail-header">
+    <a href="#add_crypto_struct/3" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">add_crypto_struct(crypto_struct, proxy_seq, name \\ :crypto_manager)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/true/lib/lap2/crypto/crypto_manager.ex#L118" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> add_crypto_struct(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) :: :ok</pre>
+
+      </div>
+
+<p>Add a crypto struct to the ETS table.
+TODO this is for testing ONLY, remove for final version (as well as its genserver call)</p>
+  </section>
+</section>
+<section class="detail" id="add_temp_crypto_struct/3">
+
+    <span id="add_temp_crypto_struct/2"></span>
+
+  <div class="detail-header">
+    <a href="#add_temp_crypto_struct/3" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">add_temp_crypto_struct(crypto_struct, clove_seq, name \\ :crypto_manager)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/true/lib/lap2/crypto/crypto_manager.ex#L126" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> add_temp_crypto_struct(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) :: :ok</pre>
+
+      </div>
+
+<p>Add a temporary crypto struct to the ETS table.</p>
+  </section>
+</section>
+<section class="detail" id="child_spec/1">
+
+  <div class="detail-header">
+    <a href="#child_spec/1" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">child_spec(init_arg)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/true/lib/lap2/crypto/crypto_manager.ex#L6" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+<p>Returns a specification to start this module under a supervisor.</p><p>See <a href="https://hexdocs.pm/elixir/Supervisor.html"><code class="inline">Supervisor</code></a>.</p>
+  </section>
+</section>
+<section class="detail" id="decrypt_request/3">
+
+    <span id="decrypt_request/2"></span>
+
+  <div class="detail-header">
+    <a href="#decrypt_request/3" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">decrypt_request(enc_request, proxy_seq, name \\ :crypto_manager)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/true/lib/lap2/crypto/crypto_manager.ex#L100" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> decrypt_request(EncryptedRequest.t(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) ::
+  {:ok, <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>()} | {:error, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()}</pre>
+
+      </div>
+
+<p>Decrypt a request using the key stored in the ETS table.
+Return binary for deserialisation.</p>
+  </section>
+</section>
+<section class="detail" id="delete_temp_crypto/2">
+
+    <span id="delete_temp_crypto/1"></span>
+
+  <div class="detail-header">
+    <a href="#delete_temp_crypto/2" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">delete_temp_crypto(clove_seq, name \\ :crypto_manager)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/true/lib/lap2/crypto/crypto_manager.ex#L134" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> delete_temp_crypto(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) :: :ok</pre>
+
+      </div>
+
+<p>Add a temporary crypto struct to the ETS table.</p>
+  </section>
+</section>
+<section class="detail" id="encrypt_request/3">
+
+    <span id="encrypt_request/2"></span>
+
+  <div class="detail-header">
+    <a href="#encrypt_request/3" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">encrypt_request(data, proxy_seq, name \\ :crypto_manager)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/true/lib/lap2/crypto/crypto_manager.ex#L108" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> encrypt_request(<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) ::
+  {:ok, EncryptedRequest.t()} | {:error, :no_key}</pre>
+
+      </div>
+
+<p>Encrypt a serialised (binary) request, returning an EncryptedRequest struct.</p>
+  </section>
+</section>
+<section class="detail" id="get_identity/1">
+
+    <span id="get_identity/0"></span>
+
+  <div class="detail-header">
+    <a href="#get_identity/1" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">get_identity(name \\ :crypto_manager)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/true/lib/lap2/crypto/crypto_manager.ex#L158" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> get_identity(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) :: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>()</pre>
+
+      </div>
+
+<p>Fetch the crypto identity from the GenServer state.</p>
+  </section>
+</section>
+<section class="detail" id="init/1">
+
+  <div class="detail-header">
+    <a href="#init/1" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">init(config)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/true/lib/lap2/crypto/crypto_manager.ex#L22" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> init(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()) :: {:ok, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()}</pre>
+
+      </div>
+
+<p>Initialise the data handler GenServer.</p>
+  </section>
+</section>
+<section class="detail" id="remove_crypto_struct/2">
+
+    <span id="remove_crypto_struct/1"></span>
+
+  <div class="detail-header">
+    <a href="#remove_crypto_struct/2" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">remove_crypto_struct(proxy_seq, name \\ :crypto_manager)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/true/lib/lap2/crypto/crypto_manager.ex#L142" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> remove_crypto_struct(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) :: :ok</pre>
+
+      </div>
+
+<p>Remove a crypto struct from the ETS table.</p>
+  </section>
+</section>
+<section class="detail" id="rotate_keys/3">
+
+    <span id="rotate_keys/2"></span>
+
+  <div class="detail-header">
+    <a href="#rotate_keys/3" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">rotate_keys(crypto_struct, proxy_seq, name \\ :crypto_manager)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/true/lib/lap2/crypto/crypto_manager.ex#L150" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> rotate_keys(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) :: :ok</pre>
+
+      </div>
+
+<p>Perform key rotation request with a remote proxy.</p>
+  </section>
+</section>
+<section class="detail" id="start_link/1">
+
+  <div class="detail-header">
+    <a href="#start_link/1" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">start_link(config)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/true/lib/lap2/crypto/crypto_manager.ex#L14" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> start_link(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()) :: <a href="https://hexdocs.pm/elixir/GenServer.html#t:on_start/0">GenServer.on_start</a>()</pre>
+
+      </div>
+
+<p>Start the CryptoManager process.</p>
+  </section>
+</section>
+
+    </div>
+  </section>
+
+      <footer class="footer">
+        <p>
+
+          <span class="line">
+            <button class="a-main footer-button display-quick-switch" title="Search HexDocs packages">
+              Search HexDocs
+            </button>
+
+              <a href="LAP2.epub" title="ePub version">
+                Download ePub version
+              </a>
+
+          </span>
+        </p>
+
+        <p class="built-using">
+          Built using
+          <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.29.4) for the
+
+            <a href="https://elixir-lang.org" title="Elixir" target="_blank" translate="no">Elixir programming language</a>
+
+        </p>
+      </footer>
+    </div>
+  </div>
+</section>
+</div>
+
+
+  </body>
+</html>

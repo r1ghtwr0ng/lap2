@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="ExDoc v0.29.4">
+    <meta name="project" content="LAP2 v0.1.0">
+
+    <title>LAP2.Utils.ProtoBuf.RequestHelper — LAP2 v0.1.0</title>
+    <link rel="stylesheet" href="dist/html-elixir-HHVY3JYD.css" />
+
+
+    <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
+    <script src="dist/handlebars.templates-XWGFFSCD.js"></script>
+    <script src="dist/sidebar_items-66474A1B.js"></script>
+
+      <script src="docs_config.js"></script>
+
+    <script async src="dist/html-JDI3AVDD.js"></script>
+
+
+  </head>
+  <body data-type="modules" class="page-module">
+    <script>
+
+      try {
+        var settings = JSON.parse(localStorage.getItem('ex_doc:settings') || '{}');
+
+        if (settings.theme === 'dark' ||
+           ((settings.theme === 'system' || settings.theme == null) &&
+             window.matchMedia('(prefers-color-scheme: dark)').matches)
+           ) {
+          document.body.classList.add('dark')
+        }
+      } catch (error) { }
+    </script>
+
+<div class="main">
+
+<button class="sidebar-button sidebar-toggle" aria-label="toggle sidebar">
+  <i class="ri-menu-line ri-lg" title="Collapse/expand sidebar"></i>
+</button>
+
+<section class="sidebar">
+  <form class="sidebar-search" action="search.html">
+    <button type="submit" class="search-button" aria-label="Submit Search">
+      <i class="ri-search-2-line" aria-hidden="true" title="Submit search"></i>
+    </button>
+    <button type="button" tabindex="-1" class="search-close-button" aria-label="Cancel Search">
+      <i class="ri-close-line ri-lg" aria-hidden="true" title="Cancel search"></i>
+    </button>
+    <label class="search-label">
+      <p class="sr-only">Search</p>
+      <input name="q" type="text" class="search-input" placeholder="Search..." aria-label="Input your search terms" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+    </label>
+  </form>
+
+  <div class="autocomplete">
+    <div class="autocomplete-results">
+    </div>
+  </div>
+
+  <div class="sidebar-header">
+
+      <a href="http://github.com/r1ghtwr0ng/lap2">
+        <img src="assets/logo.png" alt="LAP2" class="sidebar-projectImage">
+      </a>
+
+    <div class="sidebar-projectDetails">
+      <a href="http://github.com/r1ghtwr0ng/lap2" class="sidebar-projectName" translate="no">
+LAP2
+      </a>
+      <div class="sidebar-projectVersion" translate="no">
+        v0.1.0
+      </div>
+    </div>
+    <ul class="sidebar-listNav">
+      <li><a id="extras-list-link" href="#full-list">Pages</a></li>
+
+        <li><a id="modules-list-link" href="#full-list">Modules</a></li>
+
+
+    </ul>
+  </div>
+
+  <div class="gradient"></div>
+  <ul id="full-list"></ul>
+</section>
+
+<section class="content">
+  <output role="status" id="toast"></output>
+  <div class="content-outer">
+    <div id="content" class="content-inner">
+
+<h1>
+<button class="icon-action display-settings">
+  <i class="ri-settings-3-line"></i>
+  <span class="sr-only">Settings</span>
+</button>
+
+
+    <a href="https://github.com/r1ghtwr0ng/lap2/blob/true/lib/lap2/utils/protobuf/request_helper.ex#L1" title="View Source" class="icon-action" rel="help">
+      <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+      <span class="sr-only">View Source</span>
+    </a>
+
+  <span translate="no">LAP2.Utils.ProtoBuf.RequestHelper</span> 
+  <small class="app-vsn" translate="no">(LAP2 v0.1.0)</small>
+
+</h1>
+
+
+  <section id="moduledoc">
+<p>Helper functions for processing LAP2 requests.
+Verifies integrity, serves as interface for serialising/deserialising with ProtoBuf.</p>
+  </section>
+
+
+  <section id="summary" class="details-list">
+    <h1 class="section-heading">
+      <a class="hover-link" href="#summary">
+        <i class="ri-link-m" aria-hidden="true"></i>
+        <span class="sr-only">Link to this section</span>
+      </a>
+      Summary
+    </h1>
+<div class="summary-functions summary">
+  <h2>
+    <a href="#functions">Functions</a>
+  </h2>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#build_fin_crypto/1" translate="no">build_fin_crypto(ring_sign)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Build the key exchange finalisation struct</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#build_init_crypto/5" translate="no">build_init_crypto(identity, ephem_pk, generator, ring_pk, signature)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Build the key exchange initialisation struct</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#build_key_rotation/1" translate="no">build_key_rotation(new_key)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Build a key rotation request struct</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#build_request/4" translate="no">build_request(crypto, data, req_type, req_id)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#build_resp_crypto/6" translate="no">build_resp_crypto(identity, ephem_pk, generator, ring_pk, signature, ring_sign)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Build the key exchange response struct</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#build_symmetric_crypto/0" translate="no">build_symmetric_crypto()</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Build a regular symmetric key struct
+Note: HMAC key is set when the HMAC is computed</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#deserialise/2" translate="no">deserialise(data, struct)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Deserialise a request struct.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#deserialise_and_unwrap/1" translate="no">deserialise_and_unwrap(enc_request)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Deserialise to EncryptedRequest then finally to Request struct.
+If unencrypted, deserialise wrapped data.
+If encrypted, unwrap and decrypt request.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#deserialise_and_unwrap/3" translate="no">deserialise_and_unwrap(enc_request, proxy_seq, crypto_mgr_name \\ :crypto_manager)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#encrypt_and_wrap/3" translate="no">encrypt_and_wrap(request, proxy_seq, crypto_mgr_name \\ :crypto_manager)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Encrypt a Request struct and serialise to EncryptedRequest struct.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#gen_finalise_exchange/4" translate="no">gen_finalise_exchange(request, proxy_seq, clove_seq, crypto_mgr \\ :crypto_manager)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Finish a key exchange with a remote proxy.
+Different from recv_finalise_exchange as this is called by the initiator.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#gen_response/3" translate="no">gen_response(request, proxy_seq, crypto_mgr \\ :crypto_manager)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Respond to a key exchange request from a remote proxy.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#init_exchange/2" translate="no">init_exchange(clove_seq, crypto_mgr \\ :crypto_manager)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Initiate a key exchange with a remote proxy.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#init_key_rotation/2" translate="no">init_key_rotation(proxy_seq, crypto_mgr \\ :crypto_manager)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Initiate key rotation with a remote proxy.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#recv_finalise_exchange/3" translate="no">recv_finalise_exchange(request, proxy_seq, crypto_mgr \\ :crypto_manager)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Finish a key exchange with a remote proxy.
+Different from gen_finalise_exchange as this is called by the receiver proxy.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#rotate_keys/3" translate="no">rotate_keys(request, proxy_seq, crypto_mgr \\ :crypto_manager)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Perform key rotation request with a remote proxy.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#serialise/1" translate="no">serialise(request)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Serialise a request struct.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#wrap_unencrypted/1" translate="no">wrap_unencrypted(request)</a>
+
+      </div>
+
+    </div>
+
+</div>
+
+  </section>
+
+
+  <section id="functions" class="details-list">
+    <h1 class="section-heading">
+      <a class="hover-link" href="#functions">
+        <i class="ri-link-m" aria-hidden="true"></i>
+        <span class="sr-only">Link to this section</span>
+      </a>
+Functions
+    </h1>
+    <div class="functions-list">
+<section class="detail" id="build_fin_crypto/1">
+
+  <div class="detail-header">
+    <a href="#build_fin_crypto/1" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">build_fin_crypto(ring_sign)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/true/lib/lap2/utils/protobuf/request_helper.ex#L180" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> build_fin_crypto(<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>()) :: {:fin_ke, KeyExchangeFinal.t()}</pre>
+
+      </div>
+
+<p>Build the key exchange finalisation struct</p>
+  </section>
+</section>
+<section class="detail" id="build_init_crypto/5">
+
+  <div class="detail-header">
+    <a href="#build_init_crypto/5" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">build_init_crypto(identity, ephem_pk, generator, ring_pk, signature)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/true/lib/lap2/utils/protobuf/request_helper.ex#L149" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> build_init_crypto(<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>()) ::
+  {:init_ke, KeyExchangeInit.t()}</pre>
+
+      </div>
+
+<p>Build the key exchange initialisation struct</p>
+  </section>
+</section>
+<section class="detail" id="build_key_rotation/1">
+
+  <div class="detail-header">
+    <a href="#build_key_rotation/1" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">build_key_rotation(new_key)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/true/lib/lap2/utils/protobuf/request_helper.ex#L200" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> build_key_rotation(<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>()) :: {:key_rot, KeyRotation.t()}</pre>
+
+      </div>
+
+<p>Build a key rotation request struct</p>
+  </section>
+</section>
+<section class="detail" id="build_request/4">
+
+  <div class="detail-header">
+    <a href="#build_request/4" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">build_request(crypto, data, req_type, req_id)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/true/lib/lap2/utils/protobuf/request_helper.ex#L208" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> build_request({<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()}, <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>()) ::
+  Request.t()</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="build_resp_crypto/6">
+
+  <div class="detail-header">
+    <a href="#build_resp_crypto/6" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">build_resp_crypto(identity, ephem_pk, generator, ring_pk, signature, ring_sign)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/true/lib/lap2/utils/protobuf/request_helper.ex#L164" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> build_resp_crypto(<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>()) ::
+  {:resp_ke, KeyExchangeResponse.t()}</pre>
+
+      </div>
+
+<p>Build the key exchange response struct</p>
+  </section>
+</section>
+<section class="detail" id="build_symmetric_crypto/0">
+
+  <div class="detail-header">
+    <a href="#build_symmetric_crypto/0" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">build_symmetric_crypto()</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/true/lib/lap2/utils/protobuf/request_helper.ex#L192" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> build_symmetric_crypto() :: {:sym_key, SymmetricKey.t()}</pre>
+
+      </div>
+
+<p>Build a regular symmetric key struct
+Note: HMAC key is set when the HMAC is computed</p>
+  </section>
+</section>
+<section class="detail" id="deserialise/2">
+
+  <div class="detail-header">
+    <a href="#deserialise/2" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">deserialise(data, struct)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/true/lib/lap2/utils/protobuf/request_helper.ex#L233" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> deserialise(<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), Request | EncryptedRequest) ::
+  {:ok, Request.t() | EncryptedRequest.t()} | {:error, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">any</a>()}</pre>
+
+      </div>
+
+<p>Deserialise a request struct.</p>
+  </section>
+</section>
+<section class="detail" id="deserialise_and_unwrap/1">
+
+  <div class="detail-header">
+    <a href="#deserialise_and_unwrap/1" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">deserialise_and_unwrap(enc_request)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/true/lib/lap2/utils/protobuf/request_helper.ex#L244" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> deserialise_and_unwrap(<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>()) :: {:ok, Request.t()} | {:error, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()}</pre>
+
+      </div>
+
+<p>Deserialise to EncryptedRequest then finally to Request struct.
+If unencrypted, deserialise wrapped data.
+If encrypted, unwrap and decrypt request.</p>
+  </section>
+</section>
+<section class="detail" id="deserialise_and_unwrap/3">
+
+    <span id="deserialise_and_unwrap/2"></span>
+
+  <div class="detail-header">
+    <a href="#deserialise_and_unwrap/3" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">deserialise_and_unwrap(enc_request, proxy_seq, crypto_mgr_name \\ :crypto_manager)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/true/lib/lap2/utils/protobuf/request_helper.ex#L258" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> deserialise_and_unwrap(<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">integer</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) ::
+  {:ok, Request.t()} | {:error, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()}</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="encrypt_and_wrap/3">
+
+    <span id="encrypt_and_wrap/2"></span>
+
+  <div class="detail-header">
+    <a href="#encrypt_and_wrap/3" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">encrypt_and_wrap(request, proxy_seq, crypto_mgr_name \\ :crypto_manager)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/true/lib/lap2/utils/protobuf/request_helper.ex#L285" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> encrypt_and_wrap(Request.t(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) ::
+  {:ok, EncryptedRequest.t()} | {:error, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()}</pre>
+
+      </div>
+
+<p>Encrypt a Request struct and serialise to EncryptedRequest struct.</p>
+  </section>
+</section>
+<section class="detail" id="gen_finalise_exchange/4">
+
+    <span id="gen_finalise_exchange/3"></span>
+
+  <div class="detail-header">
+    <a href="#gen_finalise_exchange/4" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">gen_finalise_exchange(request, proxy_seq, clove_seq, crypto_mgr \\ :crypto_manager)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/true/lib/lap2/utils/protobuf/request_helper.ex#L66" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> gen_finalise_exchange(Request.t(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) ::
+  {:ok, EncryptedRequest.t()} | {:error, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()}</pre>
+
+      </div>
+
+<p>Finish a key exchange with a remote proxy.
+Different from recv_finalise_exchange as this is called by the initiator.</p>
+  </section>
+</section>
+<section class="detail" id="gen_response/3">
+
+    <span id="gen_response/2"></span>
+
+  <div class="detail-header">
+    <a href="#gen_response/3" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">gen_response(request, proxy_seq, crypto_mgr \\ :crypto_manager)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/true/lib/lap2/utils/protobuf/request_helper.ex#L38" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> gen_response(Request.t(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) ::
+  {:ok, EncryptedRequest.t()} | {:error, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()}</pre>
+
+      </div>
+
+<p>Respond to a key exchange request from a remote proxy.</p>
+  </section>
+</section>
+<section class="detail" id="init_exchange/2">
+
+    <span id="init_exchange/1"></span>
+
+  <div class="detail-header">
+    <a href="#init_exchange/2" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">init_exchange(clove_seq, crypto_mgr \\ :crypto_manager)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/true/lib/lap2/utils/protobuf/request_helper.ex#L18" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> init_exchange(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) ::
+  {:ok, EncryptedRequest.t()} | {:error, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()}</pre>
+
+      </div>
+
+<p>Initiate a key exchange with a remote proxy.</p>
+  </section>
+</section>
+<section class="detail" id="init_key_rotation/2">
+
+    <span id="init_key_rotation/1"></span>
+
+  <div class="detail-header">
+    <a href="#init_key_rotation/2" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">init_key_rotation(proxy_seq, crypto_mgr \\ :crypto_manager)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/true/lib/lap2/utils/protobuf/request_helper.ex#L112" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> init_key_rotation(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) ::
+  {:ok, EncryptedRequest.t()} | {:error, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()}</pre>
+
+      </div>
+
+<p>Initiate key rotation with a remote proxy.</p>
+  </section>
+</section>
+<section class="detail" id="recv_finalise_exchange/3">
+
+    <span id="recv_finalise_exchange/2"></span>
+
+  <div class="detail-header">
+    <a href="#recv_finalise_exchange/3" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">recv_finalise_exchange(request, proxy_seq, crypto_mgr \\ :crypto_manager)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/true/lib/lap2/utils/protobuf/request_helper.ex#L96" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> recv_finalise_exchange(Request.t(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) ::
+  {:ok, EncryptedRequest.t()} | {:error, :invalid_signature}</pre>
+
+      </div>
+
+<p>Finish a key exchange with a remote proxy.
+Different from gen_finalise_exchange as this is called by the receiver proxy.</p>
+  </section>
+</section>
+<section class="detail" id="rotate_keys/3">
+
+    <span id="rotate_keys/2"></span>
+
+  <div class="detail-header">
+    <a href="#rotate_keys/3" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">rotate_keys(request, proxy_seq, crypto_mgr \\ :crypto_manager)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/true/lib/lap2/utils/protobuf/request_helper.ex#L130" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> rotate_keys(Request.t(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) ::
+  {:ok, EncryptedRequest.t()} | {:error, :invalid}</pre>
+
+      </div>
+
+<p>Perform key rotation request with a remote proxy.</p>
+  </section>
+</section>
+<section class="detail" id="serialise/1">
+
+  <div class="detail-header">
+    <a href="#serialise/1" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">serialise(request)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/true/lib/lap2/utils/protobuf/request_helper.ex#L276" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> serialise(Request.t() | EncryptedRequest.t()) ::
+  {:ok, <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>()} | {:error, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">any</a>()}</pre>
+
+      </div>
+
+<p>Serialise a request struct.</p>
+  </section>
+</section>
+<section class="detail" id="wrap_unencrypted/1">
+
+  <div class="detail-header">
+    <a href="#wrap_unencrypted/1" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">wrap_unencrypted(request)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/true/lib/lap2/utils/protobuf/request_helper.ex#L220" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> wrap_unencrypted(Request.t()) :: {:ok, EncryptedRequest.t()} | {:error, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()}</pre>
+
+      </div>
+
+
+  </section>
+</section>
+
+    </div>
+  </section>
+
+      <footer class="footer">
+        <p>
+
+          <span class="line">
+            <button class="a-main footer-button display-quick-switch" title="Search HexDocs packages">
+              Search HexDocs
+            </button>
+
+              <a href="LAP2.epub" title="ePub version">
+                Download ePub version
+              </a>
+
+          </span>
+        </p>
+
+        <p class="built-using">
+          Built using
+          <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.29.4) for the
+
+            <a href="https://elixir-lang.org" title="Elixir" target="_blank" translate="no">Elixir programming language</a>
+
+        </p>
+      </footer>
+    </div>
+  </div>
+</section>
+</div>
+
+
+  </body>
+</html>

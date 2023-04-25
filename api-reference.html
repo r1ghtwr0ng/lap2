@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="ExDoc v0.29.4">
+    <meta name="project" content="LAP2 v0.1.0">
+
+    <title>API Reference — LAP2 v0.1.0</title>
+    <link rel="stylesheet" href="dist/html-elixir-HHVY3JYD.css" />
+
+
+    <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
+    <script src="dist/handlebars.templates-XWGFFSCD.js"></script>
+    <script src="dist/sidebar_items-66474A1B.js"></script>
+
+      <script src="docs_config.js"></script>
+
+    <script async src="dist/html-JDI3AVDD.js"></script>
+
+
+  </head>
+  <body data-type="extras" class="page-extra">
+    <script>
+
+      try {
+        var settings = JSON.parse(localStorage.getItem('ex_doc:settings') || '{}');
+
+        if (settings.theme === 'dark' ||
+           ((settings.theme === 'system' || settings.theme == null) &&
+             window.matchMedia('(prefers-color-scheme: dark)').matches)
+           ) {
+          document.body.classList.add('dark')
+        }
+      } catch (error) { }
+    </script>
+
+<div class="main">
+
+<button class="sidebar-button sidebar-toggle" aria-label="toggle sidebar">
+  <i class="ri-menu-line ri-lg" title="Collapse/expand sidebar"></i>
+</button>
+
+<section class="sidebar">
+  <form class="sidebar-search" action="search.html">
+    <button type="submit" class="search-button" aria-label="Submit Search">
+      <i class="ri-search-2-line" aria-hidden="true" title="Submit search"></i>
+    </button>
+    <button type="button" tabindex="-1" class="search-close-button" aria-label="Cancel Search">
+      <i class="ri-close-line ri-lg" aria-hidden="true" title="Cancel search"></i>
+    </button>
+    <label class="search-label">
+      <p class="sr-only">Search</p>
+      <input name="q" type="text" class="search-input" placeholder="Search..." aria-label="Input your search terms" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+    </label>
+  </form>
+
+  <div class="autocomplete">
+    <div class="autocomplete-results">
+    </div>
+  </div>
+
+  <div class="sidebar-header">
+
+      <a href="http://github.com/r1ghtwr0ng/lap2">
+        <img src="assets/logo.png" alt="LAP2" class="sidebar-projectImage">
+      </a>
+
+    <div class="sidebar-projectDetails">
+      <a href="http://github.com/r1ghtwr0ng/lap2" class="sidebar-projectName" translate="no">
+LAP2
+      </a>
+      <div class="sidebar-projectVersion" translate="no">
+        v0.1.0
+      </div>
+    </div>
+    <ul class="sidebar-listNav">
+      <li><a id="extras-list-link" href="#full-list">Pages</a></li>
+
+        <li><a id="modules-list-link" href="#full-list">Modules</a></li>
+
+
+    </ul>
+  </div>
+
+  <div class="gradient"></div>
+  <ul id="full-list"></ul>
+</section>
+
+<section class="content">
+  <output role="status" id="toast"></output>
+  <div class="content-outer">
+    <div id="content" class="content-inner">
+
+<h1>
+<button class="icon-action display-settings">
+  <i class="ri-settings-3-line"></i>
+  <span class="sr-only">Settings</span>
+</button>
+
+
+
+  <span>API Reference <small class="app-vsn">LAP2 v0.1.0</small></span>
+</h1>
+
+
+  <section class="details-list">
+    <h2 id="modules" class="section-heading">
+  <a href="#modules" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">modules</p>
+  </a>
+  Modules
+</h2>
+
+    <div class="summary">
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="LAP2.html" translate="no">LAP2</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>The main module of the LAP2 server. This module is responsible for starting the supervision tree,
+loading the config and setting the log level.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="LAP2.Crypto.CryptoManager.html" translate="no">LAP2.Crypto.CryptoManager</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Module for managing the state of cryptographic information for proxy connections.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="LAP2.Crypto.Helpers.CryptoStructHelper.html" translate="no">LAP2.Crypto.Helpers.CryptoStructHelper</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Contains helper functions for various cryptographic ops</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="LAP2.Crypto.InformationDispersal.RabinIDA.html" translate="no">LAP2.Crypto.InformationDispersal.RabinIDA</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Rabin's Information Dispersal Algorithm, used to split and reconstruct data.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="LAP2.Crypto.InformationDispersal.SecureIDA.html" translate="no">LAP2.Crypto.InformationDispersal.SecureIDA</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Security enhanced Information Dispersal Algorithm, used to split and reconstruct data.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="LAP2.Crypto.Padding.PKCS7.html" translate="no">LAP2.Crypto.Padding.PKCS7</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>PKCS7 padding and unpadding.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="LAP2.Main.Helpers.ProcessorState.html" translate="no">LAP2.Main.Helpers.ProcessorState</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Helper functions for processing the share handler state.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="LAP2.Main.Helpers.ProxyHelper.html" translate="no">LAP2.Main.Helpers.ProxyHelper</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Contains helper functions for processing common proxy requests and responses</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="LAP2.Main.Master.html" translate="no">LAP2.Main.Master</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Module for sending/receiving data via the network.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="LAP2.Main.ProxyManager.html" translate="no">LAP2.Main.ProxyManager</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Module for handling ProxyManager requests.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="LAP2.Main.StructHandlers.RequestHandler.html" translate="no">LAP2.Main.StructHandlers.RequestHandler</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Module for handling reconstructed requests from the Share Handler.
+Route to Proxy or Master module.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="LAP2.Main.StructHandlers.ShareHandler.html" translate="no">LAP2.Main.StructHandlers.ShareHandler</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Handle share caching and reassembly.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="LAP2.Math.Matrix.html" translate="no">LAP2.Math.Matrix</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Module for performing mathematical matrix operations.
+The functions used for performing the vandermonde matrix operations are based on the
+follwoing repository: <a href="https://github.com/mmtan/IDA">https://github.com/mmtan/IDA</a></p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="LAP2.Networking.Helpers.OutboundPipelines.html" translate="no">LAP2.Networking.Helpers.OutboundPipelines</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Contains outbound pipelines for dispersing and sending requests and responses.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="LAP2.Networking.Helpers.RelaySelector.html" translate="no">LAP2.Networking.Helpers.RelaySelector</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Contains functions for splitting up data into shares,
+then sending them via the appropriate relays.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="LAP2.Networking.ProtoBuf.html" translate="no">LAP2.Networking.ProtoBuf</a>
+
+  </div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="LAP2.Networking.Resolver.html" translate="no">LAP2.Networking.Resolver</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>This module contains helper function for resolving addresses.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="LAP2.Networking.Router.html" translate="no">LAP2.Networking.Router</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Stores routing information, updates DHT and stores information for resolving addresses.
+The actual functions for resolving the addresses, extracting keys, etc. is located in LAP2.Networking.Resolver
+This module also stores connection information (anonymous paths and corresponidng crypto keys)
+TODO have a look at a secure way of storing the keys</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="LAP2.Networking.Routing.Local.html" translate="no">LAP2.Networking.Routing.Local</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Module for routing cloves to the local share handler.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="LAP2.Networking.Routing.Remote.html" translate="no">LAP2.Networking.Routing.Remote</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Module for routing cloves to remote destinations.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="LAP2.Networking.Routing.State.html" translate="no">LAP2.Networking.Routing.State</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Module for managing the state of the routing module.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="LAP2.Networking.Sockets.Lap2Socket.html" translate="no">LAP2.Networking.Sockets.Lap2Socket</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Module for serialising/deserialising ProtoBuf cloves and sending/receiving them over UDP.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="LAP2.Networking.Sockets.UdpServer.html" translate="no">LAP2.Networking.Sockets.UdpServer</a>
+
+  </div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="LAP2.Utils.ConfigParser.html" translate="no">LAP2.Utils.ConfigParser</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Parses a JSON file into a map.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="LAP2.Utils.EtsHelper.html" translate="no">LAP2.Utils.EtsHelper</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Common helper functions for working with ETS tables.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="LAP2.Utils.JsonUtils.html" translate="no">LAP2.Utils.JsonUtils</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>A collection of functions for working with JSON.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="LAP2.Utils.ProtoBuf.CloveHelper.html" translate="no">LAP2.Utils.ProtoBuf.CloveHelper</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Helper functions for generating clove information, checksums, splitting and reconstructing cloves, padding, etc.
+Handles serialising and deserialising cloves (simplifies serial data types).</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="LAP2.Utils.ProtoBuf.RequestHelper.html" translate="no">LAP2.Utils.ProtoBuf.RequestHelper</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Helper functions for processing LAP2 requests.
+Verifies integrity, serves as interface for serialising/deserialising with ProtoBuf.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="LAP2.Utils.ProtoBuf.ShareHelper.html" translate="no">LAP2.Utils.ProtoBuf.ShareHelper</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Helper functions for processing IDA Shares.
+Verifies integrity, serves as interface for serialising/deserialising with ProtoBuf.</p></div>
+
+</div>
+
+    </div>
+  </section>
+
+
+<div class="bottom-actions">
+  <div class="bottom-actions-item">
+
+  </div>
+  <div class="bottom-actions-item">
+
+      <a href="readme.html" class="bottom-actions-button" rel="next">
+        <span class="subheader">
+          Next Page →
+        </span>
+        <span class="title">
+LAP2
+        </span>
+      </a>
+
+  </div>
+</div>
+      <footer class="footer">
+        <p>
+
+          <span class="line">
+            <button class="a-main footer-button display-quick-switch" title="Search HexDocs packages">
+              Search HexDocs
+            </button>
+
+              <a href="LAP2.epub" title="ePub version">
+                Download ePub version
+              </a>
+
+          </span>
+        </p>
+
+        <p class="built-using">
+          Built using
+          <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.29.4) for the
+
+            <a href="https://elixir-lang.org" title="Elixir" target="_blank" translate="no">Elixir programming language</a>
+
+        </p>
+      </footer>
+    </div>
+  </div>
+</section>
+</div>
+
+
+  </body>
+</html>
