@@ -5,7 +5,7 @@ defmodule LAP2.Crypto.CryptoManager do
 
   use GenServer
   require Logger
-  alias LAP2.Crypto.Padding.PKCS7
+  #alias LAP2.Crypto.Padding.PKCS7
 
   @doc """
   Start the CryptoManager process.

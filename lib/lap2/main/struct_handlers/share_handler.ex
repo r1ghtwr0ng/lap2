@@ -25,7 +25,7 @@ defmodule LAP2.Main.StructHandlers.ShareHandler do
     # Ensure that the ETS gets cleaned up on exit
     Process.flag(:trap_exit, true)
     # Initialise data handler state
-    IO.puts("[i] ShareHandler (#{config.name}): Starting GenServer")
+    Logger.info("[i] ShareHandler (#{config.name}): Starting GenServer")
 
     state = %{
       ets: :ets.new(:clove_ets, [:set, :private]),
@@ -41,21 +41,14 @@ defmodule LAP2.Main.StructHandlers.ShareHandler do
   @spec handle_cast({:deliver, Clove.t(), map}, map) :: {:noreply, map}
   def handle_cast({:deliver, clove, aux_data}, state) do
     # TODO send data for parsing
-    Logger.info("[+] In share handler")
     {:ok, share} = ShareHelper.deserialise(clove.data)
 
     case ProcessorState.route_share(state, share) do
-      :reassemble ->
-        Logger.info("[+] ShareHandler (#{state.config.registry_table.share_handler}): Reassembling share #{share.message_id}")
-        reassemble(state, share, aux_data)
+      :reassemble -> reassemble(state, share, aux_data)
 
-      :cache ->
-        Logger.info("[+] Caching clove by ShareHandler (#{state.config.registry_table.share_handler})")
-        cache(state, share, aux_data)
+      :cache -> cache(state, share, aux_data)
 
-      :drop ->
-        Logger.error("[!] Dropping clove by ShareHandler (#{state.config.registry_table.share_handler})")
-        {:noreply, state}
+      :drop -> {:noreply, state}
     end
   end
 
@@ -79,7 +72,6 @@ defmodule LAP2.Main.StructHandlers.ShareHandler do
   """
   @spec deliver(binary, map, atom) :: :ok
   def deliver(data, aux_data, name) do
-    Logger.info("[+] ShareHandler (#{name}): Delivering data to GenServer")
     GenServer.cast({:global, name}, {:deliver, data, aux_data})
   end
 
@@ -96,8 +88,8 @@ defmodule LAP2.Main.StructHandlers.ShareHandler do
         #Logger.info("[+] Formatted AUX DATA: #{inspect formatted_aux_data} <<<<<<<<<<==================================")
         cast_reconstructed(all_shares, formatted_aux_data, state.config.registry_table)
 
-      {:error, _reason} ->
-        Logger.error("Reconstruction failed")
+      {:error, reason} ->
+        Logger.error("Request reconstruction failed: #{reason}")
     end
 
     new_state =

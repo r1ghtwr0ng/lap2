@@ -20,7 +20,7 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
     clove_seq: non_neg_integer,
     relays: list}, map) :: map
   def accept_proxy_request(request, %{proxy_seq: proxy_seq, clove_seq: clove_seq, relays: relays}, state) do
-    #Logger.info("[i] Accepting proxy request: #{proxy_seq}")
+    Logger.info("[i] Accepting proxy request: #{proxy_seq}")
     router_name = state.config.registry_table.router
     new_pool = add_relays(state.proxy_pool, proxy_seq, relays, router_name)
     crypto_mgr = state.config.registry_table.crypto_manager
@@ -31,6 +31,7 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
         case OutboundPipelines.send_proxy_accept(enc_response, proxy_seq, clove_seq, relay_pool, router_name) do
           :ok ->
             Map.put(state, :proxy_pool, new_pool)
+            |> IO.inspect(label: "[+] Updated proxy pool")
 
           :error -> state
         end
@@ -123,6 +124,7 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
   def handle_key_rotation_ack(_request, _proxy_seq, _crypto_manager) do
     # TODO not yet sure what to do, probably stop the retransmission timer (if it exists)
     # Potentially send to CryptoManager to update the keys (if it hasn't already)
+    Logger.info("[i] Handling key rotation acknowledgement")
     :ok
   end
 

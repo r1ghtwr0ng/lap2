@@ -20,7 +20,7 @@ defmodule LAP2.Main.ProxyManager do
   @spec init(map) :: {:ok, map}
   def init(config) do
     # Initialise data handler state
-    #Logger.info("[i] Proxy (#{config.name}): Starting GenServer")
+    Logger.info("[i] Proxy Manager (#{config.name}): Starting GenServer")
 
     state = %{
       proxy_pool: %{},
@@ -32,7 +32,6 @@ defmodule LAP2.Main.ProxyManager do
   end
 
   # ---- GenServer Callbacks ----
-  # Cleanup the ETS table on exit
   @spec handle_call(:get_state, any, map) :: {:reply, map, map}
   def handle_call(:get_state, _from, state), do: {:reply, state, state}
 
@@ -84,12 +83,25 @@ defmodule LAP2.Main.ProxyManager do
     GenServer.cast({:global, proxy_name}, {:proxy_request, request, aux_data})
   end
 
+
+  def debug(name) do
+    GenServer.call({:global, name}, :get_state)
+  end
+
   @doc """
   Handle a discovery response.
   """
   @spec handle_discovery_response(Request.t(), map, atom) :: :ok
   def handle_discovery_response(request, aux_data, proxy_name) do
     GenServer.cast({:global, proxy_name}, {:discovery_response, request, aux_data})
+  end
+
+  @doc """
+  Add a proxy to the pool.
+  """
+  @spec add_proxy(atom, non_neg_integer, pid) :: :ok
+  def add_proxy(proxy_name, proxy_seq, proxy_pid) do
+    GenServer.call({:global, proxy_name}, {:add_proxy, proxy_seq, proxy_pid})
   end
 
   @doc """

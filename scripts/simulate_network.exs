@@ -1,4 +1,5 @@
 alias LAP2.Networking.Router
+alias LAP2.Main.ProxyManager
 alias LAP2.Networking.Helpers.OutboundPipelines
 alias LAP2.Crypto.Helpers.CryptoStructHelper
 

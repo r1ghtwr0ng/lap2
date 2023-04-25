@@ -16,8 +16,8 @@ defmodule LAP2.Networking.Sockets.UdpServer do
   @spec init(map) :: {:ok, map} | {:stop, atom}
   def init(config) do
     # Open UDP socket
-    #Logger.info("[i] UDP (#{inspect config.name}): Starting UDP server")
-    # TODO test the default values
+    Logger.info("[i] UDP (#{inspect config.name}): Starting UDP server")
+
     state = %{
       port: config[:udp_port] || 1442,
       queue_interval: config[:queue_interval] || 100,
