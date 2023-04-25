@@ -96,7 +96,7 @@ defmodule LAP2.Utils.ProtoBuf.RequestHelper do
   def recv_finalise_exchange(request, proxy_seq, crypto_mgr \\ :crypto_manager) do
     # Verify the validity of the signature
     cond do
-      CryptoStructHelper.verify_ring_signature(request.cryoto, proxy_seq) ->
+      CryptoStructHelper.verify_ring_signature(request.crypto, proxy_seq) ->
         # Initiate key rotation
         init_key_rotation(proxy_seq, crypto_mgr)
 
@@ -274,10 +274,7 @@ defmodule LAP2.Utils.ProtoBuf.RequestHelper do
   @spec serialise(Request.t() | EncryptedRequest.t()) :: {:ok, binary} | {:error, any}
   def serialise(request) do
     # Serialise the request
-    case ProtoBuf.serialise(request) do
-      {:ok, data} -> {:ok, IO.iodata_to_binary(data)}
-      err -> err
-    end
+    ProtoBuf.serialise(request)
   end
 
   @doc """

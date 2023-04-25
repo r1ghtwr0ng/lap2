@@ -7,8 +7,13 @@ defmodule LAP2.Networking.ProtoBuf do
   Serialise a map via ProtoBuff before sending it
   """
   @spec serialise(Clove.t() | Share.t() | Request.t() | EncryptedRequest.t()) ::
-          {:ok, any} | {:error, any}
-  def serialise(struct), do: Protox.encode(struct)
+          {:ok, binary} | {:error, any}
+  def serialise(struct) do
+    case Protox.encode(struct) do
+      {:ok, data} -> {:ok, IO.iodata_to_binary(data)}
+      err -> err
+    end
+  end
 
   @doc """
   Deserialised received data

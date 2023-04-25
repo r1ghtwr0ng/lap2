@@ -24,7 +24,7 @@ defmodule LAP2.Networking.ProtoBufTest do
       ]
 
       # Serialise the cloves
-      assert {:ok, serial} == ProtoBuf.serialise(clove)
+      assert {:ok, IO.iodata_to_binary(serial)} == ProtoBuf.serialise(clove)
     end
 
     test "Test proxy response clove serialisation" do
@@ -45,7 +45,7 @@ defmodule LAP2.Networking.ProtoBufTest do
       ]
 
       # Serialise the cloves
-      assert {:ok, serial} == ProtoBuf.serialise(clove)
+      assert {:ok, IO.iodata_to_binary(serial)} == ProtoBuf.serialise(clove)
     end
 
     test "Test regular proxy clove serialisation" do
@@ -62,7 +62,7 @@ defmodule LAP2.Networking.ProtoBufTest do
       ]
 
       # Serialise the cloves
-      assert {:ok, serial} == ProtoBuf.serialise(clove)
+      assert {:ok, IO.iodata_to_binary(serial)} == ProtoBuf.serialise(clove)
     end
   end
 
@@ -91,7 +91,7 @@ defmodule LAP2.Networking.ProtoBufTest do
       ]
 
       # Serialise the cloves
-      assert {:ok, serial} == ProtoBuf.serialise(share)
+      assert {:ok, IO.iodata_to_binary(serial)} == ProtoBuf.serialise(share)
     end
   end
 
@@ -123,7 +123,7 @@ defmodule LAP2.Networking.ProtoBufTest do
       ]
 
       # Serialise the cloves
-      assert {:ok, serial} == ProtoBuf.serialise(request)
+      assert {:ok, IO.iodata_to_binary(serial)} == ProtoBuf.serialise(request)
     end
 
     test "Test key exchange response serialisation" do
@@ -154,7 +154,7 @@ defmodule LAP2.Networking.ProtoBufTest do
       ]
 
       # Serialise the cloves
-      assert {:ok, serial} == ProtoBuf.serialise(request)
+      assert {:ok, IO.iodata_to_binary(serial)} == ProtoBuf.serialise(request)
     end
 
     test "Test final key exchange serialisation" do
@@ -180,7 +180,7 @@ defmodule LAP2.Networking.ProtoBufTest do
       ]
 
       # Serialise the cloves
-      assert {:ok, serial} == ProtoBuf.serialise(request)
+      assert {:ok, IO.iodata_to_binary(serial)} == ProtoBuf.serialise(request)
     end
 
     test "Test symmetric key communication serialisation" do
@@ -205,7 +205,7 @@ defmodule LAP2.Networking.ProtoBufTest do
       ]
 
       # Serialise the cloves
-      assert {:ok, serial} == ProtoBuf.serialise(request)
+      assert {:ok, IO.iodata_to_binary(serial)} == ProtoBuf.serialise(request)
     end
 
     test "Test key rotation serialisation" do
@@ -231,7 +231,7 @@ defmodule LAP2.Networking.ProtoBufTest do
       ]
 
       # Serialise the cloves
-      assert {:ok, serial} == ProtoBuf.serialise(request)
+      assert {:ok, IO.iodata_to_binary(serial)} == ProtoBuf.serialise(request)
     end
   end
 

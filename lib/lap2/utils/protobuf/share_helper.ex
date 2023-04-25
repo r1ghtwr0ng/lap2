@@ -26,10 +26,7 @@ defmodule LAP2.Utils.ProtoBuf.ShareHelper do
   @spec serialise(Share.t()) :: {:ok, binary} | {:error, any}
   def serialise(share) do
     # Serialise the share
-    case ProtoBuf.serialise(share) do
-      {:ok, dgram} -> {:ok, IO.iodata_to_binary(dgram)}
-      err -> err
-    end
+    ProtoBuf.serialise(share)
   end
 
   # ---- Share processing ----

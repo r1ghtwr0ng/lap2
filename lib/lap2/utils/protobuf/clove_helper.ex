@@ -28,10 +28,7 @@ defmodule LAP2.Utils.ProtoBuf.CloveHelper do
   @spec serialise(Clove.t()) :: {:ok, binary} | {:error, any}
   def serialise(clove) do
     # Serialise the clove
-    case ProtoBuf.serialise(clove) do
-      {:ok, dgram} -> {:ok, IO.iodata_to_binary(dgram)}
-      err -> err
-    end
+    ProtoBuf.serialise(clove)
   end
 
   # ---- Checksum functions ----
