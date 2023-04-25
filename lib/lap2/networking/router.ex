@@ -24,7 +24,7 @@ defmodule LAP2.Networking.Router do
   @spec init(map) :: {:ok, map}
   def init(config) do
     # Initialise router state
-    #Logger.info("[i] Router (#{config.lap2_addr}): Starting router")
+    Logger.info("[i] Router (#{config.name}): Starting GenServer")
 
     state = %{
       clove_cache: %{},
