@@ -3,7 +3,8 @@
 
 ## Lightweight Anonymous P2P Overlay Network
 [![Tests](https://img.shields.io/github/actions/workflow/status/r1ghtwr0ng/lap2/.github/workflows/elixir.yml?branch=master&label=Elixir%20CI&logo=github)](https://github.com/r1ghtwr0ng/lap2/actions/workflows/elixir.yml)
-[![License](https://badgen.net/badge/license/MIT/blue)](https://opensource.org/licenses/MIT)
+[![Docs](https://img.shields.io/badge/Docs-LAP2%20Docs-blue)](https://r1ghtwr0ng.github.io/lap2/LAP2.html)
+[![License](https://badgen.net/badge/License/MIT/blue)](https://opensource.org/licenses/MIT)
 ## Introduction
 
 
