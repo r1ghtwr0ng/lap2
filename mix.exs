@@ -15,11 +15,12 @@ defmodule LAP2.MixProject do
       homepage_url: "http://github.com/r1ghtwr0ng/lap2",
       docs: [main: "LAP2",
             logo: "assets/images/logo.png",
-            extras: ["README.md"]]
+            extras: ["README.md"],
+            groups_for_modules: group_for_modules(),
+            nest_modules_by_prefix: nest_modules_by_prefix()
+          ]
     ]
   end
-
-
 
   # Run "mix help compile.app" to learn about applications.
   def application do
@@ -47,5 +48,72 @@ defmodule LAP2.MixProject do
     Mix.Task.run("compile")
     Mix.Task.run("test")
     Mix.Task.run("run", ["-e", "LAP2.start"])
+  end
+
+  # ---- Docs formatting ----
+  defp group_for_modules() do
+    [
+      "Cryptography": [
+        LAP2.Crypto.CryptoManager,
+        LAP2.Crypto.InformationDispersal.RabinIDA,
+        LAP2.Crypto.InformationDispersal.SecureIDA,
+        LAP2.Crypto.Padding.PKCS7,
+        LAP2.Crypto.Helpers.CryptoStructHelper
+        ],
+      "Networking": [
+        LAP2.Networking.Router,
+        LAP2.Networking.Resolver,
+        LAP2.Networking.ProtoBuf,
+        LAP2.Networking.Sockets.UdpServer,
+        LAP2.Networking.Sockets.Lap2Socket,
+        LAP2.Networking.Helpers.OutboundPipelines,
+        LAP2.Networking.Helpers.RelaySelector,
+        LAP2.Networking.Routing.Local,
+        LAP2.Networking.Routing.Remote,
+        LAP2.Networking.Helpers.State,
+      ],
+      "Utilities": [
+        LAP2.Utils.ConfigParser,
+        LAP2.Utils.JsonUtils,
+        LAP2.Utils.EtsHelper,
+        LAP2.Utils.ProtoBuf.CloveHelper,
+        LAP2.Utils.ProtoBuf.ShareHelper,
+        LAP2.Utils.ProtoBuf.RequestHelper
+      ],
+      "Maths": [LAP2.Math.Matrix],
+      "Control": [
+        LAP2,
+        LAP2.Main.Master,
+        LAP2.Main.ProxyManager,
+        LAP2.Main.StructHandlers.RequestHandler,
+        LAP2.Main.StructHandlers.ShareHandler,
+        LAP2.Main.Helpers.ProcessorState,
+        LAP2.Main.Helpers.ProxyHelper
+      ]
+    ]
+  end
+
+  defp nest_modules_by_prefix() do
+    [
+      # Utils
+      LAP2.Utils,
+      LAP2.Utils.ProtoBuf,
+      # Networking
+      LAP2.Networking,
+      LAP2.Networking.Routing,
+      LAP2.Networking.Sockets,
+      LAP2.Networking.Helpers,
+      # Crypto
+      LAP2.Crypto,
+      Crypto.InformationDispersal,
+      LAP2.Crypto.Padding,
+      LAP2.Crypto.Helpers,
+      # Math
+      LAP2.Math,
+      # Main
+      LAP2.Main,
+      LAP2.Main.StructHandlers,
+      LAP2.Main.Helpers,
+    ]
   end
 end

@@ -1,4 +1,4 @@
-defmodule LAP2.Networking.Routing.State do
+defmodule LAP2.Networking.Helpers.State do
   @moduledoc """
   Module for managing the state of the routing module.
   """

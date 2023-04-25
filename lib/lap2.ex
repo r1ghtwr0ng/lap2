@@ -1,6 +1,7 @@
 defmodule LAP2 do
   @moduledoc """
-  Documentation for `LAP2`.
+  The main module of the LAP2 server. This module is responsible for starting the supervision tree,
+  loading the config and setting the log level.
   """
   alias LAP2.Utils.ConfigParser
   require Logger

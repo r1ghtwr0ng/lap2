@@ -6,7 +6,7 @@ defmodule LAP2.Networking.Routing.Remote do
   alias LAP2.Networking.Resolver
   alias LAP2.Utils.ProtoBuf.CloveHelper
   alias LAP2.Networking.Sockets.Lap2Socket
-  alias LAP2.Networking.Routing.State
+  alias LAP2.Networking.Helpers.State
 
   # ---- Public inbound routing functions ----
   @doc """

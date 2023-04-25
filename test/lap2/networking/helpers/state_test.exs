@@ -1,6 +1,6 @@
-defmodule LAP2.Networking.Routing.StateTest do
+defmodule LAP2.Networking.Helpers.StateTest do
   use ExUnit.Case
-  alias LAP2.Networking.Routing.State
+  alias LAP2.Networking.Helpers.State
 
   @valid_state %{
     own_cloves: [],

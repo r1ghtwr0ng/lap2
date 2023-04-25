@@ -8,7 +8,8 @@ defmodule LAP2.Networking.Router do
   use GenServer
   require Logger
   alias LAP2.Networking.Resolver
-  alias LAP2.Networking.Routing.{Remote, Local, State}
+  alias LAP2.Networking.Helpers.State
+  alias LAP2.Networking.Routing.{Remote, Local}
 
   @doc """
   Start the Router process.

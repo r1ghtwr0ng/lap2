@@ -1,4 +1,8 @@
 defmodule LAP2.Networking.ProtoBuf do
+  @moduledoc """
+  ProtoBuf serialisation and deserialisation.
+  """
+
   use Protox,
     files: ["./specs/clove_struct.proto", "./specs/share_struct.proto", "./specs/request_struct.proto"],
     path: ["./specs"]

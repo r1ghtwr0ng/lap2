@@ -5,7 +5,7 @@ defmodule LAP2.Networking.Routing.Local do
 
   require Logger
   alias LAP2.Utils.ProtoBuf.CloveHelper
-  alias LAP2.Networking.Routing.State
+  alias LAP2.Networking.Helpers.State
   alias LAP2.Main.StructHandlers.ShareHandler
 
   # ---- Public functions ----
