@@ -1,7 +1,7 @@
 # LAP2
+<img src="https://user-images.githubusercontent.com/42644807/234358607-a11e2223-3ddf-489d-af27-5392e65dc4a5.png" alt="Image" width="150" height="150">
 
 ## Lightweight Anonymous P2P Overlay Network
----
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 ## Introduction
 
