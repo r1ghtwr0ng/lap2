@@ -29,25 +29,24 @@ defmodule LAP2.Crypto.CryptoManager do
       temp_crypto: %{},
       config: config,
     }
-    IO.inspect(state, label: "State ======================= INIT CONFIG")
     {:ok, state}
   end
 
   # ---- GenServer Callbacks (Crypto Operations) ----
-  @spec handle_call({:rotate_keys, %{symmetric_key: binary}, non_neg_integer}, any, map) :: {:noreply, map}
+  @spec handle_call({:rotate_keys, %{symmetric_key: binary}, non_neg_integer}, any, map) :: {:reply, :ok, map}
   def handle_call({:rotate_keys, crypto_struct, proxy_seq}, _from, state) do
     rot_keys(state.ets, crypto_struct, proxy_seq)
-    {:noreply, state}
+    {:reply, :ok, state}
   end
 
   @spec handle_call({:decrypt, EncryptedRequest.t(), non_neg_integer}, any, map) ::
           {:reply, {:ok, binary} | {:error, :no_key}, map}
   def handle_call({:decrypt, encrypted_req, proxy_seq}, _from, state) do
-    {:ok, decrypted} = fetch_and_decrypt(state.ets, encrypted_req, proxy_seq)
+    return = fetch_and_decrypt(state.ets, encrypted_req, proxy_seq)
     # {_crypto, _response} = Map.pop(encrypted_req, :crypto)
     # TODO handle crypto request
     # Delete crypto information from response to avoid leaking keys
-    {:reply, decrypted, state}
+    {:reply, return, state}
   end
 
   @spec handle_call({:encrypt, binary, non_neg_integer}, any, map) :: {:reply, tuple, map}
@@ -78,7 +77,7 @@ defmodule LAP2.Crypto.CryptoManager do
 
   @spec handle_call({:delete_temp_crypto, non_neg_integer}, any, map) :: {:reply, :ok, map}
   def handle_call({:delete_temp_crypto, clove_seq}, _from, state) do
-    new_state = remove_temp_crypto(state.temp_crypto, clove_seq)
+    new_state = remove_temp_crypto(state, clove_seq)
     {:reply, :ok, new_state}
   end
 
@@ -165,13 +164,13 @@ defmodule LAP2.Crypto.CryptoManager do
   @spec fetch_and_decrypt(:ets.tid(), binary, non_neg_integer) :: {:ok, binary} | {:error, atom}
   defp fetch_and_decrypt(ets, encrypted_req, proxy_seq) do
     case :ets.lookup(ets, proxy_seq) do
-      [{_proxy_seq, key}] ->
+      [{_proxy_seq, _crypto_struct}] ->
         Logger.info("[i] Decrypting proxy request")
 
-        pt =
-          :crypto.crypto_one_time(:aes_256_cbc, key, encrypted_req.iv, encrypted_req.data, false)
-
-        {:ok, PKCS7.unpad(pt)}
+        pt = encrypted_req.data
+        # :crypto.crypto_one_time(:aes_256_cbc, crypto_struct.symmetric_key, encrypted_req.iv, encrypted_req.data, false)
+        #{:ok, PKCS7.unpad(pt)}
+        {:ok, pt}
 
       [] ->
         Logger.info("[i] No key found for proxy request")
@@ -184,10 +183,12 @@ defmodule LAP2.Crypto.CryptoManager do
           {:ok, EncryptedRequest.t()} | {:error, :no_key}
   defp fetch_and_encrypt(ets, data, proxy_seq) do
     case :ets.lookup(ets, proxy_seq) do
-      [{_proxy_seq, key}] ->
+      [{_proxy_seq, _crypto_struct}] ->
         Logger.info("[i] Encrypting proxy request")
         iv = :crypto.strong_rand_bytes(16)
-        ct = :crypto.crypto_one_time(:aes_256_cbc, key, iv, PKCS7.pad(data, 16), true)
+        ct = data
+        # TODO once key exchange is implemented, use this
+        #ct = :crypto.crypto_one_time(:aes_256_cbc, crypto_struct.symmetric_key, iv, PKCS7.pad(data, 16), true)
 
         encrypted_req = %EncryptedRequest{
           is_encrypted: true,
@@ -245,7 +246,6 @@ defmodule LAP2.Crypto.CryptoManager do
   @spec remove_temp_crypto(map, non_neg_integer) :: map
   defp remove_temp_crypto(state, clove_seq) do
     # TODO figure out if the old crypto state is needed
-    _temp_crypto = Map.get(state.temp_crypto, clove_seq)
     Map.put(state, :temp_crypto, Map.delete(state.temp_crypto, clove_seq))
   end
 end

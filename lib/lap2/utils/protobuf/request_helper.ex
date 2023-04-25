@@ -130,7 +130,7 @@ defmodule LAP2.Utils.ProtoBuf.RequestHelper do
   def rotate_keys(%Request{crypto: {:key_rot, crypto_hdr}} = request, proxy_seq, crypto_mgr \\ :crypto_manager) do
     # TODO sanitise the request and get the appropraite map
     crypto_struct = %{
-      symmetric_key: crypto_hdr.symmetric_key,
+      symmetric_key: crypto_hdr.new_key,
     }
 
     case CryptoStructHelper.ack_key_rotation(proxy_seq, request.request_id, crypto_mgr) do
@@ -261,6 +261,7 @@ defmodule LAP2.Utils.ProtoBuf.RequestHelper do
         cond do
           enc_req_struct.is_encrypted -> # Encrypted
             decrypt_and_deserialise(enc_req_struct, proxy_seq, crypto_mgr_name)
+
           true -> # Unencrypted
             deserialise(enc_req_struct.data, Request)
         end

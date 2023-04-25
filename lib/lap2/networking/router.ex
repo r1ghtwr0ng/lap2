@@ -107,8 +107,8 @@ defmodule LAP2.Networking.Router do
   def handle_cast({:route_outbound, dest, clove}, state) do
     #Logger.info("[+] Router GenServer (#{state.config.lap2_addr}): In route outbound handle cast")
     Logger.info("[from #{state.config.lap2_addr}] ----> [to #{inspect dest}] (OUTBOUND)")
-    new_state = Remote.route_outbound(state, dest, clove)
-    {:noreply, new_state}
+    Remote.route_outbound(state, dest, clove)
+    {:noreply, state}
   end
 
   # Route outbound proxy discovery cloves

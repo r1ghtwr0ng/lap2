@@ -2,6 +2,7 @@ defmodule LAP2Test do
   use ExUnit.Case
   doctest LAP2
 
+  require Logger
   alias LAP2.Networking.Router
   alias LAP2.Utils.ProtoBuf.CloveHelper
 

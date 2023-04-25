@@ -36,15 +36,15 @@ defmodule LAP2.Networking.Helpers.RelaySelector do
   @doc """
   Disperse the provided data and send it via the appropriate relays to the desired proxy.
   """
-  @spec disperse_and_send(binary, map, list, atom) :: :ok | :error
-  def disperse_and_send(_data, _clove_header, relay_list, _router_name) when length(relay_list) < 2 do
+  @spec disperse_and_send(binary, atom, map, list, atom) :: :ok | :error
+  def disperse_and_send(_data, _clove_type, _clove_header, relay_list, _router_name) when length(relay_list) < 2 do
     # Validate that there are enough relays in the list
     Logger.error("Not enough relays in list to send cloves")
     :error
   end
-  def disperse_and_send(data, clove_header, relay_list, router_name) do
+  def disperse_and_send(data, clove_type, clove_header, relay_list, router_name) do
     # Split data into shares, then create cloves
-    outbound = Enum.zip(Enum.take_random(relay_list, 2), split_into_cloves(data, clove_header, :proxy_response))
+    outbound = Enum.zip(Enum.take_random(relay_list, 2), split_into_cloves(data, clove_header, clove_type))
 
     # Send cloves via relays
     Enum.each(outbound, fn {relay, clove} ->

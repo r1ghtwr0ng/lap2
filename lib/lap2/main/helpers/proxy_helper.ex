@@ -57,7 +57,7 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
     #Logger.info("[i] Handling discovery response")
 
     cond do
-      hops < state.config.max_hops and hops > state.config.min_hops ->
+      hops > state.config.max_hops or hops < state.config.min_hops ->
         Logger.warn("[!] Proxy response hop count not within bounds")
         {:error, :hop_count}
 

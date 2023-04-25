@@ -103,8 +103,8 @@ defmodule LAP2.Crypto.Helpers.CryptoStructHelper do
     ring_signature = <<>>
     crypto_struct = %{
       identity: crypto_hdr.identity,
-      long_term_rs_pk: crypto_hdr.long_term_rs_pk,
-      ephemeral_dh_pk: crypto_hdr.ephemeral_dh_pk,
+      long_term_rs_pk: crypto_hdr.ring_pk,
+      ephemeral_dh_pk: crypto_hdr.ephemeral_pk,
       asymmetric_key: asymm_key
     }
 

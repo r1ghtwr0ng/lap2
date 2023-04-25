@@ -37,7 +37,7 @@ defmodule LAP2.Networking.Helpers.OutboundPipelines do
       {:ok, data} ->
         response_header = %{proxy_seq: proxy_seq, clove_seq: clove_seq, hop_count: 0}
         IO.inspect(response_header, label: "[+] Response_header")
-        RelaySelector.disperse_and_send(data, response_header, relay_pool, router_name)
+        RelaySelector.disperse_and_send(data, :proxy_response, response_header, relay_pool, router_name)
 
       _ ->
         Logger.error("Failed to serialise EncryptedRequest: OutboundPipeleines.send_proxy_accept/4")
@@ -55,7 +55,7 @@ defmodule LAP2.Networking.Helpers.OutboundPipelines do
     case RequestHelper.serialise(enc_request) do
       {:ok, data} ->
         regular_header = %{proxy_seq: proxy_seq}
-        RelaySelector.disperse_and_send(data, regular_header, relay_pool, router_name)
+        RelaySelector.disperse_and_send(data, :regular_proxy, regular_header, relay_pool, router_name)
 
       _ ->
         Logger.error("Failed to serialise EncryptedRequest: OutboundPipelines.fin_key_exchange/3")

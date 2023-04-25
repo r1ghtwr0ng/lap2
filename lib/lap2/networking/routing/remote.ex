@@ -87,14 +87,12 @@ defmodule LAP2.Networking.Routing.Remote do
   @doc """
   Route a clove to a remote destination.
   """
-  @spec route_outbound(map, {String.t(), integer}, Clove.t()) :: map
+  @spec route_outbound(map, {String.t(), integer}, Clove.t()) :: :ok
   def route_outbound(state, dest, clove) do
     # Route clove
     udp_name = state.config.registry_table.udp_server
     route_clove(dest, clove, udp_name)
-    # Add clove to own clove cache
-    {_hdr_type, hdr} = clove.headers
-    State.add_own_clove(state, hdr.clove_seq)
+    :ok
   end
 
   # ---- Private functions ----

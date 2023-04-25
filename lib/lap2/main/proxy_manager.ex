@@ -120,13 +120,13 @@ defmodule LAP2.Main.ProxyManager do
   end
   def handle_regular_proxy(%Request{crypto: {:key_rot, _}} = request, pseq, proxy_name) do
     state = GenServer.call({:global, proxy_name}, :get_state)
-    ProxyHelper.handle_key_rotation(request, pseq, state.config.registry_table.crypto_manager)
+    ProxyHelper.handle_key_rotation(request, pseq, state)
     :ok
   end
   def handle_regular_proxy(%Request{crypto: {:sym_key, _}} = request, pseq, proxy_name)
       when request.request_type == "ack_key_rotation" do
     state = GenServer.call({:global, proxy_name}, :get_state)
-    ProxyHelper.handle_key_rotation_ack(request, pseq, state.config.registry_table.crypto_manager)
+    ProxyHelper.handle_key_rotation_ack(request, pseq, state)
     :ok
   end
   def handle_regular_proxy(request, _, _) do
