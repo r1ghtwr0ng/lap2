@@ -7,9 +7,19 @@ defmodule LAP2.MixProject do
       version: "0.1.0",
       elixir: "~> 1.13",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+
+      # Docs
+      name: "LAP2",
+      source_url: "https://github.com/r1ghtwr0ng/lap2",
+      homepage_url: "http://github.com/r1ghtwr0ng/lap2",
+      docs: [main: "LAP2",
+            logo: "assets/images/logo.png",
+            extras: ["README.md"]]
     ]
   end
+
+
 
   # Run "mix help compile.app" to learn about applications.
   def application do
@@ -27,7 +37,7 @@ defmodule LAP2.MixProject do
       {:elixir_make, "~> 0.6"},
       {:ex_crypto, "~> 0.10.0"},
       {:keyx, "~> 0.4.1"},
-      {:nx, "~> 0.5"}
+      {:ex_doc, "~> 0.21", only: :dev, runtime: false}
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
     ]
