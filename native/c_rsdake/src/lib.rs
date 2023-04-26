@@ -16,12 +16,9 @@ fn prf_eval(key: Vec<u8>, data: Vec<u8>) -> Vec<u8> {
 }
 
 #[rustler::nif]
-fn commit_gen(s: Vec<i64>, r: Vec<i64>) -> Vec<u8> {
+fn commit_gen(s: Vec<u8>, r: Vec<u8>) -> Vec<u8> {
     // Move the randomness into a u8 array
-    let mut r_arr = [0u8; 4];
-    for i in 0..4 {
-        r_arr[i] = r[i].try_into().expect("Integer casting sheisse exceptions");
-    }
+    let r_arr = vec_to_arr(r);
 
     // Commit string s and randomness r.
     let party = SHA256Commitment::new(&s, &r_arr);
@@ -29,22 +26,22 @@ fn commit_gen(s: Vec<i64>, r: Vec<i64>) -> Vec<u8> {
 }
 
 #[rustler::nif]
-fn commit_vrfy(s: Vec<i64>, r: Vec<i64>, c: Vec<i64>) -> bool {
+fn commit_vrfy(s: Vec<u8>, r: Vec<u8>, c: Vec<u8>) -> bool {
     // Move the randomness into a u8 array
-    let mut r_arr = [0u8; 4];
-    for i in 0..4 {
-        r_arr[i] = r[i].try_into().expect("Integer casting sheisse exceptions");
-    }
-
-    // Move the commitment into a u8 array
-    let mut commit_arr = [0u8; 32];
-    for i in 0..32 {
-        commit_arr[i] = c[i] as u8;
-    }
+    let r_arr = vec_to_arr(r);
 
     // Commit string s and randomness r.
     let party = SHA256Commitment::new(&s, &r_arr);
-    party.verify(&commit_arr, &s, &r_arr).expect("Commitment verification failed")
+    party.verify(&c, &s, &r_arr).expect("Commitment verification failed")
+}
+
+// Convert a vector of u8 to an array of u8
+fn vec_to_arr(inp_vec: Vec<u8>) -> [u8; 4] {
+    let mut arr = [0u8; 4];
+    for i in 0..4 {
+        arr[i] = inp_vec[i].try_into().expect("Integer casting sheisse exceptions");
+    }
+    arr
 }
 
 rustler::init!("Elixir.LAP2.Crypto.KeyExchange.CRSDAKE", [
