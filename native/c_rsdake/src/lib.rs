@@ -1,6 +1,20 @@
+use cmac::{Cmac, Mac};
+use aes::Aes128;
+
 #[rustler::nif]
-fn add(a: i64, b: i64) -> i64 {
-    a + b
+fn prf_gen(k: usize) -> Vec<u8> {
+    (0..k/8).map(|_| rand::random::<u8>()).collect()
 }
 
-rustler::init!("Elixir.LAP2.Crypto.KeyExchange.CRSDAKE", [add]);
+#[rustler::nif]
+fn prf_eval(key: Vec<u8>, data: Vec<u8>) -> Vec<u8> {
+    let mut mac = Cmac::<Aes128>::new_from_slice(&key).unwrap();
+    mac.update(&data);
+    let result = mac.finalize().into_bytes();
+    result.to_vec()
+}
+
+rustler::init!("Elixir.LAP2.Crypto.KeyExchange.CRSDAKE", [
+    prf_gen,
+    prf_eval
+]);
