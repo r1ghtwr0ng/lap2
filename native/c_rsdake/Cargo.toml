@@ -10,6 +10,8 @@ path = "src/lib.rs"
 crate-type = ["cdylib"]
 
 [dependencies]
+fastcrypto = "0.1.4"
+hashcom-rs = "0.2.0"
 rustler = "0.28.0"
 ring = "0.16.20"
 nazgul = "0.1.10"
