@@ -8,9 +8,9 @@ fn prf_gen(k: usize) -> Vec<u8> {
 
 #[rustler::nif]
 fn prf_eval(key: Vec<u8>, data: Vec<u8>) -> Vec<u8> {
-    let mut mac = Cmac::<Aes128>::new_from_slice(&key).unwrap();
-    mac.update(&data);
-    let result = mac.finalize().into_bytes();
+    let mut cmac = Cmac::<Aes128>::new_from_slice(&key).unwrap();
+    cmac.update(&data);
+    let result = cmac.finalize().into_bytes();
     result.to_vec()
 }
 

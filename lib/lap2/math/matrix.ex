@@ -26,7 +26,7 @@ defmodule LAP2.Math.Matrix do
 
   @spec load_nif :: :ok | {:error, any}
   def load_nif() do
-    :erlang.load_nif('./lib/nifs/matrix', 0)
+    :erlang.load_nif('./priv/matrix/matrix', 0)
   end
 
   @doc """
