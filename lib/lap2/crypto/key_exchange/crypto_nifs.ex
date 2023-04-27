@@ -45,4 +45,23 @@ defmodule LAP2.Crypto.KeyExchange.CryptoNifs do
   """
   @spec rs_nif_gen() :: {charlist(), charlist()}
   def rs_nif_gen(), do: :erlang.nif_error(:nif_not_loaded)
+
+  @doc """
+  Generate a secret and public key pair tuple for
+  a ed25519_dalek signature scheme.
+  """
+  @spec standard_signature_gen() :: {charlist(), charlist()}
+  def standard_signature_gen(), do: :erlang.nif_error(:nif_not_loaded)
+
+  @doc """
+  Sign a message using a ed25519_dalek signature scheme.
+  """
+  @spec standard_signature_sign(charlist(), charlist(), charlist()) :: charlist()
+  def standard_signature_sign(_sk, _pk, _msg), do: :erlang.nif_error(:nif_not_loaded)
+
+  @doc """
+  Verify a ed25519_dalek signature.
+  """
+  @spec standard_signature_vrfy(charlist(), charlist(), charlist()) :: boolean
+  def standard_signature_vrfy(_sig, _pk, _msg), do: :erlang.nif_error(:nif_not_loaded)
 end

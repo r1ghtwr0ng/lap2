@@ -2,16 +2,18 @@ mod utils;
 mod crypto;
 use curve25519_dalek::ristretto::RistrettoPoint;
 use curve25519_dalek::scalar::Scalar;
+use ed25519_dalek::{Keypair, Signature, PublicKey, Signer, Verifier};
 use hashcom_rs::{HashCommitmentScheme, SHA256Commitment};
 use cmac::{Cmac, Mac};
 use aes::Aes128;
 use rand_core::OsRng;
-use utils::restretto_to_vec;
+use utils::{restretto_to_vec, deconstruct_keypair, reconstruct_keypair};
 use crate::crypto::{rs_vrfy, rs_sign};
 use crate::utils::{fixed_vec_to_arr, deconstruct_sag, reconstruct_sag, vec_to_arr, vec_to_restretto};
 
 #[rustler::nif]
 fn prf_gen(n: usize) -> Vec<u8> {
+    // Generate random bytes
     (0..n/8).map(|_| rand::random::<u8>()).collect()
 }
 
@@ -34,14 +36,6 @@ fn commit_gen(s: Vec<u8>, r: Vec<u8>) -> Vec<u8> {
 }
 
 #[rustler::nif]
-fn rs_nif_gen() -> (Vec<u8>, Vec<u8>) {
-    let mut csprng = OsRng::default();
-    let sk: Vec<u8> = Scalar::random(&mut csprng).to_bytes().to_vec();
-    let pk: Vec<u8> = restretto_to_vec(RistrettoPoint::random(&mut csprng));
-    (sk, pk)
-}
-
-#[rustler::nif]
 fn commit_vrfy(s: Vec<u8>, r: Vec<u8>, c: Vec<u8>) -> bool {
     // Move the randomness into a u8 array
     let r_arr = fixed_vec_to_arr(r);
@@ -49,6 +43,41 @@ fn commit_vrfy(s: Vec<u8>, r: Vec<u8>, c: Vec<u8>) -> bool {
     // Commit string s and randomness r.
     let party = SHA256Commitment::new(&s, &r_arr);
     party.verify(&c, &s, &r_arr).expect("Commitment verification failed")
+}
+
+#[rustler::nif]
+fn standard_signature_gen() -> (Vec<u8>, Vec<u8>) {
+    // Generate keys
+    let mut csprng = OsRng::default();
+    let keypair: Keypair = Keypair::generate(&mut csprng);
+    deconstruct_keypair(keypair)
+}
+
+#[rustler::nif]
+fn standard_signature_sign(sk: Vec<u8>, pk: Vec<u8>, message: Vec<u8>) -> Vec<u8> {
+    // Reconstruct keypair struct
+    let keypair = reconstruct_keypair(sk, pk);
+    // Sign message
+    let signature: Signature = keypair.sign(&message);
+    signature.to_bytes().to_vec()
+}
+
+#[rustler::nif]
+fn standard_signature_vrfy(signature: Vec<u8>, pk: Vec<u8>, message: Vec<u8>) -> bool {
+    // Reconstruct public key struct
+    let pk = PublicKey::from_bytes(&pk).unwrap();
+    // Reconstruct signature struct
+    let signature = Signature::from_bytes(&signature).unwrap();
+    // Verify signature
+    pk.verify(&message, &signature).is_ok()
+}
+
+#[rustler::nif]
+fn rs_nif_gen() -> (Vec<u8>, Vec<u8>) {
+    let mut csprng = OsRng::default();
+    let sk: Vec<u8> = Scalar::random(&mut csprng).to_bytes().to_vec();
+    let pk: Vec<u8> = restretto_to_vec(RistrettoPoint::random(&mut csprng));
+    (sk, pk)
 }
 
 #[rustler::nif]
@@ -84,13 +113,6 @@ fn rs_nif_vrfy(challenge: Vec<u8>, ring: Vec<Vec<u8>>, responses: Vec<Vec<u8>>, 
     rs_vrfy(sag, msg)
 }
 
-#[test]
-fn poggers() -> Result<(), ()> {
-
-
-    Ok(())
-}
-
 rustler::init!("Elixir.LAP2.Crypto.KeyExchange.CryptoNifs", [
     prf_gen,
     prf_eval,
@@ -98,5 +120,8 @@ rustler::init!("Elixir.LAP2.Crypto.KeyExchange.CryptoNifs", [
     commit_vrfy,
     rs_nif_gen,
     rs_nif_sign,
-    rs_nif_vrfy
+    rs_nif_vrfy,
+    standard_signature_gen,
+    standard_signature_sign,
+    standard_signature_vrfy
 ]);

@@ -1,4 +1,5 @@
 use curve25519_dalek::{ristretto::{RistrettoPoint, CompressedRistretto}, scalar::Scalar};
+use ed25519_dalek::{Keypair, PublicKey, SecretKey};
 use nazgul::sag::SAG;
 
 // Deconstruct the SAG struct into a tuple of (challenge, ring, responses)
@@ -39,6 +40,21 @@ pub fn reconstruct_sag(c: Vec<u8>, r: Vec<Vec<u8>>, s: Vec<Vec<u8>>) -> SAG {
         challenge: challenge,
         ring: ring,
         responses: responses
+    }
+}
+
+// Deconstruct a Keypair struct into a tuple of (secret, public)
+pub fn deconstruct_keypair(keypair: Keypair) -> (Vec<u8>, Vec<u8>) {
+    let sk: Vec<u8> = keypair.secret.to_bytes().to_vec();
+    let pk: Vec<u8> = keypair.public.to_bytes().to_vec();
+    (sk, pk)
+}
+
+// Reconstruct a Keypair struct from a tuple of (secret, public)
+pub fn reconstruct_keypair(sk: Vec<u8>, pk: Vec<u8>) -> Keypair {
+    Keypair {
+        public: PublicKey::from_bytes(&pk).unwrap(),
+        secret: SecretKey::from_bytes(&sk).unwrap()
     }
 }
 
