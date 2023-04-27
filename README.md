@@ -57,10 +57,12 @@ The following tasks are planned for the LAP2 project:
 - [x] Proxy discovery
 
 ### Crypto
-- [ ] Key exchange
-- [ ] Cryptographic module
-- [ ] RSDAKE - Random Oracle
+
+- [x] Cryptographic primitives NIF
+- [ ] Claimable Ring Signature scheme
+- [ ] RSDAKE
 - [ ] RSDAKE - Claimability
+- [ ] Key exchange
 
 ### Math
 
