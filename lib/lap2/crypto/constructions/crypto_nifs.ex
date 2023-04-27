@@ -1,4 +1,4 @@
-defmodule LAP2.Crypto.KeyExchange.CryptoNifs do
+defmodule LAP2.Crypto.Constructions.CryptoNifs do
   use Rustler, otp_app: :lap2, crate: "c_rsdake"
 
   @doc """

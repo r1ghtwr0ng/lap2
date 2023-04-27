@@ -21,7 +21,7 @@ defmodule LAP2.Crypto.Constructions.ClaimableRS do
   }
 
   require Logger
-  alias LAP2.Crypto.KeyExchange.CryptoNifs
+  alias LAP2.Crypto.Constructions.CryptoNifs
 
 
   @doc """
