@@ -129,12 +129,12 @@ defmodule LAP2.Crypto.Constructions.ClaimableRS do
   @doc """
   Verify a C-RS signature.
   """
-  @spec crs_vrfy(non_neg_integer, {sag(), charlist}, charlist) ::
+  @spec crs_vrfy({sag(), charlist}, charlist) ::
     {:ok, boolean} | {:error, atom}
-  def crs_vrfy(ring_idx, {sag, commitment}, msg) do
+  def crs_vrfy({sag, commitment}, msg) do
     # Verify the arguments before using unsafe functions
     crypto_structs = Enum.reduce(sag.resp, [sag.chal, commitment], fn x, acc -> [x | acc]; end)
-    case verify_args(ring_idx, sag.ring, crypto_structs) do
+    case verify_args(1, sag.ring, crypto_structs) do
       :ok -> {:ok, rs_vrfy_wrap(sag, msg)}
 
       {:error, reason} ->
@@ -147,7 +147,7 @@ defmodule LAP2.Crypto.Constructions.ClaimableRS do
   Generate a claim for a C-RS signature.
   """
   @spec crs_claim(non_neg_integer, {{charlist, charlist}, charlist, charlist, charlist}, {sag(), charlist}) ::
-    {:ok, {charlist, charlist} | :invalid_commitment} | {:error, atom}
+    {:ok, {charlist, charlist, charlist} | :invalid_commitment} | {:error, atom}
   def crs_claim(ring_idx, {{pk_rs, pk_sig}, sk_rs, sk_sig, sk_prf}, {sag, commitment}) do
     # Verify the arguments before using unsafe functions
     crypto_structs = Enum.reduce(sag.resp, [pk_rs, pk_sig, sk_rs, sk_sig, sk_prf, sag.chal, commitment],
@@ -198,7 +198,9 @@ defmodule LAP2.Crypto.Constructions.ClaimableRS do
     case verify_args(1, sag.ring, crypto_structs) do
       :ok ->
         cond do
-          length(rand_sig) == 16 and length(regular_sig) == 64 ->
+          length(rand_sig) == 16 and
+          length(rand_com) == 16 and
+          length(regular_sig) == 64 ->
             # Generate commitment from claim
             com_construct = List.flatten([pk_rs, pk_sig, regular_sig])
             ver_com = CryptoNifs.commit_gen(com_construct, rand_com) == commitment
