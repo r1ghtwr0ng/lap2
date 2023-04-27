@@ -5,7 +5,7 @@ use curve25519_dalek::scalar::Scalar;
 use ed25519_dalek::{Keypair, Signature, PublicKey, Signer, Verifier};
 use hashcom_rs::{HashCommitmentScheme, SHA256Commitment};
 use cmac::{Cmac, Mac};
-use aes::Aes128;
+use aes::Aes256;
 use rand_core::OsRng;
 use utils::{restretto_to_vec, deconstruct_keypair, reconstruct_keypair};
 use crate::crypto::{rs_vrfy, rs_sign};
@@ -19,7 +19,8 @@ fn prf_gen(n: usize) -> Vec<u8> {
 
 #[rustler::nif]
 fn prf_eval(key: Vec<u8>, data: Vec<u8>) -> Vec<u8> {
-    let mut cmac = Cmac::<Aes128>::new_from_slice(&key).unwrap();
+    // Accepts 256-bit key
+    let mut cmac = Cmac::<Aes256>::new_from_slice(&key).unwrap();
     cmac.update(&data);
     let result = cmac.finalize().into_bytes();
     result.to_vec()
