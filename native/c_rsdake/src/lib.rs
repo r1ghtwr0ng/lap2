@@ -114,7 +114,7 @@ fn rs_nif_vrfy(challenge: Vec<u8>, ring: Vec<Vec<u8>>, responses: Vec<Vec<u8>>, 
     rs_vrfy(sag, msg)
 }
 
-rustler::init!("Elixir.LAP2.Crypto.KeyExchange.CryptoNifs", [
+rustler::init!("Elixir.LAP2.Crypto.Constructions.CryptoNifs", [
     prf_gen,
     prf_eval,
     commit_gen,
