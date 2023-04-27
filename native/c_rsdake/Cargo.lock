@@ -71,6 +71,7 @@ dependencies = [
  "hashcom-rs",
  "nazgul",
  "rand",
+ "rand_core 0.5.1",
  "ring",
  "rustler",
  "sha2 0.9.9",

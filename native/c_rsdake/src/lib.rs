@@ -1,10 +1,18 @@
+mod utils;
+mod crypto;
+use curve25519_dalek::ristretto::RistrettoPoint;
+use curve25519_dalek::scalar::Scalar;
 use hashcom_rs::{HashCommitmentScheme, SHA256Commitment};
 use cmac::{Cmac, Mac};
 use aes::Aes128;
+use rand_core::OsRng;
+use utils::restretto_to_vec;
+use crate::crypto::{rs_vrfy, rs_sign};
+use crate::utils::{fixed_vec_to_arr, deconstruct_sag, reconstruct_sag, vec_to_arr, vec_to_restretto};
 
 #[rustler::nif]
-fn prf_gen(k: usize) -> Vec<u8> {
-    (0..k/8).map(|_| rand::random::<u8>()).collect()
+fn prf_gen(n: usize) -> Vec<u8> {
+    (0..n/8).map(|_| rand::random::<u8>()).collect()
 }
 
 #[rustler::nif]
@@ -18,7 +26,7 @@ fn prf_eval(key: Vec<u8>, data: Vec<u8>) -> Vec<u8> {
 #[rustler::nif]
 fn commit_gen(s: Vec<u8>, r: Vec<u8>) -> Vec<u8> {
     // Move the randomness into a u8 array
-    let r_arr = vec_to_arr(r);
+    let r_arr = fixed_vec_to_arr(r);
 
     // Commit string s and randomness r.
     let party = SHA256Commitment::new(&s, &r_arr);
@@ -26,27 +34,69 @@ fn commit_gen(s: Vec<u8>, r: Vec<u8>) -> Vec<u8> {
 }
 
 #[rustler::nif]
+fn rs_nif_gen() -> (Vec<u8>, Vec<u8>) {
+    let mut csprng = OsRng::default();
+    let sk: Vec<u8> = Scalar::random(&mut csprng).to_bytes().to_vec();
+    let pk: Vec<u8> = restretto_to_vec(RistrettoPoint::random(&mut csprng));
+    (sk, pk)
+}
+
+#[rustler::nif]
 fn commit_vrfy(s: Vec<u8>, r: Vec<u8>, c: Vec<u8>) -> bool {
     // Move the randomness into a u8 array
-    let r_arr = vec_to_arr(r);
+    let r_arr = fixed_vec_to_arr(r);
 
     // Commit string s and randomness r.
     let party = SHA256Commitment::new(&s, &r_arr);
     party.verify(&c, &s, &r_arr).expect("Commitment verification failed")
 }
 
-// Convert a vector of u8 to an array of u8
-fn vec_to_arr(inp_vec: Vec<u8>) -> [u8; 4] {
-    let mut arr = [0u8; 4];
-    for i in 0..4 {
-        arr[i] = inp_vec[i].try_into().expect("Integer casting sheisse exceptions");
+#[rustler::nif]
+fn rs_nif_sign(secret_idx: usize, sk: Vec<u8>, vec_ring: Vec<Vec<u8>>, message: Vec<u8>) -> (Vec<u8>, Vec<Vec<u8>>, Vec<Vec<u8>>) {
+    // Convert the secret key to a Scalar
+    let sk = Scalar::from_bytes_mod_order(vec_to_arr(sk));
+    
+    // Convert the ring to a Vec<RistrettoPoint>
+    let mut ring = Vec::new();
+    for i in 0..vec_ring.len() {
+        ring.push(vec_to_restretto(vec_ring[i].clone()));
     }
-    arr
+
+    // Message conversion
+    let msg = message.iter().cloned().collect();
+
+    // Generate the signature
+    let signature = rs_sign(secret_idx, sk, ring, msg);
+    
+    // Deconstruct the SAG struct and pass back to Elixir
+    deconstruct_sag(signature)
 }
 
-rustler::init!("Elixir.LAP2.Crypto.KeyExchange.CRSDAKE", [
+#[rustler::nif]
+fn rs_nif_vrfy(challenge: Vec<u8>, ring: Vec<Vec<u8>>, responses: Vec<Vec<u8>>, message: Vec<u8>) -> bool {
+    // Reconstruct the SAG struct
+    let sag = reconstruct_sag(challenge, ring, responses);
+
+    // Message conversion
+    let msg = message.iter().cloned().collect();
+    
+    // Verify the signature
+    rs_vrfy(sag, msg)
+}
+
+#[test]
+fn poggers() -> Result<(), ()> {
+
+
+    Ok(())
+}
+
+rustler::init!("Elixir.LAP2.Crypto.KeyExchange.CryptoNifs", [
     prf_gen,
     prf_eval,
     commit_gen,
-    commit_vrfy
+    commit_vrfy,
+    rs_nif_gen,
+    rs_nif_sign,
+    rs_nif_vrfy
 ]);
