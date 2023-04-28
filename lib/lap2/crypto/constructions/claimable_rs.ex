@@ -218,9 +218,11 @@ defmodule LAP2.Crypto.Constructions.ClaimableRS do
     end
   end
 
-  # Merge a SAG struct to a flat charlist.
+  @doc """
+  Merge a SAG struct to a flat charlist.
+  """
   @spec sag_to_charlist(sag()) :: charlist
-  defp sag_to_charlist(sag) do
+  def sag_to_charlist(sag) do
     List.flatten([sag.chal, sag.ring, sag.resp])
   end
 
