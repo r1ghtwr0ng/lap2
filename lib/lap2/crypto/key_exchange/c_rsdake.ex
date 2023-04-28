@@ -1,6 +1,6 @@
-defmodule LAP2.Crypto.KeyExchange.RSDAKE do
+defmodule LAP2.Crypto.KeyExchange.C_RSDAKE do
   @moduledoc """
-  This module implements the RSDAKE key exchange protocol.
+  This module implements the C-RSDAKE key exchange protocol.
   """
 
   # Type definitions
@@ -10,32 +10,32 @@ defmodule LAP2.Crypto.KeyExchange.RSDAKE do
     resp: list(charlist)
   }
   @type crypto_state() :: %{
-    lt_keys: {charlist, charlist},
+    lt_keys: {{charlist, charlist}, charlist, charlist, charlist},
+    rs_keys: {{charlist, charlist}, charlist, charlist, charlist},
     ephem_sign_keys: {charlist, charlist},
     dh_keys: {binary, binary},
-    rs_keys: {charlist, charlist},
     shared_secret: binary,
     recv_struct: map
   }
   @type rsdake_init() :: %{
     identity: charlist,
-    pk_lt: charlist,
+    pk_lt: {charlist, charlist},
+    pk_rs: {charlist, charlist},
     pk_ephem_sign: charlist,
     pk_dh: binary,
-    pk_rs: charlist,
     signature: charlist
   }
   @type rsdake_resp() :: %{
     identity: charlist,
-    pk_lt: charlist,
+    pk_lt: {charlist, charlist},
+    pk_rs: {charlist, charlist},
     pk_ephem_sign: charlist,
     pk_dh: binary,
-    pk_rs: charlist,
     signature: charlist,
-    ring_signature: sag()
+    ring_signature: {sag(), charlist}
   }
   @type rsdake_final() :: %{
-    ring_signature: sag()
+    ring_signature: {sag(), charlist}
   }
 
   require Logger
@@ -48,29 +48,29 @@ defmodule LAP2.Crypto.KeyExchange.RSDAKE do
   @spec initialise(charlist) :: {crypto_state(), rsdake_init()}
   def initialise(identity) do
     # Generate the key pairs
-    {sk_lt, pk_lt} = ClaimableRS.rs_gen()
+    %{sk: sk_lt, vk: vk_lt} = ClaimableRS.crs_gen()
+    %{sk: sk_rs, vk: vk_rs} = ClaimableRS.crs_gen()
     {sk_ephem_sign, pk_ephem_sign} = CryptoNifs.standard_signature_gen()
     {sk_dh, pk_dh} = Curve25519.generate_key_pair()
-    {sk_rs, pk_rs} = ClaimableRS.rs_gen()
 
     # Generate the signature
-    msg = List.flatten([:binary.bin_to_list(pk_dh), pk_rs])
+    msg = List.flatten([:binary.bin_to_list(pk_dh), Tuple.to_list(vk_rs)])
     signature = CryptoNifs.standard_signature_sign(sk_ephem_sign, pk_ephem_sign, msg)
     crypto_state = %{
-      lt_keys: {sk_lt, pk_lt},
+      lt_keys: sk_lt,
+      rs_keys: sk_rs,
       ephem_sign_keys: {sk_ephem_sign, pk_ephem_sign},
       dh_keys: {sk_dh, pk_dh},
-      rs_keys: {sk_rs, pk_rs},
       recv_struct: %{},
       shared_secret: <<>>
     }
     init_struct =
     %{
       identity: identity,
-      pk_lt: pk_lt,
+      pk_lt: vk_lt,
+      pk_rs: vk_rs,
       pk_ephem_sign: pk_ephem_sign,
       pk_dh: pk_dh,
-      pk_rs: pk_rs,
       signature: signature
     }
     {crypto_state, init_struct}
@@ -83,35 +83,35 @@ defmodule LAP2.Crypto.KeyExchange.RSDAKE do
     {:ok, {crypto_state(), rsdake_resp()}} | {:error, atom}
   def respond(identity, _lt_keys, recv_init) do
     # Generate key pairs
-    {sk_lt, pk_lt} = ClaimableRS.rs_gen()
+    %{sk: sk_lt, vk: {vk_rs_lt, vk_sig_lt}} = ClaimableRS.crs_gen()
+    %{sk: sk_rs, vk: {vk_rs_ephem, vk_sig_ephem}} = ClaimableRS.crs_gen()
     {sk_ephem_sign, pk_ephem_sign} = CryptoNifs.standard_signature_gen()
     {sk_dh, pk_dh} = Curve25519.generate_key_pair()
-    {sk_rs, pk_rs} = ClaimableRS.rs_gen()
 
     # Deconstruct maps
     %{
       identity: recv_identity,
-      pk_lt: recv_pk_lt,
+      pk_lt: {recv_vk_rs_lt, _},
+      pk_rs: {recv_vk_rs, recv_vk_sig},
       pk_ephem_sign: recv_pk_ephem_sign,
       pk_dh: recv_pk_dh,
-      pk_rs: recv_pk_rs,
       signature: recv_signature
     } = recv_init
 
     # Verify signature
-    msg = List.flatten([:binary.bin_to_list(recv_pk_dh), recv_pk_rs])
+    msg = List.flatten([:binary.bin_to_list(recv_pk_dh), recv_vk_rs, recv_vk_sig])
     cond do
       CryptoNifs.standard_signature_vrfy(recv_signature, recv_pk_ephem_sign, msg) ->
         # Generate signatures
-        sig_msg = List.flatten([:binary.bin_to_list(pk_dh), pk_rs])
+        sig_msg = List.flatten([:binary.bin_to_list(pk_dh), vk_rs_ephem, vk_sig_ephem])
         signature = CryptoNifs.standard_signature_sign(sk_ephem_sign, pk_ephem_sign, sig_msg)
 
         # Generate ring and ring signature
-        ring = [recv_pk_lt, pk_lt, pk_rs]
+        ring = [recv_vk_rs_lt, vk_rs_lt, vk_rs_ephem]
         rsig_msg = List.flatten([0, recv_identity, recv_pk_ephem_sign, pk_ephem_sign])
         IO.inspect(rsig_msg, label: "rsig_msg")
         IO.inspect(ring, label: "ring")
-        {:ok, ring_signature} = ClaimableRS.rs_sign(1, sk_lt, ring, rsig_msg)
+        {:ok, ring_signature} = ClaimableRS.crs_sign(1, sk_lt, ring, rsig_msg)
 
         # Compute shared secret
         shared_secret = Curve25519.derive_shared_secret(sk_dh, recv_pk_dh)
@@ -119,18 +119,18 @@ defmodule LAP2.Crypto.KeyExchange.RSDAKE do
         # Build response
         response_struct = %{
           identity: identity,
-          pk_lt: pk_lt,
+          pk_lt: {vk_rs_lt, vk_sig_lt},
+          pk_rs: {vk_rs_ephem, vk_sig_ephem},
           pk_ephem_sign: pk_ephem_sign,
           pk_dh: pk_dh,
-          pk_rs: pk_rs,
           signature: signature,
           ring_signature: ring_signature
         }
         crypto_state = %{
-          lt_keys: {sk_lt, pk_lt},
+          lt_keys: sk_lt,
+          rs_keys: sk_rs,
           ephem_sign_keys: {sk_ephem_sign, pk_ephem_sign},
           dh_keys: {sk_dh, pk_dh},
-          rs_keys: {sk_rs, pk_rs},
           shared_secret: shared_secret,
           recv_struct: recv_init
         }
@@ -147,37 +147,37 @@ defmodule LAP2.Crypto.KeyExchange.RSDAKE do
   Implements RSDAKE's finalisation phase.
   """
   @spec finalise(charlist, crypto_state(), rsdake_resp()) ::
-    {:ok, {crypto_state(), rsdake_final()}} | {:error, atom}
+  {:ok, {crypto_state(), rsdake_final()}} | {:error, atom}
   def finalise(identity, crypto_state, recv_resp) do
     # Deconstruct maps
     %{
       identity: recv_identity,
-      pk_lt: recv_pk_lt,
+      pk_lt: {recv_vk_rs_lt, _},
+      pk_rs: {recv_vk_rs_ephem, recv_vk_sig_ephem},
       pk_ephem_sign: recv_pk_ephem_sign,
       pk_dh: recv_pk_dh,
-      pk_rs: recv_pk_rs,
       signature: recv_signature,
       ring_signature: recv_ring_signature
     } = recv_resp
     %{
-      lt_keys: {sk_lt, pk_lt},
+      lt_keys: {{vk_rs_lt, _vk_sig_lt}, _sk_rs_lt, _sk_sig_lt, _sk_prf_lt},
+      rs_keys: {{vk_rs_ephem, _vk_sig_ephem}, _sk_rs_ephem, _sk_sig_ephem, _sk_prf_ephem},
       ephem_sign_keys: {_, pk_ephem_sign},
-      dh_keys: {sk_dh, _},
-      rs_keys: {_, pk_rs}
-    } = crypto_state
+      dh_keys: {sk_dh, _}
+    }= crypto_state
 
     # Verify signature
-    msg = List.flatten([:binary.bin_to_list(recv_pk_dh), recv_pk_rs])
+    msg = List.flatten([:binary.bin_to_list(recv_pk_dh), recv_vk_rs_ephem, recv_vk_sig_ephem])
     cond do
       CryptoNifs.standard_signature_vrfy(recv_signature, recv_pk_ephem_sign, msg) ->
         # Verify ring signature
         rsig_msg = List.flatten([0, identity, recv_pk_ephem_sign, pk_ephem_sign])
         cond do
-          ClaimableRS.rs_vrfy(recv_ring_signature, rsig_msg) ->
+          ClaimableRS.crs_vrfy(recv_ring_signature, rsig_msg) ->
             # Generate ring and ring signature
-            ring = [pk_lt, recv_pk_lt, pk_rs]
+            ring = [vk_rs_lt, recv_vk_rs_lt, vk_rs_ephem]
             rsig_msg = List.flatten([1, recv_identity, pk_ephem_sign, recv_pk_ephem_sign])
-            {:ok, ring_signature} = ClaimableRS.rs_sign(0, sk_lt, ring, rsig_msg)
+            {:ok, ring_signature} = ClaimableRS.crs_sign(0, crypto_state.lt_keys, ring, rsig_msg)
 
             # Compute shared secret
             shared_secret = Curve25519.derive_shared_secret(sk_dh, recv_pk_dh)
@@ -218,6 +218,6 @@ defmodule LAP2.Crypto.KeyExchange.RSDAKE do
 
     # Verify ring signature
     rsig_msg = List.flatten([1, identity, pk_ephem_sign, recv_pk_ephem_sign])
-    ClaimableRS.rs_vrfy(rs, rsig_msg)
+    ClaimableRS.crs_vrfy(rs, rsig_msg)
   end
 end
