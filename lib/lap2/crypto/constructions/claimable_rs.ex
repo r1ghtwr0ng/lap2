@@ -88,9 +88,9 @@ defmodule LAP2.Crypto.Constructions.ClaimableRS do
   @doc """
   Generate a C-RS signature.
   """
-  @spec crs_sign(non_neg_integer, list(charlist), {{charlist, charlist}, charlist, charlist, charlist}, charlist) ::
+  @spec crs_sign(non_neg_integer, {{charlist, charlist}, charlist, charlist, charlist}, list(charlist), charlist) ::
     {:ok, {sag(), charlist}} | {:error, atom}
-  def crs_sign(ring_idx, ring, {{pk_rs, pk_sig}, sk_rs, sk_sig, sk_prf}, msg) do
+  def crs_sign(ring_idx, {{pk_rs, pk_sig}, sk_rs, sk_sig, sk_prf}, ring, msg) do
     # Verify the arguments before using unsafe functions
     crypto_structs = [sk_rs, sk_sig, sk_prf, pk_rs, pk_sig]
     case verify_args(ring_idx, ring, crypto_structs) do
