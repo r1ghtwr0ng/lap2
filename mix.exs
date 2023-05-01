@@ -60,7 +60,11 @@ defmodule LAP2.MixProject do
         LAP2.Crypto.InformationDispersal.RabinIDA,
         LAP2.Crypto.InformationDispersal.SecureIDA,
         LAP2.Crypto.Padding.PKCS7,
-        LAP2.Crypto.Helpers.CryptoStructHelper
+        LAP2.Crypto.Helpers.CryptoStructHelper,
+        LAP2.Crypto.Constructions.ClaimableRS,
+        LAP2.Crypto.Constructions.CryptoNifs,
+        LAP2.Crypto.KeyExchange.C_RSDAKE,
+        LAP2.Crypto.KeyExchange.RSDAKE
         ],
       "Networking": [
         LAP2.Networking.Router,
@@ -72,7 +76,7 @@ defmodule LAP2.MixProject do
         LAP2.Networking.Helpers.RelaySelector,
         LAP2.Networking.Routing.Local,
         LAP2.Networking.Routing.Remote,
-        LAP2.Networking.Helpers.State,
+        LAP2.Networking.Helpers.State
       ],
       "Utilities": [
         LAP2.Utils.ConfigParser,
@@ -107,9 +111,11 @@ defmodule LAP2.MixProject do
       LAP2.Networking.Helpers,
       # Crypto
       LAP2.Crypto,
-      Crypto.InformationDispersal,
+      LAP2.Crypto.InformationDispersal,
       LAP2.Crypto.Padding,
       LAP2.Crypto.Helpers,
+      LAP2.Crypto.Constructions,
+      LAP2.Crypto.KeyExchange,
       # Math
       LAP2.Math,
       # Main
