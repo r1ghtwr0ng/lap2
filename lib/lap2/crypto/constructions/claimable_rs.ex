@@ -199,7 +199,7 @@ defmodule LAP2.Crypto.Constructions.ClaimableRS do
       :ok ->
         cond do
           length(rand_com) == 16 and
-          length(regular_sig) == 64 ->
+          length(regular_sig) == 256 ->
             # Generate commitment from claim
             com_construct = List.flatten([pk_rs, pk_sig, regular_sig])
             ver_com = CryptoNifs.commit_gen(com_construct, rand_com) == commitment
