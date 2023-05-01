@@ -1,0 +1,25 @@
+[package]
+name = "c_rsdake"
+version = "0.1.0"
+authors = []
+edition = "2021"
+
+[lib]
+name = "c_rsdake"
+path = "src/lib.rs"
+crate-type = ["cdylib"]
+
+[dependencies]
+curve25519-dalek = "3"
+rand_chacha = "0.3.1"
+hashcom-rs = "0.2.0"
+rustler = "0.28.0"
+nazgul = "0.1.10"
+cmac = "0.7.2"
+rand = "0.8.5"
+aes = "0.8.2"
+sha2 = "0.9.9"
+sha1 = "0.6.0"
+rand_core = "0.5.1"
+rsa = {version = "0.9.0-rc.0", features = ["sha2"]}
+
