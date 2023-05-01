@@ -59,10 +59,10 @@ The following tasks are planned for the LAP2 project:
 ### Crypto
 
 - [x] Cryptographic primitives NIF
-- [ ] Claimable Ring Signature scheme
-- [ ] RSDAKE
-- [ ] RSDAKE - Claimability
-- [ ] Key exchange
+- [x] Claimable Ring Signature scheme
+- [x] RSDAKE
+- [x] RSDAKE - Claimability
+- [x] Key exchange
 
 ### Math
 
