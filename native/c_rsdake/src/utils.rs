@@ -1,6 +1,10 @@
 use curve25519_dalek::{ristretto::{RistrettoPoint, CompressedRistretto}, scalar::Scalar};
-use ed25519_dalek::{Keypair, PublicKey, SecretKey};
+use rand_chacha::{rand_core::SeedableRng, ChaCha8Rng};
 use nazgul::sag::SAG;
+use rsa::sha2::Sha256;
+use rsa::{RsaPrivateKey, RsaPublicKey};
+use rsa::pss::{BlindedSigningKey, VerifyingKey};
+use rsa::pkcs1::{EncodeRsaPrivateKey, EncodeRsaPublicKey, DecodeRsaPrivateKey, DecodeRsaPublicKey};
 
 // Deconstruct the SAG struct into a tuple of (challenge, ring, responses)
 pub fn deconstruct_sag(signature: SAG) -> (Vec<u8>, Vec<Vec<u8>>, Vec<Vec<u8>>) {
@@ -43,21 +47,6 @@ pub fn reconstruct_sag(c: Vec<u8>, r: Vec<Vec<u8>>, s: Vec<Vec<u8>>) -> SAG {
     }
 }
 
-// Deconstruct a Keypair struct into a tuple of (secret, public)
-pub fn deconstruct_keypair(keypair: Keypair) -> (Vec<u8>, Vec<u8>) {
-    let sk: Vec<u8> = keypair.secret.to_bytes().to_vec();
-    let pk: Vec<u8> = keypair.public.to_bytes().to_vec();
-    (sk, pk)
-}
-
-// Reconstruct a Keypair struct from a tuple of (secret, public)
-pub fn reconstruct_keypair(sk: Vec<u8>, pk: Vec<u8>) -> Keypair {
-    Keypair {
-        public: PublicKey::from_bytes(&pk).unwrap(),
-        secret: SecretKey::from_bytes(&sk).unwrap()
-    }
-}
-
 // Convert a vector of u8 to an array of [u8; 4]
 pub fn fixed_vec_to_arr(inp_vec: Vec<u8>) -> [u8; 4] {
     let mut arr = [0u8; 4];
@@ -83,6 +72,41 @@ pub fn vec_to_restretto(v: Vec<u8>) -> RistrettoPoint {
     let bytes: [u8; 32] = vec_to_arr(v.clone());
     let new = CompressedRistretto::from_slice(&bytes);
     new.decompress().unwrap()
+}
+
+// Encode an RSA private key to a vector of u8
+pub fn encode_sk_pkcs1(sk: BlindedSigningKey<Sha256>) -> Vec<u8> {
+    sk.to_pkcs1_der()
+        .expect("Unable to encode RSA private key")
+        .as_bytes()
+        .to_vec()
+}
+
+// Encode an RSA public key to a vector of u8
+pub fn encode_vk_pkcs1(sk: VerifyingKey<Sha256>) -> Vec<u8> {
+    sk.to_pkcs1_der()
+        .expect("Unable to encode RSA private key")
+        .as_bytes()
+        .to_vec()
+}
+
+// Decode an RSA private key from a vector of u8
+pub fn decode_sk_pkcs1(sk: Vec<u8>) -> BlindedSigningKey<Sha256> {
+    let priv_key = RsaPrivateKey::from_pkcs1_der(&sk)
+        .expect("Unable to decode RSA private key");
+    BlindedSigningKey::<Sha256>::new(priv_key)
+}
+
+// Decode an RSA private key from a vector of u8
+pub fn decode_vk_pkcs1(sk: Vec<u8>) -> VerifyingKey<Sha256> {
+    let pub_key = RsaPublicKey::from_pkcs1_der(&sk)
+        .expect("Unable to decode RSA public key");
+    VerifyingKey::new(pub_key)
+}
+
+// Generate a random seed with ChaCha8Rng
+pub fn seed_rng(r: Vec<u8>) -> ChaCha8Rng {
+    ChaCha8Rng::from_seed(vec_to_arr(r))
 }
 
 // Clone a SAG since its not implemented by the crate

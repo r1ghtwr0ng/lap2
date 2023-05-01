@@ -1,15 +1,17 @@
 mod utils;
 mod crypto;
+use rsa::RsaPrivateKey;
+use rsa::pss::{BlindedSigningKey, Signature};
+use rsa::sha2::{Sha256, Digest};
+use rsa::signature::{Keypair, RandomizedSigner, SignatureEncoding, Verifier};
 use curve25519_dalek::ristretto::RistrettoPoint;
 use curve25519_dalek::scalar::Scalar;
-use ed25519_dalek::{Keypair, Signature, PublicKey, Signer, Verifier};
 use hashcom_rs::{HashCommitmentScheme, SHA256Commitment};
 use cmac::{Cmac, Mac};
 use aes::Aes256;
 use rand_core::OsRng;
-use utils::{restretto_to_vec, deconstruct_keypair, reconstruct_keypair};
-use crate::crypto::{rs_vrfy, rs_sign};
-use crate::utils::{fixed_vec_to_arr, deconstruct_sag, reconstruct_sag, vec_to_arr, vec_to_restretto};
+use crypto::{rs_vrfy, rs_sign};
+use utils::*;
 
 #[rustler::nif]
 fn prf_gen(n: usize) -> Vec<u8> {
@@ -49,28 +51,40 @@ fn commit_vrfy(s: Vec<u8>, r: Vec<u8>, c: Vec<u8>) -> bool {
 #[rustler::nif]
 fn standard_signature_gen() -> (Vec<u8>, Vec<u8>) {
     // Generate keys
-    let mut csprng = OsRng::default();
-    let keypair: Keypair = Keypair::generate(&mut csprng);
-    deconstruct_keypair(keypair)
+    let bits = 2048;
+    let mut rng = rand::thread_rng();
+    let private_key = RsaPrivateKey::new(&mut rng, bits).expect("Failed to generate signing key");
+    let signing_key = BlindedSigningKey::<Sha256>::new(private_key);
+    let verif_key = signing_key.verifying_key();
+    // Encode and return keys
+    (encode_sk_pkcs1(signing_key), encode_vk_pkcs1(verif_key))
 }
 
 #[rustler::nif]
-fn standard_signature_sign(sk: Vec<u8>, pk: Vec<u8>, message: Vec<u8>) -> Vec<u8> {
-    // Reconstruct keypair struct
-    let keypair = reconstruct_keypair(sk, pk);
+fn standard_signature_sign(sk: Vec<u8>, message: Vec<u8>, rng: Vec<u8>) -> Vec<u8> {
+    // Decode the signing key
+    let signing_key: BlindedSigningKey<Sha256> = decode_sk_pkcs1(sk);
+    // Hash message
+    let mut hash = Sha256::new();
+    hash.update(message);
+    let digest: [u8; 32] = vec_to_arr(hash.finalize().to_vec());
+    let mut rng = seed_rng(rng);
     // Sign message
-    let signature: Signature = keypair.sign(&message);
+    let signature = signing_key.sign_with_rng(&mut rng, &digest);
     signature.to_bytes().to_vec()
 }
 
 #[rustler::nif]
-fn standard_signature_vrfy(signature: Vec<u8>, pk: Vec<u8>, message: Vec<u8>) -> bool {
-    // Reconstruct public key struct
-    let pk = PublicKey::from_bytes(&pk).unwrap();
-    // Reconstruct signature struct
-    let signature = Signature::from_bytes(&signature).unwrap();
+fn standard_signature_vrfy(signature: Vec<u8>, vk: Vec<u8>, message: Vec<u8>) -> bool {
+    // Decode the verification key and signature
+    let verif_key = utils::decode_vk_pkcs1(vk);
+    let signature = Signature::try_from(&signature[..]).expect("Failed to decode signature");
+    // SHA256 hash message
+    let mut hash = Sha256::new();
+    hash.update(message);
+    let digest: [u8; 32] = vec_to_arr(hash.finalize().to_vec());
     // Verify signature
-    pk.verify(&message, &signature).is_ok()
+    verif_key.verify(&digest, &signature).is_ok()
 }
 
 #[rustler::nif]
