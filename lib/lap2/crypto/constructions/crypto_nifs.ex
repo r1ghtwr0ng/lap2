@@ -57,7 +57,7 @@ defmodule LAP2.Crypto.Constructions.CryptoNifs do
   Sign a message using a ed25519_dalek signature scheme.
   """
   @spec standard_signature_sign(charlist, charlist, charlist) :: charlist
-  def standard_signature_sign(_vk, _msg, _rand), do: :erlang.nif_error(:nif_not_loaded)
+  def standard_signature_sign(_sk, _msg, _rand), do: :erlang.nif_error(:nif_not_loaded)
 
   @doc """
   Verify a ed25519_dalek signature.

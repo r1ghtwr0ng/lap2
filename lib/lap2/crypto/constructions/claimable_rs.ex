@@ -92,7 +92,7 @@ defmodule LAP2.Crypto.Constructions.ClaimableRS do
     {:ok, {sag(), charlist}} | {:error, atom}
   def crs_sign(ring_idx, {{pk_rs, pk_sig}, sk_rs, sk_sig, sk_prf}, ring, msg) do
     # Verify the arguments before using unsafe functions
-    crypto_structs = [sk_rs, sk_sig, sk_prf, pk_rs, pk_sig]
+    crypto_structs = [sk_rs, sk_prf, pk_rs]
     case verify_args(ring_idx, ring, crypto_structs) do
       :ok ->
         # Generate ring signature on a message, then flatten it to a charlist
@@ -105,8 +105,8 @@ defmodule LAP2.Crypto.Constructions.ClaimableRS do
         # Generate a signature on the PRF randomness
         # TODO The paper says to use the prf randomness for the signature,
         # but there is no randomness there, just append to the message
-        sign_construct = List.flatten([pk_rs, pk_sig, sag_to_charlist(ring_sig), rand_sig])
-        regular_sig = CryptoNifs.standard_signature_sign(sk_sig, pk_sig, sign_construct)
+        sign_construct = List.flatten([pk_rs, pk_sig, sag_to_charlist(ring_sig)])
+        regular_sig = CryptoNifs.standard_signature_sign(sk_sig, sign_construct, rand_sig)
 
         # Generate randomness from commitment
         prf_construct = List.flatten([pk_rs, pk_sig, sag_to_charlist(ring_sig), 1])
@@ -147,10 +147,10 @@ defmodule LAP2.Crypto.Constructions.ClaimableRS do
   Generate a claim for a C-RS signature.
   """
   @spec crs_claim(non_neg_integer, {{charlist, charlist}, charlist, charlist, charlist}, {sag(), charlist}) ::
-    {:ok, {charlist, charlist, charlist} | :invalid_commitment} | {:error, atom}
+    {:ok, {charlist, charlist} | :invalid_commitment} | {:error, atom}
   def crs_claim(ring_idx, {{pk_rs, pk_sig}, sk_rs, sk_sig, sk_prf}, {sag, commitment}) do
     # Verify the arguments before using unsafe functions
-    crypto_structs = Enum.reduce(sag.resp, [pk_rs, pk_sig, sk_rs, sk_sig, sk_prf, sag.chal, commitment],
+    crypto_structs = Enum.reduce(sag.resp, [pk_rs, sk_rs, sk_prf, sag.chal, commitment],
     fn x, acc ->
       [x | acc]
     end)
@@ -163,15 +163,15 @@ defmodule LAP2.Crypto.Constructions.ClaimableRS do
         rand_com = CryptoNifs.prf_eval(sk_prf, prf_com_construct)
 
         # Generate standard signature
-        sign_construct = List.flatten([pk_rs, pk_sig, sag_to_charlist(sag), rand_sig])
-        regular_sig = CryptoNifs.standard_signature_sign(sk_sig, pk_sig, sign_construct)
+        sign_construct = List.flatten([pk_rs, pk_sig, sag_to_charlist(sag)])
+        regular_sig = CryptoNifs.standard_signature_sign(sk_sig, sign_construct, rand_sig)
 
         # Generate commitment
         com_construct = List.flatten([pk_rs, pk_sig, regular_sig])
         cond do
           commitment == CryptoNifs.commit_gen(com_construct, rand_com) ->
             # Valid commitment, return claim
-            {:ok, {rand_com, rand_sig, regular_sig}}
+            {:ok, {rand_com, regular_sig}}
 
           true ->
             # Invalid commitment, return empty set
@@ -186,11 +186,11 @@ defmodule LAP2.Crypto.Constructions.ClaimableRS do
   @doc """
   Verify the validity of a claim for a C-RS signature.
   """
-  @spec crs_vrfy_claim({charlist, charlist}, {sag(), charlist}, {charlist, charlist, charlist}) ::
+  @spec crs_vrfy_claim({charlist, charlist}, {sag(), charlist}, {charlist, charlist}) ::
     {:ok, boolean} | {:error, atom}
-  def crs_vrfy_claim({pk_rs, pk_sig}, {sag, commitment}, {rand_com, rand_sig, regular_sig}) do
+  def crs_vrfy_claim({pk_rs, pk_sig}, {sag, commitment}, {rand_com, regular_sig}) do
     # Verify the arguments before using unsafe functions
-    crypto_structs = Enum.reduce(sag.resp, [pk_rs, pk_sig, sag.chal, commitment],
+    crypto_structs = Enum.reduce(sag.resp, [pk_rs, sag.chal, commitment],
     fn x, acc ->
       [x | acc]
     end)
@@ -198,7 +198,6 @@ defmodule LAP2.Crypto.Constructions.ClaimableRS do
     case verify_args(1, sag.ring, crypto_structs) do
       :ok ->
         cond do
-          length(rand_sig) == 16 and
           length(rand_com) == 16 and
           length(regular_sig) == 64 ->
             # Generate commitment from claim
@@ -206,7 +205,7 @@ defmodule LAP2.Crypto.Constructions.ClaimableRS do
             ver_com = CryptoNifs.commit_gen(com_construct, rand_com) == commitment
 
             # Verify signature
-            sig_construct = List.flatten([pk_rs, pk_sig, sag_to_charlist(sag), rand_sig])
+            sig_construct = List.flatten([pk_rs, pk_sig, sag_to_charlist(sag)])
             ver_sig = CryptoNifs.standard_signature_vrfy(regular_sig, pk_sig, sig_construct)
             {:ok, ver_com and ver_sig}
 

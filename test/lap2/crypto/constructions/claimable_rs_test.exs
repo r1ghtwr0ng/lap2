@@ -80,7 +80,7 @@ defmodule LAP2.Crypto.Constructions.ClaimableRSTest do
         sk: {vk_2, sk_rs, sk_sig, sk_prf}
       } = ClaimableRS.crs_gen()
       assert length(pk_rs) == 32 and is_list(pk_rs)
-      assert length(pk_sig) == 32 and is_list(pk_sig)
+      assert length(pk_sig) == 256 and is_list(pk_sig)
       assert length(sk_rs) == 32 and is_list(sk_rs)
       assert length(sk_sig) == 32 and is_list(sk_sig)
       assert length(sk_prf) == 32 and is_list(sk_prf)
@@ -170,10 +170,9 @@ defmodule LAP2.Crypto.Constructions.ClaimableRSTest do
       end)]
       msg = 'Test message'
       {:ok, sig} = ClaimableRS.crs_sign(0, sk, ring, msg)
-      {:ok, {rand_com, rand_sig, regular_sig}} = ClaimableRS.crs_claim(0, sk, sig)
-      assert is_list(rand_com) and is_list(rand_sig) and is_list(regular_sig)
+      {:ok, {rand_com, regular_sig}} = ClaimableRS.crs_claim(0, sk, sig)
+      assert is_list(rand_com) and is_list(regular_sig)
       assert length(rand_com) == 16
-      assert length(rand_sig) == 16
       assert length(regular_sig) == 64
     end
 

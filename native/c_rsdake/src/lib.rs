@@ -65,12 +65,15 @@ fn standard_signature_sign(sk: Vec<u8>, message: Vec<u8>, rng: Vec<u8>) -> Vec<u
     // Decode the signing key
     let signing_key: BlindedSigningKey<Sha256> = decode_sk_pkcs1(sk);
     // Hash message
-    let mut hash = Sha256::new();
-    hash.update(message);
-    let digest: [u8; 32] = vec_to_arr(hash.finalize().to_vec());
-    let mut rng = seed_rng(rng);
+    let mut hash_msg = Sha256::new();
+    let mut hash_rng = Sha256::new();
+    hash_msg.update(message);
+    hash_rng.update(rng);
+    let msg_digest: [u8; 32] = vec_to_arr(hash_msg.finalize().to_vec());
+    let rng_digest: Vec<u8> = hash_rng.finalize().to_vec();
+    let mut rng = seed_rng(rng_digest);
     // Sign message
-    let signature = signing_key.sign_with_rng(&mut rng, &digest);
+    let signature = signing_key.sign_with_rng(&mut rng, &msg_digest);
     signature.to_bytes().to_vec()
 }
 
