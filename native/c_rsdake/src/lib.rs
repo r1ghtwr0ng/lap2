@@ -50,8 +50,9 @@ fn commit_vrfy(s: Vec<u8>, r: Vec<u8>, c: Vec<u8>) -> bool {
 
 #[rustler::nif]
 fn standard_signature_gen() -> (Vec<u8>, Vec<u8>) {
+    // Key size is 1024 bits as this is used for signing with ephemeral keys
+    let bits = 1024;
     // Generate keys
-    let bits = 2048;
     let mut rng = rand::thread_rng();
     let private_key = RsaPrivateKey::new(&mut rng, bits).expect("Failed to generate signing key");
     let signing_key = BlindedSigningKey::<Sha256>::new(private_key);
