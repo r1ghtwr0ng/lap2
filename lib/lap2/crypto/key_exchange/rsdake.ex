@@ -111,8 +111,6 @@ defmodule LAP2.Crypto.KeyExchange.RSDAKE do
         # Generate ring and ring signature
         ring = [recv_pk_lt, pk_lt, pk_rs]
         rsig_msg = List.flatten([0, recv_identity, recv_pk_ephem_sign, pk_ephem_sign])
-        IO.inspect(rsig_msg, label: "rsig_msg")
-        IO.inspect(ring, label: "ring")
         {:ok, ring_signature} = ClaimableRS.rs_sign(1, sk_lt, ring, rsig_msg)
 
         # Compute shared secret

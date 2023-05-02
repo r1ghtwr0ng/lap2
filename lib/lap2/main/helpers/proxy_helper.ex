@@ -31,7 +31,6 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
         case OutboundPipelines.send_proxy_accept(enc_response, proxy_seq, clove_seq, relay_pool, router_name) do
           :ok ->
             Map.put(state, :proxy_pool, new_pool)
-            |> IO.inspect(label: "[+] Updated proxy pool")
 
           :error -> state
         end
@@ -174,7 +173,7 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
   @spec add_relays(map, non_neg_integer, list({String.t(), non_neg_integer}), atom) :: map
   defp add_relays(proxy_pool, _proxy_seq, [], _router_name), do: proxy_pool
   defp add_relays(proxy_pool, proxy_seq, relays, router_name) when is_map_key(proxy_pool, proxy_seq) do
-    IO.inspect(relays, label: "The following relays will be added to the proxy pool:")
+    #IO.inspect(relays, label: "The following relays will be added to the proxy pool:")
     Router.add_proxy_relays(proxy_seq, relays, router_name)
     Enum.reduce(relays, proxy_pool, fn relay, acc ->
       cond do
