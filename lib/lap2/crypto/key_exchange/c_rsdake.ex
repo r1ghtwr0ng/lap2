@@ -55,7 +55,7 @@ defmodule LAP2.Crypto.KeyExchange.C_RSDAKE do
 
     # Generate the signature
     msg = List.flatten([:binary.bin_to_list(pk_dh), Tuple.to_list(vk_rs)])
-    rng = :crypto.strong_rand_bytes(32)
+    rng = :crypto.strong_rand_bytes(32) |> :binary.bin_to_list()
     signature = CryptoNifs.standard_signature_sign(sk_ephem_sign, msg, rng)
     crypto_state = %{
       lt_keys: sk_lt,
@@ -105,7 +105,7 @@ defmodule LAP2.Crypto.KeyExchange.C_RSDAKE do
       CryptoNifs.standard_signature_vrfy(recv_signature, recv_pk_ephem_sign, msg) ->
         # Generate signatures
         sig_msg = List.flatten([:binary.bin_to_list(pk_dh), vk_rs_ephem, vk_sig_ephem])
-        rng = :crypto.strong_rand_bytes(32)
+        rng = :crypto.strong_rand_bytes(32) |> :binary.bin_to_list()
         signature = CryptoNifs.standard_signature_sign(sk_ephem_sign, sig_msg, rng)
 
         # Generate ring and ring signature
