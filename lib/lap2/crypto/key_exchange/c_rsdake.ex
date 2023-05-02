@@ -46,7 +46,7 @@ defmodule LAP2.Crypto.KeyExchange.C_RSDAKE do
   Implements RSDAKE's key exchange protocol initialisation phase.
   """
   @spec initialise(charlist) :: {crypto_state(), rsdake_init()}
-  def initialise(identity) do
+  def initialise(identity) when is_list(identity) do
     # Generate the key pairs
     %{sk: sk_lt, vk: vk_lt} = ClaimableRS.crs_gen()
     %{sk: sk_rs, vk: vk_rs} = ClaimableRS.crs_gen()
@@ -76,13 +76,14 @@ defmodule LAP2.Crypto.KeyExchange.C_RSDAKE do
     }
     {crypto_state, init_struct}
   end
+  def initialise(_), do: {:error, :invalid_identity}
 
   @doc """
   Implements RSDAKE's response phase.
   """
   @spec respond(charlist, map, rsdake_init()) ::
     {:ok, {crypto_state(), rsdake_resp()}} | {:error, atom}
-  def respond(identity, _lt_keys, recv_init) do
+  def respond(identity, _lt_keys, recv_init) when is_list(identity) do
     # Generate key pairs
     %{sk: sk_lt, vk: {vk_rs_lt, vk_sig_lt}} = ClaimableRS.crs_gen()
     %{sk: sk_rs, vk: {vk_rs_ephem, vk_sig_ephem}} = ClaimableRS.crs_gen()
@@ -141,16 +142,15 @@ defmodule LAP2.Crypto.KeyExchange.C_RSDAKE do
       true ->
         {:error, :invalid_signature}
     end
-
-
   end
+  def respond(_identity, _lt_keys, _recv_init), do: {:error, :invalid_identity}
 
   @doc """
   Implements RSDAKE's finalisation phase.
   """
   @spec finalise(charlist, crypto_state(), rsdake_resp()) ::
   {:ok, {crypto_state(), rsdake_final()}} | {:error, atom}
-  def finalise(identity, crypto_state, recv_resp) do
+  def finalise(identity, crypto_state, recv_resp) when is_list(identity) do
     # Deconstruct maps
     %{
       identity: recv_identity,
@@ -166,7 +166,7 @@ defmodule LAP2.Crypto.KeyExchange.C_RSDAKE do
       rs_keys: {{vk_rs_ephem, _vk_sig_ephem}, _sk_rs_ephem, _sk_sig_ephem, _sk_prf_ephem},
       ephem_sign_keys: {_, pk_ephem_sign},
       dh_keys: {sk_dh, _}
-    }= crypto_state
+    } = crypto_state
 
     # Verify signature
     msg = List.flatten([:binary.bin_to_list(recv_pk_dh), recv_vk_rs_ephem, recv_vk_sig_ephem])
@@ -178,7 +178,7 @@ defmodule LAP2.Crypto.KeyExchange.C_RSDAKE do
           ClaimableRS.crs_vrfy(recv_ring_signature, rsig_msg) ->
             # Generate ring and ring signature
             ring = [vk_rs_lt, recv_vk_rs_lt, vk_rs_ephem]
-            rsig_msg = List.flatten([1, recv_identity, pk_ephem_sign, recv_pk_ephem_sign])
+            rsig_msg = List.flatten([1, recv_identity, recv_pk_ephem_sign, pk_ephem_sign])
             {:ok, ring_signature} = ClaimableRS.crs_sign(0, crypto_state.lt_keys, ring, rsig_msg)
 
             # Compute shared secret
@@ -203,13 +203,14 @@ defmodule LAP2.Crypto.KeyExchange.C_RSDAKE do
         {:error, :invalid_signature}
     end
   end
+  def finalise(_identity, _crypto_state, _recv_resp), do: {:error, :invalid_identity}
 
   @doc """
   Implements RSDAKE's final response verification phase.
   """
   @spec verify_final(charlist, crypto_state(), rsdake_final()) ::
     {:ok, boolean} | {:error, atom}
-  def verify_final(identity, crypto_state, %{ring_signature: rs}) do
+  def verify_final(identity, crypto_state, %{ring_signature: rs}) when is_list(identity) do
     # Deconstruct maps
     %{
       ephem_sign_keys: {_, pk_ephem_sign},
@@ -222,4 +223,5 @@ defmodule LAP2.Crypto.KeyExchange.C_RSDAKE do
     rsig_msg = List.flatten([1, identity, pk_ephem_sign, recv_pk_ephem_sign])
     ClaimableRS.crs_vrfy(rs, rsig_msg)
   end
+  def verify_final(_identity, _crypto_state, _recv_resp), do: {:error, :invalid_identity}
 end
