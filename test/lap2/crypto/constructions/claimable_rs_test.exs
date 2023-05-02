@@ -172,7 +172,7 @@ defmodule LAP2.Crypto.Constructions.ClaimableRSTest do
       {:ok, {rand_com, regular_sig}} = ClaimableRS.crs_claim(0, sk, sig)
       assert is_list(rand_com) and is_list(regular_sig)
       assert length(rand_com) == 16
-      assert length(regular_sig) == 256
+      assert length(regular_sig) == 128
     end
 
     test "Test invalid C-RS claim" do
