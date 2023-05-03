@@ -26,6 +26,7 @@
 ---
 ## **Usage** 
 
+The documentation for LAP2 project can be found [here](https://r1ghtwr0ng.github.io/lap2/LAP2.html).<br>
 It is recommended that you use the project inside a Docker container. To do that, follow the instructions in the next section:
 
 ### **Docker Setup**
