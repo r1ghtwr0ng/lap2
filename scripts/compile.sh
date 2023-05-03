@@ -3,7 +3,7 @@
 # This script is used to fetch deps and compile the project.
 echo "[+] Getting deps..."
 mix deps.get
-mix deps.compile
+
 echo "[+] Compiling Elixir code..."
 mix compile
 
