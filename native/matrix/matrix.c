@@ -1,4 +1,4 @@
-#include </home/arch/.asdf/installs/erlang/24.2.1/usr/include/erl_nif.h>
+#include <erl_nif.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
