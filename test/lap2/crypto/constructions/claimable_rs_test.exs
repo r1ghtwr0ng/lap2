@@ -99,11 +99,12 @@ defmodule LAP2.Crypto.Constructions.ClaimableRSTest do
         pk
       end)]
       msg = 'Test message'
-      {:ok, {%{
+      {:ok, %SAG{
         chal: chal,
         ring: ring,
-        resp: resp
-      }, com}} = ClaimableRS.crs_sign(0, sk, ring, msg)
+        resp: resp,
+        commitment: com
+      }} = ClaimableRS.crs_sign(0, sk, ring, msg)
       assert is_list(resp) and is_list(chal) and is_list(ring) and is_list(com)
       assert length(chal) == 32 and length(com) == 32
       assert length(resp) == length(ring)
@@ -186,8 +187,8 @@ defmodule LAP2.Crypto.Constructions.ClaimableRSTest do
         pk
       end)]
       msg = 'Test message'
-      {:ok, {sag, commitment}} = ClaimableRS.crs_sign(0, sk, ring, msg)
-      sig = {sag, Enum.map(commitment, fn _ -> 0 end)}
+      {:ok, sag} = ClaimableRS.crs_sign(0, sk, ring, msg)
+      sig = Map.put(sag, :commitment, Enum.map(sag.commitment, fn _ -> 0 end))
       assert {:ok, :invalid_commitment} == ClaimableRS.crs_claim(0, sk, sig)
     end
   end
@@ -220,9 +221,9 @@ defmodule LAP2.Crypto.Constructions.ClaimableRSTest do
         pk
       end)]
       msg = 'Test message'
-      {:ok, {sag, commitment} = sig} = ClaimableRS.crs_sign(0, sk, ring, msg)
-      {:ok, claim} = ClaimableRS.crs_claim(0, sk, sig)
-      sig = {sag, Enum.map(commitment, fn _ -> 0 end)}
+      {:ok, sag} = ClaimableRS.crs_sign(0, sk, ring, msg)
+      {:ok, claim} = ClaimableRS.crs_claim(0, sk, sag)
+      sig = Map.put(sag, :commitment, Enum.map(sag.commitment, fn _ -> 0 end))
       assert {:ok, false} == ClaimableRS.crs_vrfy_claim(vk, sig, claim)
     end
   end

@@ -13,18 +13,11 @@ defmodule LAP2.Networking.ProtoBufTest do
       # Create the clove
       clove = CloveHelper.create_clove(data, hdr, :proxy_discovery)
       # Expected serial outputs
-      serial = [
-        [
-          [[], "\x1A", ["\a", "\b\x01\x15333?"]],
-          "\b",
-          ["\xC7", ["\xD0", ["\xA7", ["\xEC", "\x02"]]]]
-        ],
-        "\x12",
-        ["\t", "TEST_DATA"]
-      ]
+      serial = <<26, 7, 8, 1, 21, 51, 51, 51, 63, 8, 199, 208, 167, 236, 2, 18, 9, 84, 69, 83,
+      84, 95, 68, 65, 84, 65>>
 
       # Serialise the cloves
-      assert {:ok, IO.iodata_to_binary(serial)} == ProtoBuf.serialise(clove)
+      assert {:ok, serial} == ProtoBuf.serialise(clove)
     end
 
     test "Test proxy response clove serialisation" do
@@ -34,18 +27,11 @@ defmodule LAP2.Networking.ProtoBufTest do
       # Create the clove
       clove = CloveHelper.create_clove(data, hdr, :proxy_response)
       # Expected serial outputs
-      serial = [
-        [
-          [[], "\"", [<<4>>, <<8, 4, 16, 2>>]],
-          "\b",
-          [<<199>>, [<<208>>, [<<167>>, [<<236>>, <<2>>]]]]
-        ],
-        <<18>>,
-        ["\t", "TEST_DATA"]
-      ]
+      serial = <<34, 4, 8, 4, 16, 2, 8, 199, 208, 167, 236, 2, 18, 9, 84, 69, 83, 84, 95, 68,
+      65, 84, 65>>
 
       # Serialise the cloves
-      assert {:ok, IO.iodata_to_binary(serial)} == ProtoBuf.serialise(clove)
+      assert {:ok, serial} == ProtoBuf.serialise(clove)
     end
 
     test "Test regular proxy clove serialisation" do
@@ -55,14 +41,11 @@ defmodule LAP2.Networking.ProtoBufTest do
       # Create the clove
       clove = CloveHelper.create_clove(data, hdr, :regular_proxy)
       # Expected serial outputs
-      serial = [
-        [[[], "*", [<<2>>, <<8, 3>>]], "\b", [<<199>>, [<<208>>, [<<167>>, [<<236>>, <<2>>]]]]],
-        <<18>>,
-        ["\t", "TEST_DATA"]
-      ]
+      serial = <<42, 2, 8, 3, 8, 199, 208, 167, 236, 2, 18, 9, 84, 69, 83, 84, 95, 68, 65, 84,
+      65>>
 
       # Serialise the cloves
-      assert {:ok, IO.iodata_to_binary(serial)} == ProtoBuf.serialise(clove)
+      assert {:ok, serial} == ProtoBuf.serialise(clove)
     end
   end
 
@@ -80,18 +63,11 @@ defmodule LAP2.Networking.ProtoBufTest do
       }
 
       # Expected serial outputs
-      serial = [
-        [
-          [[[[[], "\b", <<1>>], <<16>>, <<2>>], <<24>>, <<1>>], " ", <<2>>],
-          "*",
-          ["\f", <<10, 4, 1, 1, 1, 1, 18, 4, 1, 1, 1, 1>>]
-        ],
-        "2",
-        [<<4>>, <<1, 1, 1, 1>>]
-      ]
+      serial = <<8, 1, 16, 2, 24, 1, 32, 2, 42, 12, 10, 4, 1, 1, 1, 1, 18, 4, 1, 1, 1, 1, 50,
+      4, 1, 1, 1, 1>>
 
       # Serialise the cloves
-      assert {:ok, IO.iodata_to_binary(serial)} == ProtoBuf.serialise(share)
+      assert {:ok, serial} == ProtoBuf.serialise(share)
     end
   end
 
@@ -104,26 +80,33 @@ defmodule LAP2.Networking.ProtoBufTest do
         request_type: "proxy_discovery",
         data: "TEST_DATA",
         crypto:
-          {:init_ke,
-           %KeyExchangeInit{
-             identity: <<>>,
-             ephemeral_pk: <<>>,
-             generator: <<>>,
-             ring_pk: <<>>,
-             signature: <<>>,
-             hmac_key: <<>>
-           }}
+        {:init_ke,
+        %KeyExchangeInit{
+          identity: "a",
+          pk_ephem_sign: <<>>,
+          signature: <<>>,
+          pk_dh: <<>>,
+          hmac_key: <<>>,
+          pk_rs: {:crs_ephem,
+           %CrsVerKey{
+             rs_vk: <<>>,
+             sig_vk: <<>>,
+           }},
+          pk_lt: {:crs_lt,
+           %CrsVerKey{
+             rs_vk: <<>>,
+             sig_vk: <<>>,
+           }},
+        }}
       }
 
       # Expected serial outputs
-      serial = [
-        [[[], "*", [<<0>>, ""]], <<26>>, [<<15>>, "proxy_discovery"]],
-        "\"",
-        ["\t", "TEST_DATA"]
-      ]
+      serial = <<42, 7, 66, 0, 50, 0, 10, 1, 97, 26, 15, 112, 114, 111, 120, 121, 95, 100,
+      105, 115, 99, 111, 118, 101, 114, 121, 34, 9, 84, 69, 83, 84, 95, 68, 65, 84,
+      65>>
 
       # Serialise the cloves
-      assert {:ok, IO.iodata_to_binary(serial)} == ProtoBuf.serialise(request)
+      assert {:ok, serial} == ProtoBuf.serialise(request)
     end
 
     test "Test key exchange response serialisation" do
@@ -134,27 +117,43 @@ defmodule LAP2.Networking.ProtoBufTest do
         request_type: "discovery_response",
         data: "TEST_DATA",
         crypto:
-          {:resp_ke,
-           %KeyExchangeResponse{
-             identity: <<>>,
-             ephemeral_pk: <<>>,
-             generator: <<>>,
-             ring_pk: <<>>,
-             signature: <<>>,
-             ring_signature: <<>>,
-             hmac_key: <<>>
-           }}
+        {:resp_ke,
+        %KeyExchangeResponse{
+          identity: "B",
+          pk_ephem_sign: <<>>,
+          signature: <<>>,
+          pk_dh: <<>>,
+          hmac_key: <<>>,
+          pk_rs: {:crs_ephem,
+           %CrsVerKey{
+             rs_vk: <<>>,
+             sig_vk: <<>>,
+             __uf__: []
+           }},
+          pk_lt: {:crs_lt,
+           %CrsVerKey{
+             rs_vk: <<>>,
+             sig_vk: <<>>,
+             __uf__: []
+           }},
+          ring_signature: %SAG{
+            chal: <<>>,
+            ring: [<<>>, <<>>, <<>>],
+            resp: [<<>>, <<>>, <<>>],
+            commitment: <<>>,
+            __uf__: []
+          },
+          __uf__: []
+        }},
       }
 
       # Expected serial outputs
-      serial = [
-        [[[], "2", [<<0>>, ""]], <<26>>, [<<18>>, "discovery_response"]],
-        "\"",
-        ["\t", "TEST_DATA"]
-      ]
+      serial = <<50, 23, 66, 0, 50, 0, 10, 1, 66, 82, 14, 34, 0, 18, 0, 18, 0, 18, 0, 26, 0,
+      26, 0, 26, 0, 26, 18, 100, 105, 115, 99, 111, 118, 101, 114, 121, 95, 114,
+      101, 115, 112, 111, 110, 115, 101, 34, 9, 84, 69, 83, 84, 95, 68, 65, 84, 65>>
 
       # Serialise the cloves
-      assert {:ok, IO.iodata_to_binary(serial)} == ProtoBuf.serialise(request)
+      assert {:ok, serial} == ProtoBuf.serialise(request)
     end
 
     test "Test final key exchange serialisation" do
@@ -166,21 +165,26 @@ defmodule LAP2.Networking.ProtoBufTest do
         data: "TEST_DATA",
         crypto:
           {:fin_ke,
-           %KeyExchangeFinal{
-             ring_signature: <<>>,
-             hmac_key: <<>>
-           }}
+          %KeyExchangeFinal{
+            ring_signature: %SAG{
+              chal: <<>>,
+              ring: [<<>>, <<>>, <<>>],
+              resp: [<<>>, <<>>, <<>>],
+              commitment: <<>>,
+              __uf__: []
+            },
+            hmac_key: <<>>,
+            __uf__: []
+          }}
       }
 
       # Expected serial outputs
-      serial = [
-        [[[], ":", [<<0>>, ""]], <<26>>, ["\f", "key_exchange"]],
-        "\"",
-        ["\t", "TEST_DATA"]
-      ]
+      serial = <<58, 16, 10, 14, 34, 0, 18, 0, 18, 0, 18, 0, 26, 0, 26, 0, 26, 0, 26, 12, 107,
+      101, 121, 95, 101, 120, 99, 104, 97, 110, 103, 101, 34, 9, 84, 69, 83, 84,
+      95, 68, 65, 84, 65>>
 
       # Serialise the cloves
-      assert {:ok, IO.iodata_to_binary(serial)} == ProtoBuf.serialise(request)
+      assert {:ok, serial} == ProtoBuf.serialise(request)
     end
 
     test "Test symmetric key communication serialisation" do
@@ -198,14 +202,11 @@ defmodule LAP2.Networking.ProtoBufTest do
       }
 
       # Expected serial outputs
-      serial = [
-        [[[], "J", [<<0>>, ""]], <<26>>, ["\r", "regular_proxy"]],
-        "\"",
-        ["\t", "TEST_DATA"]
-      ]
+      serial = <<74, 0, 26, 13, 114, 101, 103, 117, 108, 97, 114, 95, 112, 114, 111, 120, 121,
+      34, 9, 84, 69, 83, 84, 95, 68, 65, 84, 65>>
 
       # Serialise the cloves
-      assert {:ok, IO.iodata_to_binary(serial)} == ProtoBuf.serialise(request)
+      assert {:ok, serial} == ProtoBuf.serialise(request)
     end
 
     test "Test key rotation serialisation" do
@@ -224,14 +225,11 @@ defmodule LAP2.Networking.ProtoBufTest do
       }
 
       # Expected serial outputs
-      serial = [
-        [[[], "B", [<<0>>, ""]], <<26>>, ["\r", "regular_proxy"]],
-        "\"",
-        ["\t", "TEST_DATA"]
-      ]
+      serial = <<66, 0, 26, 13, 114, 101, 103, 117, 108, 97, 114, 95, 112, 114, 111, 120, 121,
+      34, 9, 84, 69, 83, 84, 95, 68, 65, 84, 65>>
 
       # Serialise the cloves
-      assert {:ok, IO.iodata_to_binary(serial)} == ProtoBuf.serialise(request)
+      assert {:ok, serial} == ProtoBuf.serialise(request)
     end
   end
 
@@ -308,9 +306,9 @@ defmodule LAP2.Networking.ProtoBufTest do
   describe "(Request) deserialise/2" do
     test "Test initial key exchange deserialisation" do
       # Serial data
-      serial =
-        <<42, 0, 26, 15, 112, 114, 111, 120, 121, 95, 100, 105, 115, 99, 111, 118, 101, 114, 121,
-          34, 9, 84, 69, 83, 84, 95, 68, 65, 84, 65>>
+      serial = <<42, 7, 66, 0, 50, 0, 10, 1, 97, 26, 15, 112, 114, 111, 120, 121, 95, 100,
+      105, 115, 99, 111, 118, 101, 114, 121, 34, 9, 84, 69, 83, 84, 95, 68, 65, 84,
+      65>>
 
       # Expected deserialised outputs
       request = %Request{
@@ -319,15 +317,24 @@ defmodule LAP2.Networking.ProtoBufTest do
         request_type: "proxy_discovery",
         data: "TEST_DATA",
         crypto:
-          {:init_ke,
-           %KeyExchangeInit{
-             identity: <<>>,
-             ephemeral_pk: <<>>,
-             generator: <<>>,
-             ring_pk: <<>>,
-             signature: <<>>,
-             hmac_key: <<>>
-           }}
+        {:init_ke,
+        %KeyExchangeInit{
+          identity: "a",
+          pk_ephem_sign: <<>>,
+          signature: <<>>,
+          pk_dh: <<>>,
+          hmac_key: <<>>,
+          pk_rs: {:crs_ephem,
+           %CrsVerKey{
+             rs_vk: <<>>,
+             sig_vk: <<>>,
+           }},
+          pk_lt: {:crs_lt,
+           %CrsVerKey{
+             rs_vk: <<>>,
+             sig_vk: <<>>,
+           }},
+        }}
       }
 
       # Deserialise the request
@@ -336,9 +343,9 @@ defmodule LAP2.Networking.ProtoBufTest do
 
     test "Test key exchange response deserialisation" do
       # Serial data
-      serial =
-        <<50, 0, 26, 18, 100, 105, 115, 99, 111, 118, 101, 114, 121, 95, 114, 101, 115, 112, 111,
-          110, 115, 101, 34, 9, 84, 69, 83, 84, 95, 68, 65, 84, 65>>
+      serial = <<50, 23, 66, 0, 50, 0, 10, 1, 66, 82, 14, 34, 0, 18, 0, 18, 0, 18, 0, 26, 0,
+      26, 0, 26, 0, 26, 18, 100, 105, 115, 99, 111, 118, 101, 114, 121, 95, 114,
+      101, 115, 112, 111, 110, 115, 101, 34, 9, 84, 69, 83, 84, 95, 68, 65, 84, 65>>
 
       # Expected deserialised outputs
       request = %Request{
@@ -347,16 +354,34 @@ defmodule LAP2.Networking.ProtoBufTest do
         request_type: "discovery_response",
         data: "TEST_DATA",
         crypto:
-          {:resp_ke,
-           %KeyExchangeResponse{
-             identity: <<>>,
-             ephemeral_pk: <<>>,
-             generator: <<>>,
-             ring_pk: <<>>,
-             signature: <<>>,
-             ring_signature: <<>>,
-             hmac_key: <<>>
-           }}
+        {:resp_ke,
+        %KeyExchangeResponse{
+          identity: "B",
+          pk_ephem_sign: <<>>,
+          signature: <<>>,
+          pk_dh: <<>>,
+          hmac_key: <<>>,
+          pk_rs: {:crs_ephem,
+           %CrsVerKey{
+             rs_vk: <<>>,
+             sig_vk: <<>>,
+             __uf__: []
+           }},
+          pk_lt: {:crs_lt,
+           %CrsVerKey{
+             rs_vk: <<>>,
+             sig_vk: <<>>,
+             __uf__: []
+           }},
+          ring_signature: %SAG{
+            chal: <<>>,
+            ring: [<<>>, <<>>, <<>>],
+            resp: [<<>>, <<>>, <<>>],
+            commitment: <<>>,
+            __uf__: []
+          },
+          __uf__: []
+        }},
       }
 
       # Deserialise the request
@@ -365,9 +390,9 @@ defmodule LAP2.Networking.ProtoBufTest do
 
     test "Test final key exchange deserialisation" do
       # Serial data
-      serial =
-        <<58, 0, 26, 12, 107, 101, 121, 95, 101, 120, 99, 104, 97, 110, 103, 101, 34, 9, 84, 69,
-          83, 84, 95, 68, 65, 84, 65>>
+      serial = <<58, 16, 10, 14, 34, 0, 18, 0, 18, 0, 18, 0, 26, 0, 26, 0, 26, 0, 26, 12, 107,
+      101, 121, 95, 101, 120, 99, 104, 97, 110, 103, 101, 34, 9, 84, 69, 83, 84,
+      95, 68, 65, 84, 65>>
 
       # Expected deserialised outputs
       request = %Request{
@@ -377,11 +402,19 @@ defmodule LAP2.Networking.ProtoBufTest do
         data: "TEST_DATA",
         crypto:
           {:fin_ke,
-           %KeyExchangeFinal{
-             ring_signature: <<>>,
-             hmac_key: <<>>
-           }}
+          %KeyExchangeFinal{
+            ring_signature: %SAG{
+              chal: <<>>,
+              ring: [<<>>, <<>>, <<>>],
+              resp: [<<>>, <<>>, <<>>],
+              commitment: <<>>,
+              __uf__: []
+            },
+            hmac_key: <<>>,
+            __uf__: []
+          }}
       }
+
 
       # Deserialise the request
       assert {:ok, request} == ProtoBuf.deserialise(serial, Request)
