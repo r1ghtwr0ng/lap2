@@ -51,7 +51,17 @@ defmodule LAP2.Networking.Router do
     {:ok, state}
   end
 
-  # TODO append lap2_addr to the config
+  @spec handle_call(:get_neighbors, any, map) :: {:reply, list, map}
+  def handle_call(:get_neighbors, _from, state) do
+    {:reply, state.random_neighbors, state}
+  end
+
+  # TODO DEBUG ONLY, remove later
+  @spec handle_call({:debug}, any, map) :: {:reply, map, map}
+  def handle_call({:debug}, _from, state) do
+    {:reply, state, state}
+  end
+
   # Handle received cloves
   @spec handle_cast({:route_inbound, {String.t(), non_neg_integer}, Clove.t()}, map) ::
           {:noreply, map}
@@ -175,11 +185,6 @@ defmodule LAP2.Networking.Router do
     end
   end
 
-  @spec handle_call({:debug}, any, map) :: {:reply, map, map}
-  def handle_call({:debug}, _from, state) do
-    {:reply, state, state}
-  end
-
   @spec handle_info(any, map) :: {:noreply, map}
   def handle_info(_unexpected_msg, state) do
     # Handle unexpected messages
@@ -234,6 +239,14 @@ defmodule LAP2.Networking.Router do
   @spec append_dht(binary, {String.t(), non_neg_integer}, atom) :: :ok
   def append_dht(lap2_addr, ip_addr, name \\ :router) do
     GenServer.cast({:global, name}, {:append_dht, lap2_addr, ip_addr})
+  end
+
+  @doc """
+  Get a list of neighbors from the state
+  """
+  @spec get_neighbors(atom) :: list(String.t())
+  def get_neighbors(name \\ :router) do
+    GenServer.call({:global, name}, {:get_neighbors})
   end
 
   @doc """

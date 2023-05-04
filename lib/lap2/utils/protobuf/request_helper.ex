@@ -16,13 +16,14 @@ defmodule LAP2.Utils.ProtoBuf.RequestHelper do
   @spec init_exchange(non_neg_integer, atom) ::
     {:ok, EncryptedRequest.t()} | {:error, atom}
   def init_exchange(clove_seq, crypto_mgr \\ :crypto_manager) do
-    case CryptoStructHelper.gen_init_crypto(crypto_mgr) do
+    case CryptoStructHelper.gen_init_crypto(clove_seq, crypto_mgr) do
       {:ok, %{
         crypto_struct: temp_crypto_struct,
         encrypted_request: enc_req
       }} ->
         # Update the temporary crypto state for a given clove_seq.
         # If a response is received, its migrated to long-term ETS storage
+        Logger.info("[+] HIT CHECKPOINT RequestHelper.init_exchange/2 ADDING TEMP CRYPTO STATE")
         CryptoManager.add_temp_crypto_struct(temp_crypto_struct, clove_seq, crypto_mgr)
         {:ok, enc_req}
 
@@ -58,6 +59,7 @@ defmodule LAP2.Utils.ProtoBuf.RequestHelper do
   @spec gen_finalise_exchange(Request.t(), non_neg_integer, non_neg_integer, atom) ::
     {:ok, EncryptedRequest.t()} | {:error, atom}
   def gen_finalise_exchange(request, proxy_seq, clove_seq, crypto_mgr \\ :crypto_manager) do
+    Logger.info("[+] HIT CHECKPOINT RequestHelper.gen_finalise_exchange/4")
     temp_crypto_struct = CryptoManager.get_temp_crypto_struct(clove_seq, crypto_mgr)
     case CryptoStructHelper.gen_fin_crypto(request.crypto, temp_crypto_struct, crypto_mgr) do
       {:ok, %{

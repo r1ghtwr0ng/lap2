@@ -121,6 +121,7 @@ defmodule LAP2.Crypto.CryptoManager do
   """
   @spec add_crypto_struct(map, non_neg_integer, atom) :: :ok
   def add_crypto_struct(crypto_struct, proxy_seq, name \\ :crypto_manager) do
+    Logger.info("[+] ADDING LONG-TERM CRYPTO STATE TO ETS: #{proxy_seq}")
     GenServer.call({:global, name}, {:add_crypto_struct, crypto_struct, proxy_seq})
   end
 
@@ -129,6 +130,7 @@ defmodule LAP2.Crypto.CryptoManager do
   """
   @spec add_temp_crypto_struct(map, non_neg_integer, atom) :: :ok
   def add_temp_crypto_struct(crypto_struct, clove_seq, name \\ :crypto_manager) do
+    Logger.info("[+] INPUTTING TEMP CRYPTO STATE FOR CLOVE: #{clove_seq}")
     GenServer.call({:global, name}, {:add_temp_crypto_struct, crypto_struct, clove_seq})
   end
 
@@ -137,6 +139,7 @@ defmodule LAP2.Crypto.CryptoManager do
   """
   @spec get_temp_crypto_struct(non_neg_integer, atom) :: map
   def get_temp_crypto_struct(clove_seq, name \\ :crypto_manager) do
+    Logger.info("[+] FETCHING TEMP CRYPTO STATE FROM STORAGE: #{clove_seq}")
     GenServer.call({:global, name}, {:get_temp_crypto_struct, clove_seq})
   end
 

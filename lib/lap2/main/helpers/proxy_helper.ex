@@ -6,9 +6,30 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
   require Logger
   alias LAP2.Main.Master
   alias LAP2.Utils.EtsHelper
+  alias LAP2.Utils.ProtoBuf.CloveHelper
   alias LAP2.Utils.ProtoBuf.RequestHelper
   alias LAP2.Networking.Router
   alias LAP2.Networking.Helpers.OutboundPipelines
+
+  @doc """
+  Initialise proxy request.
+  """
+  @spec init_proxy_request(map, non_neg_integer) :: :ok | :error
+  def init_proxy_request(registry_table, cloves) do
+    crypto_mgr = registry_table.crypto_manager
+    clove_seq = CloveHelper.gen_seq_num() # TOGO gen
+    case RequestHelper.init_exchange(clove_seq, crypto_mgr) do
+      {:ok, request} ->
+        router = registry_table.router
+        random_neighbors = Router.get_neighbors(router)
+        OutboundPipelines.send_proxy_discovery(request, random_neighbors, cloves, router)
+        :ok
+
+      {:error, reason} ->
+        Logger.error("Error: #{reason} occured while initialising proxy request")
+        :error
+    end
+  end
 
   @doc """
   Accept a proxy request.
@@ -37,7 +58,7 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
       {:error, reason} -> # Failed to update crypto state or generate response
         Logger.error("Error: #{reason} occured while responding to proxy: #{proxy_seq}, Request type: PROXY_REQUEST")
         state
-    end
+      end
   end
 
   @doc """
@@ -160,8 +181,6 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
         :error
     end
   end
-
-  # TODO responve typings and returns at CryptoManager (also CryptoManager calls in this module)
 
   # ---- State Helpers ----
   @spec remove_proxy(map, non_neg_integer) :: map

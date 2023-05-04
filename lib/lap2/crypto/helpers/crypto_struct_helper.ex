@@ -40,14 +40,14 @@ defmodule LAP2.Crypto.Helpers.CryptoStructHelper do
   @doc """
   Generate initial key exchange primitives and response (EncryptedRequest struct)
   """
-  @spec gen_init_crypto(atom) ::
+  @spec gen_init_crypto(non_neg_integer, atom) ::
     {:ok, %{crypto_struct: map, encrypted_request: EncryptedRequest.t()}} | {:error, atom}
-  def gen_init_crypto(crypto_mgr \\ :crypto_manager) do
+  def gen_init_crypto(clove_seq, crypto_mgr \\ :crypto_manager) do
     # Generate (un)encrypted request struct
     identity = get_identity(crypto_mgr)
     case C_RSDAKE.initialise(identity) do
       {:ok, {temp_crypto_struct, init_hdr}} ->
-        RequestHelper.build_request(init_hdr, <<>>, "key_exchange_init", CloveHelper.gen_seq_num())
+        RequestHelper.build_request(init_hdr, <<>>, "key_exchange_init", clove_seq)
         |> RequestHelper.wrap_unencrypted()
         |> build_return(temp_crypto_struct)
       err -> err
