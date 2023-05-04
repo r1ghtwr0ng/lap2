@@ -44,13 +44,7 @@ defmodule LAP2.Utils.ProtoBuf.RequestHelper do
         encrypted_request: enc_req
       }} ->
         # Build and add crypto struct to long-term ETS storage
-        new_struct = %{
-          identity: crypto_struct.identity,
-          long_term_rs_pk: crypto_struct.long_term_rs_pk,
-          ephemeral_dh_pk: crypto_struct.ephemeral_dh_pk,
-          asymmetric_key: crypto_struct.asymmetric_key
-        }
-        CryptoManager.add_crypto_struct(new_struct, proxy_seq, crypto_mgr)
+        CryptoManager.add_crypto_struct(crypto_struct, proxy_seq, crypto_mgr)
         {:ok, enc_req}
 
       err -> err
@@ -64,22 +58,15 @@ defmodule LAP2.Utils.ProtoBuf.RequestHelper do
   @spec gen_finalise_exchange(Request.t(), non_neg_integer, non_neg_integer, atom) ::
     {:ok, EncryptedRequest.t()} | {:error, atom}
   def gen_finalise_exchange(request, proxy_seq, clove_seq, crypto_mgr \\ :crypto_manager) do
-    case CryptoStructHelper.gen_fin_crypto(request.crypto) do
+    temp_crypto_struct = CryptoManager.get_temp_crypto_struct(clove_seq, crypto_mgr)
+    case CryptoStructHelper.gen_fin_crypto(request.crypto, temp_crypto_struct, crypto_mgr) do
       {:ok, %{
         crypto_struct: crypto_struct,
         encrypted_request: enc_req
       }} ->
         # Delete the temporary crypto record from the CryptoManager state
         CryptoManager.delete_temp_crypto(clove_seq, crypto_mgr)
-
-        # Build struct and save it to ETS in CryptoManager
-        new_struct = %{
-          identity: crypto_struct.identity,
-          long_term_rs_pk: crypto_struct.long_term_rs_pk,
-          ephemeral_dh_pk: crypto_struct.ephemeral_dh_pk,
-          asymmetric_key: crypto_struct.asymmetric_key
-        }
-        CryptoManager.add_crypto_struct(new_struct, proxy_seq, crypto_mgr)
+        CryptoManager.add_crypto_struct(crypto_struct, proxy_seq, crypto_mgr)
         {:ok, enc_req}
 
       err -> err
@@ -126,8 +113,10 @@ defmodule LAP2.Utils.ProtoBuf.RequestHelper do
   @doc """
   Perform key rotation request with a remote proxy.
   """
-  @spec rotate_keys(Request.t(), non_neg_integer, atom) :: {:ok, EncryptedRequest.t()} | {:error, :invalid}
-  def rotate_keys(%Request{crypto: {:key_rot, crypto_hdr}} = request, proxy_seq, crypto_mgr \\ :crypto_manager) do
+  @spec rotate_keys(Request.t(), non_neg_integer, atom) ::
+    {:ok, EncryptedRequest.t()} | {:error, :invalid}
+  def rotate_keys(%Request{crypto: {:key_rot, crypto_hdr}} = request, proxy_seq,
+    crypto_mgr \\ :crypto_manager) do
     # TODO sanitise the request and get the appropraite map
     crypto_struct = %{
       symmetric_key: crypto_hdr.new_key,
@@ -145,43 +134,49 @@ defmodule LAP2.Utils.ProtoBuf.RequestHelper do
   @doc """
   Build the key exchange initialisation struct
   """
-  @spec build_init_crypto(binary, binary, binary, binary, binary) :: {:init_ke, KeyExchangeInit.t()}
-  def build_init_crypto(identity, ephem_pk, generator, ring_pk, signature) do
+  @spec build_init_claimable(charlist, charlist, binary, charlist, {charlist, charlist},
+    {charlist, charlist}) :: {:init_ke, KeyExchangeInit.t()}
+  def build_init_claimable(identity, pk_ephem_sign, pk_dh, signature, {rs_ep, sig_ep},
+    {rs_lt, sig_lt}) do
     {:init_ke, %KeyExchangeInit{
       identity: identity,
-      ephemeral_pk: ephem_pk,
-      generator: generator,
-      ring_pk: ring_pk,
+      pk_ephem_sign: pk_ephem_sign,
       signature: signature,
+      pk_dh: pk_dh,
+      pk_rs: {:crs_ephem, %CrsVerKey{rs_vk: rs_ep, sig_vk: sig_ep}},
+      pk_lt: {:crs_lt, %CrsVerKey{rs_vk: rs_lt, sig_vk: sig_lt}},
       hmac_key: nil
-    }}
+    } |> format_export()}
   end
 
   @doc """
   Build the key exchange response struct
   """
-  @spec build_resp_crypto(binary, binary, binary, binary, binary, binary) :: {:resp_ke, KeyExchangeResponse.t()}
-  def build_resp_crypto(identity, ephem_pk, generator, ring_pk, signature, ring_sign) do
+  @spec build_resp_claimable(charlist, charlist, binary, charlist, {charlist, charlist},
+    {charlist, charlist}, SAG.t()) :: {:resp_ke, KeyExchangeResponse.t()}
+  def build_resp_claimable(identity, pk_ephem_sign, pk_dh, signature,  {rs_ep, sig_ep},
+    {rs_lt, sig_lt}, ring_sig) do
     {:resp_ke, %KeyExchangeResponse{
       identity: identity,
-      ephemeral_pk: ephem_pk,
-      generator: generator,
-      ring_pk: ring_pk,
+      pk_ephem_sign: pk_ephem_sign,
       signature: signature,
-      ring_signature: ring_sign,
+      pk_dh: pk_dh,
+      pk_rs: {:crs_ephem, %CrsVerKey{rs_vk: rs_ep, sig_vk: sig_ep}},
+      pk_lt: {:crs_lt, %CrsVerKey{rs_vk: rs_lt, sig_vk: sig_lt}},
+      ring_signature: format_sag_export(ring_sig),
       hmac_key: nil
-    }}
+    } |> format_export()}
   end
 
   @doc """
   Build the key exchange finalisation struct
   """
-  @spec build_fin_crypto(binary) :: {:fin_ke, KeyExchangeFinal.t()}
-  def build_fin_crypto(ring_sign) do
+  @spec build_fin_claimable(SAG.t()) :: {:fin_ke, KeyExchangeFinal.t()}
+  def build_fin_claimable(ring_sig) do
     {:fin_ke, %KeyExchangeFinal{
-      ring_signature: ring_sign,
+      ring_signature: format_sag_export(ring_sig),
       hmac_key: nil
-    }}
+    } |> format_export()}
   end
 
   @doc """
@@ -204,7 +199,7 @@ defmodule LAP2.Utils.ProtoBuf.RequestHelper do
     }}
   end
 
-  @spec build_request({atom, map}, binary, binary, non_neg_integer) :: Request.t()
+  @spec build_request({atom, struct}, binary, binary, non_neg_integer) :: Request.t()
   def build_request(crypto, data, req_type, req_id) do
     %Request{
       hmac: nil,
@@ -291,6 +286,69 @@ defmodule LAP2.Utils.ProtoBuf.RequestHelper do
 
         err -> err
     end
+  end
+
+  # ---- Encoding/Decoding utilities ----
+    # Convert a map to the appropriate struct
+  @spec format_export(struct) :: struct
+  def format_export(struct) do
+    struct_type = struct.__struct__
+    formatted = Enum.reduce(Map.from_struct(struct), %{}, fn
+      {:__uf__, val}, acc -> Map.put(acc, :__uf__, val)
+      {key, val}, acc when is_list(val) ->
+        Map.put(acc, key, :binary.list_to_bin(val))
+
+      {key, {atom, val}}, acc when is_map(val) -> # Recurse
+        Map.put(acc, key, {atom, format_export(val)})
+
+      {key, val}, acc -> Map.put(acc, key, val)
+    end)
+    struct(struct_type, formatted)
+  end
+
+  # Convert all fields in the struct to lists
+  @spec format_import(struct) :: struct
+  def format_import(struct) do
+    struct_type = struct.__struct__
+    formatted = Enum.reduce(Map.from_struct(struct), %{}, fn
+      {:__uf__, val}, acc -> Map.put(acc, :__uf__, val)
+      {key, val}, acc when is_binary(val) ->
+        Map.put(acc, key, :binary.bin_to_list(val))
+
+      {key, {atom, val}}, acc when is_map(val) -> # Recurse
+        Map.put(acc, key, {atom, format_import(val)})
+
+      {key, val}, acc -> Map.put(acc, key, val)
+    end)
+    struct(struct_type, formatted)
+  end
+
+  @spec format_sag_export(SAG.t() | {SAG.t(), list}) :: SAG.t() | {SAG.t(), list}
+  def format_sag_export({sag, commit}), do: {format_sag_export(sag), commit}
+  def format_sag_export(sag) do
+    Enum.reduce(Map.from_struct(sag), %SAG{}, fn
+      {:__uf__, val}, acc -> Map.put(acc, :__uf__, val)
+      {key, [h | _] = val}, acc when is_list(h) -> # Format nested signatures
+        Map.put(acc, key, Enum.map(val, & :binary.list_to_bin/1))
+
+      {key, val}, acc when is_list(val) -> Map.put(acc, key, :binary.list_to_bin(val))
+
+      {key, val}, acc -> Map.put(acc, key, val) # Default case
+    end)
+  end
+
+  @spec format_sag_import(SAG.t() | {SAG.t(), list}) :: SAG.t() | {SAG.t(), list}
+  def format_sag_import({sag, commit}), do: {format_sag_import(sag), commit}
+  def format_sag_import(sag) do
+    Enum.reduce(Map.from_struct(sag), %SAG{}, fn
+      {:__uf__, val}, acc -> Map.put(acc, :__uf__, val)
+      {key, [h | _] = val}, acc when is_binary(h) -> # Format nested signatures
+        Map.put(acc, key, Enum.map(val, & :binary.bin_to_list/1))
+
+      {key, val}, acc when is_binary(val) -> Map.put(acc, key, :binary.bin_to_list(val))
+
+      {key, val}, acc -> Map.put(acc, key, val) # Default case
+    end)
   end
 
   # ---- Private functions ----
