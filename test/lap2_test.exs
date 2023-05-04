@@ -23,6 +23,7 @@ defmodule LAP2Test do
           udp_server: String.to_atom("udp_server_#{addr}"),
           crypto_manager: String.to_atom("crypto_manager_#{addr}")
         },
+        clove_casts: 6,
         max_hops: 10,
         min_hops: 1,
         proxy_limit: 20,

@@ -35,6 +35,12 @@ defmodule LAP2.Main.ProxyManager do
   @spec handle_call(:get_state, any, map) :: {:reply, map, map}
   def handle_call(:get_state, _from, state), do: {:reply, state, state}
 
+  @spec handle_cast(:init_proxy, any, map) :: {:noreply, map}
+  def handle_cast(:init_proxy, _from, state) do
+    ProxyHelper.init_proxy_request(state.config.registry_table, state.config.clove_casts)
+    {:noreply, state}
+  end
+
   @spec handle_cast({:proxy_request, Request.t(), %{
     proxy_seq: non_neg_integer,
     clove_seq: non_neg_integer,
@@ -83,7 +89,7 @@ defmodule LAP2.Main.ProxyManager do
     GenServer.cast({:global, proxy_name}, {:proxy_request, request, aux_data})
   end
 
-
+  # TODO debug
   def debug(name) do
     GenServer.call({:global, name}, :get_state)
   end
@@ -102,6 +108,14 @@ defmodule LAP2.Main.ProxyManager do
   @spec add_proxy(atom, non_neg_integer, pid) :: :ok
   def add_proxy(proxy_name, proxy_seq, proxy_pid) do
     GenServer.call({:global, proxy_name}, {:add_proxy, proxy_seq, proxy_pid})
+  end
+
+  @doc """
+  Initialise the proxy discovery process.
+  """
+  @spec init_proxy(atom) :: :ok
+  def init_proxy(proxy_name) do
+    GenServer.cast({:global, proxy_name}, :init_proxy)
   end
 
   @doc """

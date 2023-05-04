@@ -20,6 +20,7 @@ defmodule ConfigBuilder do
           udp_server: String.to_atom("udp_server_#{addr}"),
           crypto_manager: String.to_atom("crypto_manager_#{addr}")
         },
+        clove_casts: 6,
         max_hops: 10,
         min_hops: 0,
         proxy_limit: 20,
@@ -121,7 +122,4 @@ end)
 
 cfg_0 = Enum.at(configs, 0)
 crypto_mgr = cfg_0.crypto_manager.name
-{:ok, %{encrypted_request: enc_req}} = CryptoStructHelper.gen_init_crypto(crypto_mgr)
-
-current_conf_0 = Router.debug(cfg_0.router.name)
-OutboundPipelines.send_proxy_discovery(enc_req, current_conf_0.random_neighbors, 6, cfg_0.router.name)
+ProxyManager.init
