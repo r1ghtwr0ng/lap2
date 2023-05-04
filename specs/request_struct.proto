@@ -27,26 +27,41 @@ message Request {
 // Contains cryptographic information needed to establish a secure channel.
 message KeyExchangeInit {
     bytes identity = 1;
-    bytes ephemeral_pk = 2;
-    bytes generator = 3;
-    bytes ring_pk = 4;
-    bytes signature = 5;
-    bytes hmac_key = 6;
+    bytes pk_ephem_sign = 2;
+    bytes signature = 3;
+    bytes pk_dh = 4;
+    bytes hmac_key = 5;
+    oneof pk_rs {
+        CrsVerKey crs_ephem = 6;
+        RsVerKey rs_ephem = 7;
+    }
+    oneof pk_lt {
+        CrsVerKey crs_lt = 8;
+        RsVerKey rs_lt = 9;
+    }
 }
+
 // Key exchange response struct.
 message KeyExchangeResponse {
     bytes identity = 1;
-    bytes ephemeral_pk = 2;
-    bytes generator = 3;
-    bytes ring_pk = 4;
-    bytes signature = 5;
-    bytes ring_signature = 6;
-    bytes hmac_key = 7;
+    bytes pk_ephem_sign = 2;
+    bytes signature = 3;
+    bytes pk_dh = 4;
+    bytes hmac_key = 5;
+    oneof pk_rs {
+        CrsVerKey crs_ephem = 6;
+        RsVerKey rs_ephem = 7;
+    }
+    oneof pk_lt {
+        CrsVerKey crs_lt = 8;
+        RsVerKey rs_lt = 9;
+    }
+    SAG ring_signature = 10;
 }
 // Key exchange finalisation struct.
 // Final message in the key exchange protocol.
 message KeyExchangeFinal {
-    bytes ring_signature = 1;
+    SAG ring_signature = 1;
     bytes hmac_key = 2;
 }
 // Regular symmetric key struct.
@@ -59,4 +74,23 @@ message SymmetricKey {
 message KeyRotation {
     bytes new_key = 1;
     bytes hmac_key = 2;
+}
+
+// Spontaneous Anonymous Group signature struct.
+message SAG {
+    bytes chal = 1;
+    repeated bytes ring = 2;
+    repeated bytes resp = 3;
+    optional bytes commitment = 4;
+}
+
+// C-RS signature struct.
+message CrsVerKey {
+    bytes rs_vk = 1;
+    bytes sig_vk = 2;
+}
+
+// Regular RS signature.
+message RsVerKey {
+    bytes rs_vk = 1;
 }

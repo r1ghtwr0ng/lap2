@@ -75,14 +75,19 @@ defmodule LAP2.Crypto.CryptoManager do
     {:reply, :ok, new_state}
   end
 
+  @spec handle_call({:get_temp_crypto_struct, non_neg_integer}, any, map) :: {:reply, map, map}
+  def handle_call({:get_temp_crypto_struct, clove_seq}, _from, state) do
+    {:reply, Map.get(state.temp_crypto, clove_seq), state}
+  end
+
   @spec handle_call({:delete_temp_crypto, non_neg_integer}, any, map) :: {:reply, :ok, map}
   def handle_call({:delete_temp_crypto, clove_seq}, _from, state) do
     new_state = remove_temp_crypto(state, clove_seq)
     {:reply, :ok, new_state}
   end
 
-  @spec handle_call({:get_identity}, any, map) :: {:reply, binary, map}
-  def handle_call({:get_identity}, _from, state), do: {:reply, state.config.identity, state}
+  @spec handle_call({:get_identity}, any, map) :: {:reply, charlist, map}
+  def handle_call({:get_identity}, _from, state), do: {:reply, :binary.bin_to_list(state.config.identity), state}
 
   # Cleanup the ETS table on exit
   @spec terminate(any, map) :: :ok
@@ -120,7 +125,7 @@ defmodule LAP2.Crypto.CryptoManager do
   end
 
   @doc """
-  Add a temporary crypto struct to the ETS table.
+  Add a temporary crypto struct to the state.
   """
   @spec add_temp_crypto_struct(map, non_neg_integer, atom) :: :ok
   def add_temp_crypto_struct(crypto_struct, clove_seq, name \\ :crypto_manager) do
@@ -128,7 +133,15 @@ defmodule LAP2.Crypto.CryptoManager do
   end
 
   @doc """
-  Add a temporary crypto struct to the ETS table.
+  Get a temporary crypto struct from the state.
+  """
+  @spec get_temp_crypto_struct(non_neg_integer, atom) :: map
+  def get_temp_crypto_struct(clove_seq, name \\ :crypto_manager) do
+    GenServer.call({:global, name}, {:get_temp_crypto_struct, clove_seq})
+  end
+
+  @doc """
+  Delete a temporary crypto struct from the state.
   """
   @spec delete_temp_crypto(non_neg_integer, atom) :: :ok
   def delete_temp_crypto(clove_seq, name \\ :crypto_manager) do
@@ -154,7 +167,7 @@ defmodule LAP2.Crypto.CryptoManager do
   @doc """
   Fetch the crypto identity from the GenServer state.
   """
-  @spec get_identity(atom) :: binary
+  @spec get_identity(atom) :: charlist
   def get_identity(name \\ :crypto_manager) do
     GenServer.call({:global, name}, {:get_identity})
   end
