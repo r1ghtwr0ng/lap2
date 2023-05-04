@@ -4,8 +4,10 @@ defmodule LAP2.Crypto.Helpers.CryptoStructHelper do
   """
 
   alias LAP2.Crypto.CryptoManager
+  alias LAP2.Crypto.KeyExchange.C_RSDAKE
   alias LAP2.Utils.ProtoBuf.CloveHelper
   alias LAP2.Utils.ProtoBuf.RequestHelper
+  alias LAP2.Crypto.Constructions.ClaimableRS
 
   # ---- HMAC functions ----
   @doc """
@@ -39,29 +41,17 @@ defmodule LAP2.Crypto.Helpers.CryptoStructHelper do
   Generate initial key exchange primitives and response (EncryptedRequest struct)
   """
   @spec gen_init_crypto(atom) ::
-    {:ok, %{crypto_struct: map, encrypted_request: EncryptedRequest.t()}} | {:error, :invalid}
+    {:ok, %{crypto_struct: map, encrypted_request: EncryptedRequest.t()}} | {:error, atom}
   def gen_init_crypto(crypto_mgr \\ :crypto_manager) do
-    # TODO remove crypto_struct if not needed
-    {ephem_pk, ephem_sk} = {<<>>, <<>>} # TODO generate asymmetric key and signatures
-    {ring_pk, ring_sk} = {<<>>, <<>>} # TODO generate ring keys
-    generator = <<>>
-    signature = <<>>
-
-    temp_crypto_struct = %{
-      ephemeral_pk: ephem_pk,
-      ephemeral_sk: ephem_sk,
-      ring_pk: ring_pk,
-      ring_sk: ring_sk,
-      generator: generator,
-      signature: signature
-    }
-
     # Generate (un)encrypted request struct
-    get_identity(crypto_mgr)
-    |> RequestHelper.build_init_crypto(ephem_pk, generator, ring_pk, signature)
-    |> RequestHelper.build_request(<<>>, "key_exchange_init", CloveHelper.gen_seq_num())
-    |> RequestHelper.wrap_unencrypted()
-    |> build_return(temp_crypto_struct)
+    identity = get_identity(crypto_mgr)
+    case C_RSDAKE.initialise(identity) do
+      {:ok, {temp_crypto_struct, init_hdr}} ->
+        RequestHelper.build_request(init_hdr, <<>>, "key_exchange_init", CloveHelper.gen_seq_num())
+        |> RequestHelper.wrap_unencrypted()
+        |> build_return(temp_crypto_struct)
+      err -> err
+    end
   end
 
   @doc """
@@ -69,51 +59,41 @@ defmodule LAP2.Crypto.Helpers.CryptoStructHelper do
   """
   @spec gen_resp_crypto({:init_ke, KeyExchangeInit.t()}, atom) ::
     {:ok, %{crypto_struct: map, encrypted_request: EncryptedRequest.t()}} | {:error, atom}
-  def gen_resp_crypto({:init_ke, crypto_hdr}, crypto_mgr) do
-    # TODO generate asymmetric key and signatures
+  def gen_resp_crypto({:init_ke, init_hdr}, crypto_mgr) do
+    # Get the identity and crypto keys
     identity = get_identity(crypto_mgr)
-    asymm_key = <<>>
-    ephem_pk = <<>>
-    generator = <<>>
-    ring_pk = <<>>
-    signature = <<>>
-    ring_signature = <<>>
-    crypto_struct = %{
-      identity: identity,
-      long_term_rs_pk: ring_pk,
-      ephemeral_dh_pk: crypto_hdr.ephemeral_pk,
-      asymmetric_key: asymm_key
-    }
+    lt_keys = get_lt_keys(crypto_mgr)
 
     # Generate (un)encrypted request struct
-    RequestHelper.build_resp_crypto(identity, ephem_pk, generator, ring_pk, signature, ring_signature)
-    |> RequestHelper.build_request(<<>>, "key_exchange_resp", CloveHelper.gen_seq_num())
-    |> RequestHelper.wrap_unencrypted()
-    |> build_return(crypto_struct)
+    case C_RSDAKE.respond(identity, lt_keys, init_hdr) do
+      {:ok, {crypto_struct, resp_hdr}} -> # We'll see if it won't match Dialyzer
+        RequestHelper.build_request(resp_hdr, <<>>, "key_exchange_resp", CloveHelper.gen_seq_num())
+        |> RequestHelper.wrap_unencrypted()
+        |> build_return(crypto_struct)
+      err -> err
+    end
   end
+  def gen_resp_crypto(_, _), do: {:error, :invalid}
 
   @doc """
   Generate final key exchange primitives and response (EncryptedRequest struct)
   """
-  @spec gen_fin_crypto({:resp_ke, KeyExchangeResponse.t()}) ::
+  @spec gen_fin_crypto({:resp_ke, KeyExchangeResponse.t()}, map, atom) ::
     {:ok, %{crypto_struct: map, encrypted_request: EncryptedRequest.t()}} | {:error, :invalid}
-  def gen_fin_crypto({:resp_ke, crypto_hdr}) do
+  def gen_fin_crypto({:resp_ke, crypto_hdr}, temp_struct, crypto_mgr) do
     # TODO generate asymmetric key and signature
-    asymm_key = <<>>
-    ring_signature = <<>>
-    crypto_struct = %{
-      identity: crypto_hdr.identity,
-      long_term_rs_pk: crypto_hdr.ring_pk,
-      ephemeral_dh_pk: crypto_hdr.ephemeral_pk,
-      asymmetric_key: asymm_key
-    }
+    identity = get_identity(crypto_mgr)
 
     # Generate (un)encrypted request struct
-    RequestHelper.build_fin_crypto(ring_signature)
-    |> RequestHelper.build_request(<<>>, "key_exchange_fin", CloveHelper.gen_seq_num())
-    |> RequestHelper.wrap_unencrypted()
-    |> build_return(crypto_struct)
+    case C_RSDAKE.finalise(identity, temp_struct, crypto_hdr) do
+      {:ok, {crypto_struct, fin_hdr}} ->
+        RequestHelper.build_request(fin_hdr, <<>>, "key_exchange_fin", CloveHelper.gen_seq_num())
+        |> RequestHelper.wrap_unencrypted()
+        |> build_return(crypto_struct)
+      err -> err
+    end
   end
+  def gen_fin_crypto(_, _, _), do: {:error, :invalid}
 
   @doc """
   Generate key rotation primitives and response (EncryptedRequest struct)
@@ -153,9 +133,17 @@ defmodule LAP2.Crypto.Helpers.CryptoStructHelper do
 
   # ---- Private functions ----
   # Fetches the identity from the crypto manager
-  @spec get_identity(atom) :: binary
+  @spec get_identity(atom) :: charlist
   defp get_identity(crypto_mgr) do
     CryptoManager.get_identity(crypto_mgr)
+  end
+
+  # Fetches the long term keys from the crypto manager
+  @spec get_lt_keys(atom) :: map
+  defp get_lt_keys(_crypto_mgr) do
+    # TODO get the keys from the crypto manager
+    ClaimableRS.crs_gen()
+    #CryptoManager.get_lt_keys(crypto_mgr)
   end
 
   # Builds the return value for the crypto functions
