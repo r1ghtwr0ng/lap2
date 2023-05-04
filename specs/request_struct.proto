@@ -81,7 +81,7 @@ message SAG {
     bytes chal = 1;
     repeated bytes ring = 2;
     repeated bytes resp = 3;
-    optional bytes commitment = 4;
+    bytes commitment = 4;
 }
 
 // C-RS signature struct.
