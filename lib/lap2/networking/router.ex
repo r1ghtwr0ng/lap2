@@ -71,7 +71,7 @@ defmodule LAP2.Networking.Router do
     |> State.get_route(source, clove)
     |> case do
       {:random_walk, rand_neighbor} ->
-        Logger.info("[from #{inspect source}] ----> [via #{state.config.lap2_addr}] ----> [to #{inspect rand_neighbor}] (RANDOM WALK)")
+        #Logger.info("[from #{inspect source}] ----> [via #{state.config.lap2_addr}] ----> [to #{inspect rand_neighbor}] (RANDOM WALK)")
         new_state = Remote.relay_proxy_discovery(state, source, rand_neighbor, clove)
         {:noreply, new_state}
 
@@ -89,7 +89,7 @@ defmodule LAP2.Networking.Router do
 
       # Route discovery response
       {:discovery_response, ^source, dest} ->
-        Logger.info("[from #{inspect source}] ----> [to #{state.config.lap2_addr}] (RECV DISCOVERY RESPONSE)")
+        #Logger.info("[from #{inspect source}] ----> [to #{state.config.lap2_addr}] (RECV DISCOVERY RESPONSE)")
         new_state = Remote.relay_discovery_response(state, source, dest, clove)
         {:noreply, new_state}
 
@@ -101,13 +101,13 @@ defmodule LAP2.Networking.Router do
 
       # Relay clove to remote
       {:relay, dest} when is_tuple(dest) ->
-        Logger.info("[from #{inspect source}] ----> [via #{state.config.lap2_addr}] ----> [to #{inspect dest}] (REMOTE RELAY)")
+        #Logger.info("[from #{inspect source}] ----> [via #{state.config.lap2_addr}] ----> [to #{inspect dest}] (REMOTE RELAY)")
         new_state = Remote.relay_clove(state, dest, clove)
         {:noreply, new_state}
 
       # Drop clove
       _ ->
-        Logger.info("[from #{inspect source}] ----> [dropping #{state.config.lap2_addr}] (DROP CLOVE)")
+        #Logger.info("[from #{inspect source}] ----> [dropping #{state.config.lap2_addr}] (DROP CLOVE)")
         {:noreply, state}
     end
   end
