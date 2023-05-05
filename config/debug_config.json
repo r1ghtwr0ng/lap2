@@ -6,6 +6,10 @@
         "name": "lap2_superv",
         "max_children": 10
     },
+    "master": {
+        "name": "master",
+        "registry_table": null
+    },
     "crypto_manager": {
         "name": "crypto_manager",
         "identity": "IDENTITY",

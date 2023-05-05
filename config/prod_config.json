@@ -11,6 +11,10 @@
         "identity": "IDENTITY",
         "registry_table": null
     },
+    "master": {
+        "name": "master",
+        "registry_table": null
+    },
     "proxy_manager": {
         "name": "proxy_manager",
         "registry_table": null,
