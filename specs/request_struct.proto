@@ -25,6 +25,7 @@ message Request {
 }
 // Key exchange initialisation struct.
 // Contains cryptographic information needed to establish a secure channel.
+// TODO move the IV to this struct.
 message KeyExchangeInit {
     bytes identity = 1;
     bytes pk_ephem_sign = 2;

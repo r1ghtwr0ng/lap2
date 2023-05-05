@@ -102,7 +102,7 @@ defmodule LAP2.Crypto.CryptoManager do
   Return binary for deserialisation.
   """
   @spec decrypt_request(EncryptedRequest.t(), non_neg_integer, atom) :: {:ok, binary} | {:error, atom}
-  def decrypt_request(enc_request, proxy_seq, name \\ :crypto_manager) do
+  def decrypt_request(enc_request, proxy_seq, name) do
     GenServer.call({:global, name}, {:decrypt, enc_request, proxy_seq})
   end
 
@@ -110,7 +110,7 @@ defmodule LAP2.Crypto.CryptoManager do
   Encrypt a serialised (binary) request, returning an EncryptedRequest struct.
   """
   @spec encrypt_request(binary, non_neg_integer, atom) :: {:ok, EncryptedRequest.t()} | {:error, :no_key}
-  def encrypt_request(data, proxy_seq, name \\ :crypto_manager) do
+  def encrypt_request(data, proxy_seq, name) do
     GenServer.call({:global, name}, {:encrypt, data, proxy_seq})
   end
 
@@ -120,7 +120,7 @@ defmodule LAP2.Crypto.CryptoManager do
   TODO this is for testing ONLY, remove for final version (as well as its genserver call)
   """
   @spec add_crypto_struct(map, non_neg_integer, atom) :: :ok
-  def add_crypto_struct(crypto_struct, proxy_seq, name \\ :crypto_manager) do
+  def add_crypto_struct(crypto_struct, proxy_seq, name) do
     Logger.info("[+] ADDING LONG-TERM CRYPTO STATE TO ETS: #{proxy_seq}")
     GenServer.call({:global, name}, {:add_crypto_struct, crypto_struct, proxy_seq})
   end
@@ -129,7 +129,7 @@ defmodule LAP2.Crypto.CryptoManager do
   Add a temporary crypto struct to the state.
   """
   @spec add_temp_crypto_struct(map, non_neg_integer, atom) :: :ok
-  def add_temp_crypto_struct(crypto_struct, clove_seq, name \\ :crypto_manager) do
+  def add_temp_crypto_struct(crypto_struct, clove_seq, name) do
     Logger.info("[+] INPUTTING TEMP CRYPTO STATE FOR CLOVE: #{clove_seq}")
     GenServer.call({:global, name}, {:add_temp_crypto_struct, crypto_struct, clove_seq})
   end
@@ -138,7 +138,7 @@ defmodule LAP2.Crypto.CryptoManager do
   Get a temporary crypto struct from the state.
   """
   @spec get_temp_crypto_struct(non_neg_integer, atom) :: map
-  def get_temp_crypto_struct(clove_seq, name \\ :crypto_manager) do
+  def get_temp_crypto_struct(clove_seq, name) do
     Logger.info("[+] FETCHING TEMP CRYPTO STATE FROM STORAGE: #{clove_seq}")
     GenServer.call({:global, name}, {:get_temp_crypto_struct, clove_seq})
   end
@@ -147,7 +147,7 @@ defmodule LAP2.Crypto.CryptoManager do
   Delete a temporary crypto struct from the state.
   """
   @spec delete_temp_crypto(non_neg_integer, atom) :: :ok
-  def delete_temp_crypto(clove_seq, name \\ :crypto_manager) do
+  def delete_temp_crypto(clove_seq, name) do
     GenServer.call({:global, name}, {:delete_temp_crypto, clove_seq})
   end
 
@@ -155,7 +155,7 @@ defmodule LAP2.Crypto.CryptoManager do
   Remove a crypto struct from the ETS table.
   """
   @spec remove_crypto_struct(non_neg_integer, atom) :: :ok
-  def remove_crypto_struct(proxy_seq, name \\ :crypto_manager) do
+  def remove_crypto_struct(proxy_seq, name) do
     GenServer.call({:global, name}, {:remove_crypto_struct, proxy_seq})
   end
 
@@ -163,7 +163,7 @@ defmodule LAP2.Crypto.CryptoManager do
   Perform key rotation request with a remote proxy.
   """
   @spec rotate_keys(map, non_neg_integer, atom) :: :ok
-  def rotate_keys(crypto_struct, proxy_seq, name \\ :crypto_manager) do
+  def rotate_keys(crypto_struct, proxy_seq, name) do
     GenServer.call({:global, name}, {:rotate_keys, crypto_struct, proxy_seq})
   end
 
@@ -171,7 +171,7 @@ defmodule LAP2.Crypto.CryptoManager do
   Fetch the crypto identity from the GenServer state.
   """
   @spec get_identity(atom) :: charlist
-  def get_identity(name \\ :crypto_manager) do
+  def get_identity(name) do
     GenServer.call({:global, name}, {:get_identity})
   end
 

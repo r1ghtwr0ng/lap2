@@ -6,7 +6,6 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
   require Logger
   alias LAP2.Main.Master
   alias LAP2.Utils.EtsHelper
-  alias LAP2.Utils.ProtoBuf.CloveHelper
   alias LAP2.Utils.ProtoBuf.RequestHelper
   alias LAP2.Networking.Router
   alias LAP2.Networking.Helpers.OutboundPipelines
@@ -17,8 +16,8 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
   @spec init_proxy_request(map, non_neg_integer) :: :ok | :error
   def init_proxy_request(registry_table, cloves) do
     crypto_mgr = registry_table.crypto_manager
-    clove_seq = CloveHelper.gen_seq_num() # TOGO gen
-    case RequestHelper.init_exchange(clove_seq, crypto_mgr) do
+
+    case RequestHelper.init_exchange(crypto_mgr) do
       {:ok, request} ->
         router = registry_table.router
         random_neighbors = Router.get_neighbors(router)
@@ -69,7 +68,6 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
         request,
         %{
           proxy_seq: proxy_seq,
-          clove_seq: clove_seq,
           relays: relays,
           hop_count: hops
         },
@@ -87,7 +85,7 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
         new_pool = add_relays(state.proxy_pool, proxy_seq, relays, router_name)
         relay_pool = Map.get(new_pool, proxy_seq, [])
         router_name = state.config.registry_table.router
-        case RequestHelper.gen_finalise_exchange(request, proxy_seq, clove_seq, state.config.registry_table.crypto_manager) do
+        case RequestHelper.gen_finalise_exchange(request, proxy_seq, state.config.registry_table.crypto_manager) do
           {:ok, enc_response} ->
             OutboundPipelines.send_regular_response(enc_response, proxy_seq, relay_pool, router_name)
             {:ok, Map.put(state, :proxy_pool, new_pool)}

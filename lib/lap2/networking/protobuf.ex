@@ -24,7 +24,7 @@ defmodule LAP2.Networking.ProtoBuf do
   """
   @spec deserialise(binary, Clove | Share | Request | EncryptedRequest) ::
           {:error, any} | {:ok, struct}
-  def deserialise(data, struct_type \\ Clove) do
+  def deserialise(data, struct_type) do
     Protox.decode(data, struct_type)
   end
 end

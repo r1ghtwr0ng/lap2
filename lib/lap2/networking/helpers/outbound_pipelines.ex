@@ -30,7 +30,7 @@ defmodule LAP2.Networking.Helpers.OutboundPipelines do
   Disperse and send out a proxy request acknowledgement.
   """
   @spec send_proxy_accept(EncryptedRequest.t(), non_neg_integer, non_neg_integer, list, atom) :: :ok | :error
-  def send_proxy_accept(enc_request, proxy_seq, clove_seq, relay_pool, router_name \\ :router) do
+  def send_proxy_accept(enc_request, proxy_seq, clove_seq, relay_pool, router_name) do
     #Logger.info("[i] OutboundPipelines: Sending proxy response")
 
     case RequestHelper.serialise(enc_request) do

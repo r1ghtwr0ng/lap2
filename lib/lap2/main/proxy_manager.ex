@@ -35,8 +35,8 @@ defmodule LAP2.Main.ProxyManager do
   @spec handle_call(:get_state, any, map) :: {:reply, map, map}
   def handle_call(:get_state, _from, state), do: {:reply, state, state}
 
-  @spec handle_cast(:init_proxy, any, map) :: {:noreply, map}
-  def handle_cast(:init_proxy, _from, state) do
+  @spec handle_cast(:init_proxy, map) :: {:noreply, map}
+  def handle_cast(:init_proxy, state) do
     ProxyHelper.init_proxy_request(state.config.registry_table, state.config.clove_casts)
     {:noreply, state}
   end

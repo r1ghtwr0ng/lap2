@@ -42,12 +42,12 @@ defmodule LAP2.Crypto.Helpers.CryptoStructHelper do
   """
   @spec gen_init_crypto(non_neg_integer, atom) ::
     {:ok, %{crypto_struct: map, encrypted_request: EncryptedRequest.t()}} | {:error, atom}
-  def gen_init_crypto(clove_seq, crypto_mgr \\ :crypto_manager) do
+  def gen_init_crypto(request_id, crypto_mgr) do
     # Generate (un)encrypted request struct
     identity = get_identity(crypto_mgr)
     case C_RSDAKE.initialise(identity) do
       {:ok, {temp_crypto_struct, init_hdr}} ->
-        RequestHelper.build_request(init_hdr, <<>>, "key_exchange_init", clove_seq)
+        RequestHelper.build_request(init_hdr, <<>>, "key_exchange_init", request_id)
         |> RequestHelper.wrap_unencrypted()
         |> build_return(temp_crypto_struct)
       err -> err
@@ -57,9 +57,9 @@ defmodule LAP2.Crypto.Helpers.CryptoStructHelper do
   @doc """
   Generate key exchange response primitives and response (EncryptedRequest struct)
   """
-  @spec gen_resp_crypto({:init_ke, KeyExchangeInit.t()}, atom) ::
+  @spec gen_resp_crypto({:init_ke, KeyExchangeInit.t()}, non_neg_integer, atom) ::
     {:ok, %{crypto_struct: map, encrypted_request: EncryptedRequest.t()}} | {:error, atom}
-  def gen_resp_crypto({:init_ke, init_hdr}, crypto_mgr) do
+  def gen_resp_crypto({:init_ke, init_hdr}, request_id, crypto_mgr) do
     # Get the identity and crypto keys
     identity = get_identity(crypto_mgr)
     lt_keys = get_lt_keys(crypto_mgr)
@@ -67,7 +67,7 @@ defmodule LAP2.Crypto.Helpers.CryptoStructHelper do
     # Generate (un)encrypted request struct
     case C_RSDAKE.respond(identity, lt_keys, init_hdr) do
       {:ok, {crypto_struct, resp_hdr}} -> # We'll see if it won't match Dialyzer
-        RequestHelper.build_request(resp_hdr, <<>>, "key_exchange_resp", CloveHelper.gen_seq_num())
+        RequestHelper.build_request(resp_hdr, <<>>, "key_exchange_resp", request_id)
         |> RequestHelper.wrap_unencrypted()
         |> build_return(crypto_struct)
       err -> err
@@ -102,12 +102,13 @@ defmodule LAP2.Crypto.Helpers.CryptoStructHelper do
     {:ok, %{crypto_struct: map, encrypted_request: EncryptedRequest.t()}} | {:error, :invalid}
   def gen_key_rotation(proxy_seq, crypto_mgr_name) do
     # Generate new symmetric key
+    # TODO use this with a double ratchet maybe?
     aes_key = :crypto.strong_rand_bytes(32)
     crypto_struct = %{symmetric_key: aes_key}
 
     # Generate encrypted request struct
     RequestHelper.build_key_rotation(aes_key)
-    |> RequestHelper.build_request(<<>>, "key_rotation", proxy_seq)
+    |> RequestHelper.build_request(<<>>, "key_rotation", CloveHelper.gen_seq_num())
     |> RequestHelper.encrypt_and_wrap(proxy_seq, crypto_mgr_name)
     |> build_return(crypto_struct)
   end
@@ -116,10 +117,10 @@ defmodule LAP2.Crypto.Helpers.CryptoStructHelper do
   Generate key rotation acknowledgement  response (EncryptedRequest struct)
   """
   @spec ack_key_rotation(non_neg_integer, non_neg_integer, atom) :: {:ok, EncryptedRequest.t()} | {:error, :invalid}
-  def ack_key_rotation(proxy_seq, request_id, crypto_manager) do
+  def ack_key_rotation(proxy_seq, response_id, crypto_manager) do
     # Generate encrypted request struct
     RequestHelper.build_symmetric_crypto()
-    |> RequestHelper.build_request(<<>>, "ack_key_rotation", request_id)
+    |> RequestHelper.build_request(<<>>, "ack_key_rotation", response_id)
     |> RequestHelper.encrypt_and_wrap(proxy_seq, crypto_manager)
   end
 

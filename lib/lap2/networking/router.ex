@@ -205,7 +205,7 @@ defmodule LAP2.Networking.Router do
   Route an inbound clove to the appropriate destination.
   """
   @spec route_inbound({String.t(), non_neg_integer}, Clove.t(), atom) :: :ok
-  def route_inbound(source, clove, name \\ :router) do
+  def route_inbound(source, clove, name) do
     #Logger.info("[+] Router (#{name}): Routing inbound clove")
     GenServer.cast({:global, name}, {:route_inbound, source, clove})
   end
@@ -229,7 +229,7 @@ defmodule LAP2.Networking.Router do
   Accept and reply to a proxy request, update state accordingly.
   """
   @spec add_proxy_relays(non_neg_integer, list({String.t(), non_neg_integer}), atom) :: :ok
-  def add_proxy_relays(proxy_seq, relays, name \\ :router) do
+  def add_proxy_relays(proxy_seq, relays, name) do
     GenServer.cast({:global, name}, {:add_proxy_relays, proxy_seq, relays})
   end
 
@@ -237,7 +237,7 @@ defmodule LAP2.Networking.Router do
   Update the DHT with a new entry in the state
   """
   @spec append_dht(binary, {String.t(), non_neg_integer}, atom) :: :ok
-  def append_dht(lap2_addr, ip_addr, name \\ :router) do
+  def append_dht(lap2_addr, ip_addr, name) do
     GenServer.cast({:global, name}, {:append_dht, lap2_addr, ip_addr})
   end
 
@@ -245,15 +245,15 @@ defmodule LAP2.Networking.Router do
   Get a list of neighbors from the state
   """
   @spec get_neighbors(atom) :: list(String.t())
-  def get_neighbors(name \\ :router) do
-    GenServer.call({:global, name}, {:get_neighbors})
+  def get_neighbors(name) do
+    GenServer.call({:global, name}, :get_neighbors)
   end
 
   @doc """
   Update the configuration in the state
   """
   @spec update_config(map, atom) :: :ok
-  def update_config(config, name \\ :router) do
+  def update_config(config, name) do
     GenServer.cast({:global, name}, {:update_config, config})
   end
 
@@ -261,7 +261,7 @@ defmodule LAP2.Networking.Router do
   Delete outdated entries from state.
   """
   @spec clean_state(atom) :: :ok
-  def clean_state(name \\ :router) do
+  def clean_state(name) do
     GenServer.cast({:global, name}, {:clean_state})
   end
 
@@ -269,7 +269,7 @@ defmodule LAP2.Networking.Router do
   Inspect the router state.
   """
   @spec debug(atom) :: :ok
-  def debug(name \\ :router) do
+  def debug(name) do
     GenServer.call({:global, name}, {:debug})
   end
 end

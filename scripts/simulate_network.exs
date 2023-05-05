@@ -121,5 +121,5 @@ Enum.each(configs, fn config ->
 end)
 
 cfg_0 = Enum.at(configs, 0)
-crypto_mgr = cfg_0.crypto_manager.name
-ProxyManager.init
+proxy_mgr = cfg_0.proxy_manager.name
+ProxyManager.init_proxy(proxy_mgr)
