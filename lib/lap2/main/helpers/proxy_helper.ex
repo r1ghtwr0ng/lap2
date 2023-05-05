@@ -13,15 +13,15 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
   @doc """
   Initialise proxy request.
   """
-  @spec init_proxy_request(map, non_neg_integer) :: :ok | :error
-  def init_proxy_request(registry_table, cloves) do
+  @spec init_proxy_request(map, non_neg_integer, non_neg_integer) :: :ok | :error
+  def init_proxy_request(registry_table, clove_seq, cloves) do
     crypto_mgr = registry_table.crypto_manager
 
     case RequestHelper.init_exchange(crypto_mgr) do
       {:ok, request} ->
         router = registry_table.router
         random_neighbors = Router.get_neighbors(router)
-        OutboundPipelines.send_proxy_discovery(request, random_neighbors, cloves, router)
+        OutboundPipelines.send_proxy_discovery(request, random_neighbors, clove_seq, cloves, router)
         :ok
 
       {:error, reason} ->

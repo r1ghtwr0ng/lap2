@@ -4,18 +4,15 @@ defmodule LAP2.Networking.Helpers.OutboundPipelines do
   """
 
   require Logger
-  alias LAP2.Utils.ProtoBuf.CloveHelper
   alias LAP2.Utils.ProtoBuf.RequestHelper
   alias LAP2.Networking.Helpers.RelaySelector
 
   @doc """
   Disperse and cast out proxy discovery requests.
   """
-  @spec send_proxy_discovery(EncryptedRequest.t(), list, non_neg_integer()) :: :ok
-  def send_proxy_discovery(enc_request, random_neighbors, clove_limit \\ 20, router_name \\ :router) do
+  @spec send_proxy_discovery(EncryptedRequest.t(), list, non_neg_integer, non_neg_integer, atom) :: :ok
+  def send_proxy_discovery(enc_request, random_neighbors, clove_seq, clove_limit, router_name) do
     #Logger.info("[i] OutboundPipelines: Sending proxy discovery")
-    clove_seq = CloveHelper.gen_seq_num()
-
     case RequestHelper.serialise(enc_request) do
       {:ok, data} ->
         RelaySelector.cast_proxy_discovery(data, clove_seq, random_neighbors, clove_limit, router_name)
