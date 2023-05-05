@@ -124,12 +124,19 @@ defmodule LAP2.Main.ProxyManager do
   @spec handle_regular_proxy(Request.t(), non_neg_integer, atom) :: :ok | :error
   def handle_regular_proxy(%Request{crypto: {:sym_key, _}} = request, pseq, proxy_name)
       when request.request_type == "regular_proxy_request" do
+    Logger.info("[i] Proxy Manager (#{proxy_name}): Processing regular proxy request")
     state = GenServer.call({:global, proxy_name}, :get_state)
-    ProxyHelper.handle_proxy_query(request, state.request_ets, pseq, state.config.registry_table.crypto_manager)
+    ProxyHelper.handle_proxy_query(
+      request,
+      state.request_ets,
+      pseq,
+      state.config.registry_table.crypto_manager
+    )
     :ok
   end
   def handle_regular_proxy(%Request{crypto: {:sym_key, _}} = request, pseq, proxy_name)
       when request.request_type == "regular_proxy_response" do
+    Logger.info("[i] Proxy Manager (#{proxy_name}): Processing regular proxy response")
     state = GenServer.call({:global, proxy_name}, :get_state)
 
     ProxyHelper.handle_proxy_response(
@@ -141,18 +148,27 @@ defmodule LAP2.Main.ProxyManager do
     :ok
   end
   def handle_regular_proxy(%Request{crypto: {:fin_ke, _}} = request, pseq, proxy_name) do
+    Logger.info("[i] Proxy Manager (#{proxy_name}): Processing final key exchange request")
     state = GenServer.call({:global, proxy_name}, :get_state)
     ProxyHelper.handle_fin_key_exhange(request, pseq, state)
   end
   def handle_regular_proxy(%Request{crypto: {:key_rot, _}} = request, pseq, proxy_name) do
+    Logger.info("[i] Proxy Manager (#{proxy_name}): Processing key rotation request")
     state = GenServer.call({:global, proxy_name}, :get_state)
     ProxyHelper.handle_key_rotation(request, pseq, state)
     :ok
   end
   def handle_regular_proxy(%Request{crypto: {:sym_key, _}} = request, pseq, proxy_name)
       when request.request_type == "ack_key_rotation" do
+    Logger.info("[i] Proxy Manager (#{proxy_name}): Received key rotation acknowledgement")
     state = GenServer.call({:global, proxy_name}, :get_state)
     ProxyHelper.handle_key_rotation_ack(request, pseq, state)
+    :ok
+  end
+  def handle_regular_proxy(%Request{crypto: {:sym_key, _}} = request, _, proxy_name)
+      when request.request_type == "ack_fin_ke" do
+    # TODO it seems to work but might need to be checked
+    Logger.info("[i] Proxy Manager (#{proxy_name}): Received key exchange acknowledgement")
     :ok
   end
   def handle_regular_proxy(request, _, _) do
@@ -165,6 +181,7 @@ defmodule LAP2.Main.ProxyManager do
   """
   @spec remove_proxy(non_neg_integer, atom) :: :ok
   def remove_proxy(proxy_seq, proxy_name) do
+    Logger.info("[i] Proxy Manager (#{proxy_name}): Removing proxy #{proxy_seq}")
     GenServer.cast({:global, proxy_name}, {:remove_proxy, proxy_seq})
   end
 end

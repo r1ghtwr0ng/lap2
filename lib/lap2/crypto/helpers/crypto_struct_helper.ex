@@ -104,7 +104,7 @@ defmodule LAP2.Crypto.Helpers.CryptoStructHelper do
     # Generate new symmetric key
     # TODO use this with a double ratchet maybe?
     aes_key = :crypto.strong_rand_bytes(32)
-    crypto_struct = %{symmetric_key: aes_key}
+    crypto_struct = %{shared_secret: aes_key}
 
     # Generate encrypted request struct
     RequestHelper.build_key_rotation(aes_key)
@@ -124,12 +124,25 @@ defmodule LAP2.Crypto.Helpers.CryptoStructHelper do
     |> RequestHelper.encrypt_and_wrap(proxy_seq, crypto_manager)
   end
 
+  @spec gen_request(non_neg_integer, non_neg_integer, binary, binary, atom) :: {:ok, EncryptedRequest.t()} | {:error, atom}
+  def gen_request(proxy_seq, request_id, request_type, data, crypto_mgr) do
+    # Encrypt the request
+    RequestHelper.build_symmetric_crypto()
+    |> RequestHelper.build_request(data, request_type, request_id)
+    |> RequestHelper.encrypt_and_wrap(proxy_seq, crypto_mgr)
+  end
+
   @doc """
   Verify the validity of the ring signature
   """
-  @spec verify_ring_signature({:fin_ke, KeyExchangeFinal.t()}, non_neg_integer) :: boolean
-  def verify_ring_signature({:fin_ke, %KeyExchangeFinal{}}, _proxy_seq) do
-    true # TODO verify ring signature
+  @spec verify_ring_signature(KeyExchangeFinal.t(), non_neg_integer, atom) :: boolean
+  def verify_ring_signature(crypto_hdr, proxy_seq, crypto_mgr) do
+    identity = get_identity(crypto_mgr)
+    crypto_struct = get_crypto_struct(crypto_mgr, proxy_seq)
+    case C_RSDAKE.verify_final(identity, crypto_struct, crypto_hdr) do
+      {:ok, ret} -> ret
+      _ -> false
+    end
   end
 
   # ---- Private functions ----
@@ -137,6 +150,10 @@ defmodule LAP2.Crypto.Helpers.CryptoStructHelper do
   @spec get_identity(atom) :: charlist
   defp get_identity(crypto_mgr) do
     CryptoManager.get_identity(crypto_mgr)
+  end
+
+  defp get_crypto_struct(crypto_mgr, proxy_seq) do
+    CryptoManager.get_crypto_struct(crypto_mgr, proxy_seq)
   end
 
   # Fetches the long term keys from the crypto manager

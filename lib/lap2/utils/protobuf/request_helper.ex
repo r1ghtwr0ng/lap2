@@ -62,20 +62,23 @@ defmodule LAP2.Utils.ProtoBuf.RequestHelper do
     {:ok, EncryptedRequest.t()} | {:error, atom}
   def gen_finalise_exchange(request, proxy_seq, crypto_mgr) do
     Logger.info("[+] HIT CHECKPOINT RequestHelper.gen_finalise_exchange/4")
-    temp_crypto_struct = CryptoManager.get_temp_crypto_struct(request.request_id, crypto_mgr)
-    case CryptoStructHelper.gen_fin_crypto(request.crypto, temp_crypto_struct, crypto_mgr) do
-      {:ok, %{
-        crypto_struct: crypto_struct,
-        encrypted_request: enc_req
-      }} ->
-        # Delete the temporary crypto record from the CryptoManager state
-        CryptoManager.delete_temp_crypto(request.request_id, crypto_mgr)
-        CryptoManager.add_crypto_struct(crypto_struct, proxy_seq, crypto_mgr)
-        {:ok, enc_req}
+    case CryptoManager.get_temp_crypto_struct(request.request_id, crypto_mgr) do
+      nil -> {:error, :no_crypto_struct}
+      temp_crypto_struct ->
+        # Generate cryptography primitives
+        case CryptoStructHelper.gen_fin_crypto(request.crypto, temp_crypto_struct, crypto_mgr) do
+          {:ok, %{
+            crypto_struct: crypto_struct,
+            encrypted_request: enc_req
+          }} ->
+            # Delete the temporary crypto record from the CryptoManager state
+            CryptoManager.delete_temp_crypto(request.request_id, crypto_mgr)
+            CryptoManager.add_crypto_struct(crypto_struct, proxy_seq, crypto_mgr)
+            {:ok, enc_req}
 
-      err -> err
+          err -> err
+        end
     end
-
   end
 
   @doc """
@@ -83,14 +86,13 @@ defmodule LAP2.Utils.ProtoBuf.RequestHelper do
   Different from gen_finalise_exchange as this is called by the receiver proxy.
   """
   @spec recv_finalise_exchange(Request.t(), non_neg_integer, atom) ::
-    {:ok, EncryptedRequest.t()} | {:error, :invalid_signature}
+    {:ok, EncryptedRequest.t()} | {:error, atom}
   def recv_finalise_exchange(request, proxy_seq, crypto_mgr) do
     # Verify the validity of the signature
+    {_, crypto_hdr} = request.crypto
     cond do
-      CryptoStructHelper.verify_ring_signature(request.crypto, proxy_seq) ->
-        # Initiate key rotation
-        init_key_rotation(proxy_seq, crypto_mgr)
-
+      CryptoStructHelper.verify_ring_signature(crypto_hdr, proxy_seq, crypto_mgr) ->
+        CryptoStructHelper.gen_request(proxy_seq, request.request_id, "ack_fin_ke", <<>>, crypto_mgr)
       true -> {:error, :invalid_signature}
     end
   end
@@ -123,7 +125,7 @@ defmodule LAP2.Utils.ProtoBuf.RequestHelper do
     crypto_mgr) do
     # TODO sanitise the request and get the appropraite map
     crypto_struct = %{
-      symmetric_key: crypto_hdr.new_key,
+      shared_secret: crypto_hdr.new_key,
     }
 
     case CryptoStructHelper.ack_key_rotation(proxy_seq, request.request_id, crypto_mgr) do
@@ -189,7 +191,9 @@ defmodule LAP2.Utils.ProtoBuf.RequestHelper do
   """
   @spec build_symmetric_crypto() :: {:sym_key, SymmetricKey.t()}
   def build_symmetric_crypto() do
-    {:sym_key, %SymmetricKey{hmac_key: nil}}
+    {:sym_key, %SymmetricKey{
+      hmac_key: nil
+    }}
   end
 
   @doc """

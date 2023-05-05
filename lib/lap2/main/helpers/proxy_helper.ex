@@ -100,19 +100,20 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
   @doc """
   Finalise the key exchange.
   """
-  @spec handle_fin_key_exhange(any, any, any) :: :ok | :error
+  @spec handle_fin_key_exhange(Request.t(), non_neg_integer, map) :: :ok | :error
   def handle_fin_key_exhange(request, proxy_seq, state) do
     #Logger.info("[i] Handling key exchange finalisation")
     crypt_name = state.config.registry_table.crypto_manager
+    router_name = state.config.registry_table.router
     case RequestHelper.recv_finalise_exchange(request, proxy_seq, crypt_name) do
-      {:ok, response} ->
-        relay_pool = Map.get(state.proxy_pool, proxy_seq, [])
-        router_name = state.config.registry_table.router
-        OutboundPipelines.send_regular_response(response, proxy_seq, relay_pool, router_name)
+      {:ok, enc_response} ->
+        relays = Map.get(state.proxy_pool, proxy_seq, [])
+        OutboundPipelines.send_regular_response(enc_response, proxy_seq, relays, router_name)
+        :ok
 
       {:error, reason} ->
-        Logger.error("Error: #{reason} occured while responding to proxy: #{proxy_seq}, Request type: FIN_KEY_REQUEST")
-        :error
+        Logger.error("Error: #{reason} occured while responding to proxy: #{proxy_seq}, Request type: ACK_FIN_KE")
+        {:error, reason}
     end
   end
 

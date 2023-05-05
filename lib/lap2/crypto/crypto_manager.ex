@@ -5,7 +5,7 @@ defmodule LAP2.Crypto.CryptoManager do
 
   use GenServer
   require Logger
-  #alias LAP2.Crypto.Padding.PKCS7
+  alias LAP2.Crypto.Padding.PKCS7
 
   @doc """
   Start the CryptoManager process.
@@ -33,7 +33,7 @@ defmodule LAP2.Crypto.CryptoManager do
   end
 
   # ---- GenServer Callbacks (Crypto Operations) ----
-  @spec handle_call({:rotate_keys, %{symmetric_key: binary}, non_neg_integer}, any, map) :: {:reply, :ok, map}
+  @spec handle_call({:rotate_keys, %{shared_secret: binary}, non_neg_integer}, any, map) :: {:reply, :ok, map}
   def handle_call({:rotate_keys, crypto_struct, proxy_seq}, _from, state) do
     rot_keys(state.ets, crypto_struct, proxy_seq)
     {:reply, :ok, state}
@@ -75,15 +75,30 @@ defmodule LAP2.Crypto.CryptoManager do
     {:reply, :ok, new_state}
   end
 
-  @spec handle_call({:get_temp_crypto_struct, non_neg_integer}, any, map) :: {:reply, map, map}
+  @spec handle_call({:get_temp_crypto_struct, non_neg_integer}, any, map) :: {:reply, map | nil, map}
   def handle_call({:get_temp_crypto_struct, clove_seq}, _from, state) do
-    {:reply, Map.get(state.temp_crypto, clove_seq), state}
+    {:reply, Map.get(state.temp_crypto, clove_seq, nil), state}
   end
 
   @spec handle_call({:delete_temp_crypto, non_neg_integer}, any, map) :: {:reply, :ok, map}
   def handle_call({:delete_temp_crypto, clove_seq}, _from, state) do
     new_state = remove_temp_crypto(state, clove_seq)
     {:reply, :ok, new_state}
+  end
+
+  @spec handle_call(:debug_crypto_struct, any, map) :: {:reply, map, map}
+  def handle_call(:debug_crypto_struct, _from, state) do
+    struct = ets_dump_struct(state.ets)
+    {:reply, struct, state}
+  end
+
+  @spec handle_call({:get_crypto_struct, non_neg_integer}, any, map) :: {:reply, map | nil, map}
+  def handle_call({:get_crypto_struct, proxy_seq}, _from, state) do
+    struct = case ets_get_struct(state.ets, proxy_seq) do
+      [{_, ret}] -> ret
+      [] -> nil
+    end
+    {:reply, struct, state}
   end
 
   @spec handle_call({:get_identity}, any, map) :: {:reply, charlist, map}
@@ -130,16 +145,16 @@ defmodule LAP2.Crypto.CryptoManager do
   """
   @spec add_temp_crypto_struct(map, non_neg_integer, atom) :: :ok
   def add_temp_crypto_struct(crypto_struct, clove_seq, name) do
-    Logger.info("[+] INPUTTING TEMP CRYPTO STATE FOR CLOVE: #{clove_seq}")
+    Logger.info("[+] INPUTTING TEMP CRYPTO STATE FOR CLOVE: #{clove_seq}, #{name}")
     GenServer.call({:global, name}, {:add_temp_crypto_struct, crypto_struct, clove_seq})
   end
 
   @doc """
   Get a temporary crypto struct from the state.
   """
-  @spec get_temp_crypto_struct(non_neg_integer, atom) :: map
+  @spec get_temp_crypto_struct(non_neg_integer, atom) :: map | nil
   def get_temp_crypto_struct(clove_seq, name) do
-    Logger.info("[+] FETCHING TEMP CRYPTO STATE FROM STORAGE: #{clove_seq}")
+    Logger.info("[+] FETCHING TEMP CRYPTO STATE FROM STORAGE: #{clove_seq}, #{name}")
     GenServer.call({:global, name}, {:get_temp_crypto_struct, clove_seq})
   end
 
@@ -149,6 +164,16 @@ defmodule LAP2.Crypto.CryptoManager do
   @spec delete_temp_crypto(non_neg_integer, atom) :: :ok
   def delete_temp_crypto(clove_seq, name) do
     GenServer.call({:global, name}, {:delete_temp_crypto, clove_seq})
+  end
+
+  # TODO debug only
+  def debug_crypto_structs(name) do
+    GenServer.call({:global, name}, :debug_crypto_struct)
+  end
+
+  @spec get_crypto_struct(atom, non_neg_integer) :: map | nil
+  def get_crypto_struct(name, proxy_seq) do
+    GenServer.call({:global, name}, {:get_crypto_struct, proxy_seq})
   end
 
   @doc """
@@ -180,13 +205,11 @@ defmodule LAP2.Crypto.CryptoManager do
   @spec fetch_and_decrypt(:ets.tid(), binary, non_neg_integer) :: {:ok, binary} | {:error, atom}
   defp fetch_and_decrypt(ets, encrypted_req, proxy_seq) do
     case :ets.lookup(ets, proxy_seq) do
-      [{_proxy_seq, _crypto_struct}] ->
+      [{_proxy_seq, crypto_struct}] ->
         Logger.info("[i] Decrypting proxy request")
 
-        pt = encrypted_req.data
-        # :crypto.crypto_one_time(:aes_256_cbc, crypto_struct.symmetric_key, encrypted_req.iv, encrypted_req.data, false)
-        #{:ok, PKCS7.unpad(pt)}
-        {:ok, pt}
+        pt = :crypto.crypto_one_time(:aes_256_cbc, crypto_struct.shared_secret, encrypted_req.iv, encrypted_req.data, false)
+        {:ok, PKCS7.unpad(pt)}
 
       [] ->
         Logger.info("[i] No key found for proxy request")
@@ -199,12 +222,11 @@ defmodule LAP2.Crypto.CryptoManager do
           {:ok, EncryptedRequest.t()} | {:error, :no_key}
   defp fetch_and_encrypt(ets, data, proxy_seq) do
     case :ets.lookup(ets, proxy_seq) do
-      [{_proxy_seq, _crypto_struct}] ->
+      [{_proxy_seq, crypto_struct}] ->
         Logger.info("[i] Encrypting proxy request")
         iv = :crypto.strong_rand_bytes(16)
-        ct = data
         # TODO once key exchange is implemented, use this
-        #ct = :crypto.crypto_one_time(:aes_256_cbc, crypto_struct.symmetric_key, iv, PKCS7.pad(data, 16), true)
+        ct = :crypto.crypto_one_time(:aes_256_cbc, crypto_struct.shared_secret, iv, PKCS7.pad(data, 16), true)
 
         encrypted_req = %EncryptedRequest{
           is_encrypted: true,
@@ -244,9 +266,20 @@ defmodule LAP2.Crypto.CryptoManager do
     end
   end
 
+  # TODO DEBUG only
+  defp ets_dump_struct(ets) do
+    :ets.tab2list(ets)
+  end
+
+  # Retrieve a crypto struct from the ETS table
+  @spec ets_get_struct(:ets.tid(), non_neg_integer) :: [{non_neg_integer, map}] | []
+  defp ets_get_struct(ets, proxy_seq) do
+    :ets.lookup(ets, proxy_seq)
+  end
+
   # Update ETS with key rotation request info
   @spec rot_keys(:ets.tid(), map, non_neg_integer) :: :ok
-  defp rot_keys(ets, %{symmetric_key: _} = crypto_struct, proxy_seq) do
+  defp rot_keys(ets, %{shared_secret: _} = crypto_struct, proxy_seq) do
     ets_update_crypto_struct(ets, crypto_struct, proxy_seq)
     :ok
   end
