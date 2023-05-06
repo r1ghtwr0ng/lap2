@@ -1,6 +1,9 @@
 defmodule LAP2.Crypto.KeyExchange.RSDAKE do
   @moduledoc """
   This module implements the RSDAKE key exchange protocol.
+  TODO consider depricating this and just use C-RSDAKE.
+  If the user doesn't wish to have claimability, they can
+  just discard the PRF secret and RS commitments.
   """
 
   # Type definitions

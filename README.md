@@ -102,6 +102,8 @@ The following tasks are planned for the LAP2 project:
 - [x] Matrix NIF
 
 ### **Bonus**
+- [ ] Add function argument descriptions to docs
+- [ ] Add proxy heartbeat
 - [ ] Sybil guard
 - [ ] Rewrite matrix NIF module in Rust
 - [ ] Contribution verification
