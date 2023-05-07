@@ -9,6 +9,7 @@ defmodule LAP2.Utils.ConfigParserTest do
         crypto_manager: %{name: :crypto_manager,
         identity: "IDENTITY",
         registry_table: %{
+          conn_supervisor: :conn_supervisor,
           master: :master,
           proxy_manager: :proxy_manager,
           main_supervisor: :lap2_deamon,
@@ -19,9 +20,26 @@ defmodule LAP2.Utils.ConfigParserTest do
           udp_server: :udp_server,
           crypto_manager: :crypto_manager
         }},
+        conn_supervisor: %{
+          name: :conn_supervisor,
+          registry_table: %{
+            conn_supervisor: :conn_supervisor,
+            master: :master,
+            proxy_manager: :proxy_manager,
+            main_supervisor: :lap2_deamon,
+            router: :router,
+            share_handler: :share_handler,
+            task_supervisor: :lap2_superv,
+            tcp_server: :tcp_server,
+            udp_server: :udp_server,
+            crypto_manager: :crypto_manager
+          },
+          max_service_providers: 10
+        },
         master: %{
           name: :master,
           registry_table: %{
+            conn_supervisor: :conn_supervisor,
             master: :master,
             proxy_manager: :proxy_manager,
             main_supervisor: :lap2_deamon,
@@ -37,6 +55,7 @@ defmodule LAP2.Utils.ConfigParserTest do
         proxy_manager: %{
           name: :proxy_manager,
           registry_table: %{
+            conn_supervisor: :conn_supervisor,
             master: :master,
             proxy_manager: :proxy_manager,
             main_supervisor: :lap2_deamon,
@@ -61,6 +80,7 @@ defmodule LAP2.Utils.ConfigParserTest do
           proxy_limit: 20,
           proxy_policy: true,
           registry_table: %{
+            conn_supervisor: :conn_supervisor,
             master: :master,
             proxy_manager: :proxy_manager,
             main_supervisor: :lap2_deamon,
@@ -77,6 +97,7 @@ defmodule LAP2.Utils.ConfigParserTest do
         share_handler: %{
           name: :share_handler,
           registry_table: %{
+            conn_supervisor: :conn_supervisor,
             master: :master,
             proxy_manager: :proxy_manager,
             main_supervisor: :lap2_deamon,
@@ -95,6 +116,7 @@ defmodule LAP2.Utils.ConfigParserTest do
           name: :tcp_server,
           queue_interval: 100,
           registry_table: %{
+            conn_supervisor: :conn_supervisor,
             master: :master,
             proxy_manager: :proxy_manager,
             main_supervisor: :lap2_deamon,
@@ -114,6 +136,7 @@ defmodule LAP2.Utils.ConfigParserTest do
           name: :udp_server,
           queue_interval: 100,
           registry_table: %{
+            conn_supervisor: :conn_supervisor,
             master: :master,
             proxy_manager: :proxy_manager,
             main_supervisor: :lap2_deamon,

@@ -104,6 +104,7 @@ The following tasks are planned for the LAP2 project:
 ### **Bonus**
 - [ ] Add function argument descriptions to docs
 - [ ] Add proxy heartbeat
+- [ ] Refactor registry_table as ETS
 - [ ] Sybil guard
 - [ ] Rewrite matrix NIF module in Rust
 - [ ] Contribution verification

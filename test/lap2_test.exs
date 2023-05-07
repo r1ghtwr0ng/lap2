@@ -11,9 +11,26 @@ defmodule LAP2Test do
     %{
       main_supervisor: %{name: String.to_atom("lap2_daemon_#{addr}")},
       task_supervisor: %{max_children: 10, name: String.to_atom("lap2_superv_#{addr}")},
+      conn_supervisor: %{
+        name: String.to_atom("conn_supervisor_#{addr}"),
+        registry_table: %{
+          conn_supervisor: String.to_atom("conn_supervisor_#{addr}"),
+          master: String.to_atom("master_#{addr}"),
+          proxy_manager: String.to_atom("proxy_manager_#{addr}"),
+          share_handler: String.to_atom("share_handler_#{addr}"),
+          router: String.to_atom("router_#{addr}"),
+          main_supervisor: String.to_atom("lap2_daemon_#{addr}"),
+          task_supervisor: String.to_atom("lap2_superv_#{addr}"),
+          tcp_server: String.to_atom("tcp_server_#{addr}"),
+          udp_server: String.to_atom("udp_server_#{addr}"),
+          crypto_manager: String.to_atom("crypto_manager_#{addr}")
+        },
+        max_service_providers: 10
+      },
       master: %{
         name: String.to_atom("master_#{addr}"),
         registry_table: %{
+          conn_supervisor: String.to_atom("conn_supervisor_#{addr}"),
           master: String.to_atom("master_#{addr}"),
           proxy_manager: String.to_atom("proxy_manager_#{addr}"),
           share_handler: String.to_atom("share_handler_#{addr}"),
@@ -28,6 +45,7 @@ defmodule LAP2Test do
       proxy_manager: %{
         name: String.to_atom("proxy_manager_#{addr}"),
         registry_table: %{
+          conn_supervisor: String.to_atom("conn_supervisor_#{addr}"),
           master: String.to_atom("master_#{addr}"),
           proxy_manager: String.to_atom("proxy_manager_#{addr}"),
           share_handler: String.to_atom("share_handler_#{addr}"),
@@ -47,6 +65,7 @@ defmodule LAP2Test do
       crypto_manager: %{name: String.to_atom("crypto_manager_#{addr}"),
         identity: "IDENT_#{addr}",
         registry_table: %{
+          conn_supervisor: String.to_atom("conn_supervisor_#{addr}"),
           master: String.to_atom("master_#{addr}"),
           proxy_manager: String.to_atom("proxy_manager_#{addr}"),
           share_handler: String.to_atom("share_handler_#{addr}"),
@@ -65,6 +84,7 @@ defmodule LAP2Test do
         proxy_limit: 20,
         proxy_policy: true,
         registry_table: %{
+          conn_supervisor: String.to_atom("conn_supervisor_#{addr}"),
           master: String.to_atom("master_#{addr}"),
           proxy_manager: String.to_atom("proxy_manager_#{addr}"),
           share_handler: String.to_atom("share_handler_#{addr}"),
@@ -83,6 +103,7 @@ defmodule LAP2Test do
         name: :tcp_server,
         queue_interval: 100,
         registry_table: %{
+          conn_supervisor: String.to_atom("conn_supervisor_#{addr}"),
           master: String.to_atom("master_#{addr}"),
           proxy_manager: String.to_atom("proxy_manager_#{addr}"),
           share_handler: String.to_atom("share_handler_#{addr}"),
@@ -102,6 +123,7 @@ defmodule LAP2Test do
         name: String.to_atom("udp_server_#{addr}"),
         queue_interval: 100,
         registry_table: %{
+          conn_supervisor: String.to_atom("conn_supervisor_#{addr}"),
           master: String.to_atom("master_#{addr}"),
           proxy_manager: String.to_atom("proxy_manager_#{addr}"),
           share_handler: String.to_atom("share_handler_#{addr}"),
@@ -118,6 +140,7 @@ defmodule LAP2Test do
       share_handler: %{
         name: String.to_atom("share_handler_#{addr}"),
         registry_table: %{
+          conn_supervisor: String.to_atom("conn_supervisor_#{addr}"),
           master: String.to_atom("master_#{addr}"),
           proxy_manager: String.to_atom("proxy_manager_#{addr}"),
           share_handler: String.to_atom("share_handler_#{addr}"),

@@ -11,6 +11,11 @@
         "identity": "IDENTITY",
         "registry_table": null
     },
+    "conn_supervisor": {
+        "name": "conn_supervisor",
+        "registry_table": null,
+        "max_service_providers": 10
+    },
     "master": {
         "name": "master",
         "registry_table": null
