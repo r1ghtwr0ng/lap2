@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+// Query struct used to send messages to and from proxies
+message Query {
+    uint64 query_id = 1;
+    bytes data = 2;
+    bool ack = 3;
+
+    oneof headers {
+        EstablishIntroductionPoint establish_intro = 4;
+        TeardownIntroductionPoint teardown_intro = 5;
+        ContentRequest content_request = 6;
+        RemoteQuery remote_query = 7;
+    }
+}
+// Request introduction point establishment
+message EstablishIntroductionPoint {
+    repeated bytes service_ids = 1;
+}
+// Request introduction point teardown
+message TeardownIntroductionPoint {}
+// Request content from a service
+message ContentRequest {
+    bytes service_id = 1;
+}
+// Request a proxy to access a remote service
+message RemoteQuery {
+    bytes address = 1;
+    uint32 port = 2;
+    bytes service_id = 3;
+}
