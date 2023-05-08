@@ -41,6 +41,12 @@ defmodule LAP2.Main.ConnectionSupervisor do
   end
 
   # ---- GenServer Callbacks ----
+  # TODO Debug print
+  @spec handle_call(:debug, any, map) :: {:reply, map, map}
+  def handle_call(:debug, _from, state) do
+    {:reply, state, state}
+  end
+
   @spec handle_call({:register_conn, non_neg_integer, atom}, any, map) :: {:reply, :ok, map}
   def handle_call({:register_conn, proxy_seq, conn_type}, _from, state) do
     # TODO implement heartbeat and timeout mechanisms to remove dead connections
@@ -113,6 +119,10 @@ defmodule LAP2.Main.ConnectionSupervisor do
   # end
 
   # ---- Public API ----
+  def debug(name) do
+    GenServer.call({:global, name}, :debug)
+  end
+
   @doc """
   Attempt to establish a new anonymous proxy.
   """
@@ -195,9 +205,7 @@ defmodule LAP2.Main.ConnectionSupervisor do
         query_id = CloveHelper.gen_seq_num()
         # TODO build query, send via ProxyManager
         QueryHelper.build_establish_header(service_ids)
-        |> IO.inspect(label: "Establish header")
         |> QueryHelper.build_query(query_id, <<>>)
-        |> IO.inspect(label: "Establish query")
         |> QueryHelper.serialise()
         |> case do
           {:ok, serial} -> ProxyManager.send_request(serial, proxy_seq, proxy_mgr)
@@ -302,7 +310,7 @@ defmodule LAP2.Main.ConnectionSupervisor do
       Map.get(state.service_providers, sid, proxy_seq) != proxy_seq
     end)
     within_limit = Map.get(state.connections, proxy_seq, %{type: nil}).type == :intro_point or
-    (Map.values(state.service_providers) |> Enum.uniq() |> length()) < state.config.provider_limit
+    (Map.values(state.service_providers) |> Enum.uniq() |> length()) < state.config.max_service_providers
     valid_req and within_limit
   end
 
