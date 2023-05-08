@@ -15,17 +15,17 @@ message Query {
 }
 // Request introduction point establishment
 message EstablishIntroductionPoint {
-    repeated bytes service_ids = 1;
+    repeated string service_ids = 1;
 }
 // Request introduction point teardown
 message TeardownIntroductionPoint {}
 // Request content from a service
 message ContentRequest {
-    bytes service_id = 1;
+    string service_id = 1;
 }
 // Request a proxy to access a remote service
 message RemoteQuery {
-    bytes address = 1;
+    string address = 1;
     uint32 port = 2;
-    bytes service_id = 3;
+    string service_id = 3;
 }

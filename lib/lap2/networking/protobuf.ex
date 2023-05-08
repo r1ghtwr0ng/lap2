@@ -4,13 +4,16 @@ defmodule LAP2.Networking.ProtoBuf do
   """
 
   use Protox,
-    files: ["./specs/clove_struct.proto", "./specs/share_struct.proto", "./specs/request_struct.proto"],
+    files: ["./specs/clove_struct.proto",
+    "./specs/share_struct.proto",
+    "./specs/request_struct.proto",
+    "./specs/query_struct.proto"],
     path: ["./specs"]
 
   @doc """
   Serialise a map via ProtoBuff before sending it
   """
-  @spec serialise(Clove.t() | Share.t() | Request.t() | EncryptedRequest.t()) ::
+  @spec serialise(Clove.t() | Share.t() | Request.t() | EncryptedRequest.t() | Query.t()) ::
           {:ok, binary} | {:error, any}
   def serialise(struct) do
     case Protox.encode(struct) do
@@ -22,7 +25,7 @@ defmodule LAP2.Networking.ProtoBuf do
   @doc """
   Deserialised received data
   """
-  @spec deserialise(binary, Clove | Share | Request | EncryptedRequest) ::
+  @spec deserialise(binary, Clove | Share | Request | EncryptedRequest | Query) ::
           {:error, any} | {:ok, struct}
   def deserialise(data, struct_type) do
     Protox.decode(data, struct_type)
