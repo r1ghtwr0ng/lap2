@@ -45,8 +45,8 @@ defmodule LAP2.Networking.Helpers.OutboundPipelines do
   @doc """
   Send out data to a proxy via anonymous routes.
   """
-  @spec send_regular_response(EncryptedRequest.t(), non_neg_integer, list, atom) :: :ok
-  def send_regular_response(enc_request, proxy_seq, relay_pool, router_name) do
+  @spec send_regular_request(EncryptedRequest.t(), non_neg_integer, list, atom) :: :ok
+  def send_regular_request(enc_request, proxy_seq, relay_pool, router_name) do
     #Logger.info("[i] OutboundPipelines: Sending regular response")
 
     case RequestHelper.serialise(enc_request) do

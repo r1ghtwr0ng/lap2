@@ -73,12 +73,12 @@ defmodule LAP2 do
          max_children: config.task_supervisor.max_children || 10
        ]},
       {LAP2.Main.Master, config.master},
-      {LAP2.Main.ConnectionSupervisor, config.conn_supervisor},
-      {LAP2.Networking.Sockets.UdpServer, config.udp_server},
-      {LAP2.Networking.Router, config.router},
       {LAP2.Main.ProxyManager, config.proxy_manager},
-      {LAP2.Crypto.CryptoManager, config.crypto_manager},
+      {LAP2.Main.ConnectionSupervisor, config.conn_supervisor},
       {LAP2.Main.StructHandlers.ShareHandler, config.share_handler},
+      {LAP2.Crypto.CryptoManager, config.crypto_manager},
+      {LAP2.Networking.Router, config.router},
+      {LAP2.Networking.Sockets.UdpServer, config.udp_server},
     ]
 
     Supervisor.start_link(children, opts)

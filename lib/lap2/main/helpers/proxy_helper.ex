@@ -4,14 +4,17 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
   """
 
   require Logger
-  alias LAP2.Main.Master
-  alias LAP2.Utils.EtsHelper
+  alias LAP2.Main.ConnectionSupervisor
   alias LAP2.Utils.ProtoBuf.RequestHelper
   alias LAP2.Networking.Router
   alias LAP2.Networking.Helpers.OutboundPipelines
 
   @doc """
-  Initialise proxy request.
+  Initialise proxy request. (outbound)
+  Generate a new EncryptedRequest struct and send it to random neighbors.
+  @param registry_table - RegistryTable struct
+  @param clove_seq - Clove sequence number
+  @param cloves - Number of cloves to be sent
   """
   @spec init_proxy_request(map, non_neg_integer, non_neg_integer) :: :ok | :error
   def init_proxy_request(registry_table, clove_seq, cloves) do
@@ -87,7 +90,7 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
         router_name = state.config.registry_table.router
         case RequestHelper.gen_finalise_exchange(request, proxy_seq, state.config.registry_table.crypto_manager) do
           {:ok, enc_response} ->
-            OutboundPipelines.send_regular_response(enc_response, proxy_seq, relay_pool, router_name)
+            OutboundPipelines.send_regular_request(enc_response, proxy_seq, relay_pool, router_name)
             {:ok, Map.put(state, :proxy_pool, new_pool)}
 
           {:error, reason} ->
@@ -106,15 +109,22 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
     crypt_name = state.config.registry_table.crypto_manager
     router_name = state.config.registry_table.router
     case RequestHelper.recv_finalise_exchange(request, proxy_seq, crypt_name) do
-      {:ok, enc_response} ->
+      {:ok, enc_request} ->
         relays = Map.get(state.proxy_pool, proxy_seq, [])
-        OutboundPipelines.send_regular_response(enc_response, proxy_seq, relays, router_name)
+        OutboundPipelines.send_regular_request(enc_request, proxy_seq, relays, router_name)
         :ok
 
       {:error, reason} ->
         Logger.error("Error: #{reason} occured while responding to proxy: #{proxy_seq}, Request type: ACK_FIN_KE")
         {:error, reason}
     end
+  end
+
+  @spec handle_key_exchange_ack(non_neg_integer, map) :: :ok | :error
+  def handle_key_exchange_ack(proxy_seq, registry_table) do
+    # TODO fix the args being passed, state is too much (applies to the above functions as well)
+    #Logger.info("[i] Handling key exchange acknowledgement")
+    ConnectionSupervisor.proxy_established(proxy_seq, registry_table)
   end
 
   @doc """
@@ -125,10 +135,10 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
     #Logger.info("[i] Handling key rotation request")
     crypt_name = state.config.registry_table.crypto_manager
     case RequestHelper.rotate_keys(request, proxy_seq, crypt_name) do
-      {:ok, response} ->
+      {:ok, enc_request} ->
         relay_pool = Map.get(state.proxy_pool, proxy_seq, [])
         router_name = state.config.registry_table.router
-        OutboundPipelines.send_regular_response(response, proxy_seq, relay_pool, router_name)
+        OutboundPipelines.send_regular_request(enc_request, proxy_seq, relay_pool, router_name)
 
       _ ->
         Logger.error("Error occured while responding to proxy: #{proxy_seq}, Request type: KEY_ROTATION")
@@ -139,49 +149,49 @@ defmodule LAP2.Main.Helpers.ProxyHelper do
   @doc """
   Handle a key rotation acknowledgement.
   """
-  @spec handle_key_rotation_ack(Request.t(), non_neg_integer, atom) :: :ok | :error
-  def handle_key_rotation_ack(_request, _proxy_seq, _crypto_manager) do
+  @spec handle_key_rotation_ack(non_neg_integer, map) :: :ok | :error
+  def handle_key_rotation_ack(proxy_seq, registry_table) do
     # TODO not yet sure what to do, probably stop the retransmission timer (if it exists)
     # Potentially send to CryptoManager to update the keys (if it hasn't already)
     Logger.info("[i] Handling key rotation acknowledgement")
-    :ok
+    ConnectionSupervisor.successful_key_rotation(proxy_seq, registry_table)
+  end
+
+  @doc """
+  Send an outbound proxy query to a single specific proxy.
+  """
+  @spec send_to_proxy(Request.t(), non_neg_integer, list, map) :: :ok | :error
+  def send_to_proxy(request, proxy_seq, relay_pool, registry_table) do
+    # Register listener with each request ID.
+    # Send to a specific proxy. Register listener with request ID.
+    crypto_mgr = registry_table.crypto_manager
+
+    case RequestHelper.encrypt_and_wrap(request, proxy_seq, crypto_mgr) do # TODO
+      {:ok, enc_request} ->
+        router = registry_table.router
+        OutboundPipelines.send_regular_request(enc_request, proxy_seq, relay_pool, router)
+        :ok
+
+      {:error, reason} ->
+        Logger.error("Error: #{reason} occured while initialising proxy request")
+        :error
+    end
   end
 
   # TODO expose a TCP socket interface for this so devs can add their own
   @doc """
   Route proxy query to the correct application listener via the Master module.
   """
-  @spec handle_proxy_query(Request.t(), :ets.tid(), non_neg_integer, atom) :: :ok | :error
-  def handle_proxy_query(%Request{request_id: rid, data: data}, ets, _pseq, master_name) do
+  @spec handle_proxy_query(Request.t(), non_neg_integer, map) :: :ok | :error
+  def handle_proxy_query(%Request{data: data}, pseq, registry_table) do
     #Logger.info("[i] Handling proxy query")
-    case EtsHelper.get_value(ets, rid) do
-      {:ok, stream_id} ->
-        Master.deliver_query(data, stream_id, master_name)
-        :ok
-
-      {:error, :not_found} ->
-        Logger.error("No stream ID for request ID: #{rid}")
-        :error
-    end
-  end
-
-  @doc """
-  Route proxy response to the correct listener via the Master module.
-  """
-  @spec handle_proxy_response(Request.t(), :ets.tid(), non_neg_integer, atom) :: :ok | :error
-  def handle_proxy_response(%Request{request_id: rid, data: data}, ets, _pseq, master_name) do
-    case EtsHelper.get_value(ets, rid) do
-      {:ok, stream_id} ->
-        Master.deliver_response(data, stream_id, master_name)
-        :ok
-
-      {:error, :not_found} ->
-        Logger.error("No stream ID for request ID: #{rid}")
-        :error
-    end
+    ConnectionSupervisor.deliver_inbound(data, pseq, registry_table)
   end
 
   # ---- State Helpers ----
+  @doc """
+  Remove a proxy from the proxy pool.
+  """
   @spec remove_proxy(map, non_neg_integer) :: map
   def remove_proxy(state, proxy_seq) do
     Map.put(state, :proxy_pool, Map.delete(state.proxy_pool, proxy_seq))
