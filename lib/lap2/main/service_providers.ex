@@ -65,7 +65,7 @@ defmodule LAP2.Main.ServiceProviders do
     headers: {:teardown_intro, %TeardownIntroductionPoint{}}},
     _proxy_seq, _registry_table) do
     # Handle acknowledgement for introduction point teardown request
-
+    ListenerHandler.broadcast("Introduction point torn down", :kura_mi_qnko)
   end
   def route_query(%Query{ack: true,
     query_id: _query_id,
@@ -74,21 +74,12 @@ defmodule LAP2.Main.ServiceProviders do
       service_id: _service_id
   }}}, _proxy_seq, _registry_table) do
     # Handle acknowledgement for content request
-
+    # TODO route back to anonymous proxy, construct a response for RemoteQuery
   end
   def route_query(%Query{ack: true,
-    query_id: _query_id,
-    data: _data,
-    headers: {:remote_query, %RemoteQuery{
-      address: _address,
-      port: _port,
-      service_id: _service_id
-  }}}, _proxy_seq, _registry_table) do
+    headers: {:remote_query, %RemoteQuery{}}}
+    = query, proxy_seq, registry_table) do
     # Handle acknowledgement for remote query
-    # Todo record
+    HostBuffer.reassemble_query(query, proxy_seq, registry_table)
   end
-
-  # ---- Outbound Response Routing ----
-
-  # ---- Outbound Request Routing ----
 end

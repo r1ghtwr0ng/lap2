@@ -32,6 +32,7 @@ defmodule LAP2.Main.Master do
       query_cache: :ets.new(:query_cache, [:set]),
       services: %{},
       listeners: %{},
+      return_map: %{},
       config: config
     }
 
@@ -69,6 +70,22 @@ defmodule LAP2.Main.Master do
     #Logger.info("[+] Deregistering listener for stream ID: #{inspect(stream_id)}")
     new_state = %{state | listeners: Map.delete(state.listeners, stream_id)}
     {:reply, :ok, new_state}
+  end
+
+  @spec handle_call({:register_return, String.t(), String.t()}, any, map) :: {:reply, :ok, map}
+  def handle_call({:register_return, query_id, service_id}, _from, state) do
+    new_state = Map.put(state, :return_map, Map.put(state.return_map, query_id, service_id))
+    {:reply, :ok, new_state}
+  end
+
+  @spec handle_call({:pop_return, String.t()}, any, map) :: {:reply, String.t() | :error, map}
+  def handle_call({:pop_return, query_id}, _from, state) do
+    case Map.get(state.return_map, query_id, :error) do
+      :error -> {:reply, :error, state}
+      service_id ->
+        new_state = Map.put(state, :return_map, Map.delete(state.return_map, query_id))
+        {:reply, service_id, new_state}
+    end
   end
 
   @spec handle_call(:get_registry_table, any, map) :: {:reply, map, map}
@@ -237,6 +254,16 @@ defmodule LAP2.Main.Master do
   @spec deregister_service(String.t(), String.t(), atom) :: :ok | :error
   def deregister_service(service_id, secret, master_name) do
     GenServer.call({:global, master_name}, {:deregister_service, service_id, secret})
+  end
+
+  @spec register_return(non_neg_integer, String.t(), atom) :: :ok
+  def register_return(query_id, service_id, name) do
+    GenServer.call({:global, name}, {:register_return, query_id, service_id})
+  end
+
+  @spec pop_return(non_neg_integer, atom) :: String.t() | :error
+  def pop_return(query_id, name) do
+    GenServer.call({:global, name}, {:pop_return, query_id})
   end
 
   @doc """

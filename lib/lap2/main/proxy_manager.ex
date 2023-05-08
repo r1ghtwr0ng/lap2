@@ -162,7 +162,6 @@ defmodule LAP2.Main.ProxyManager do
       when request.request_type == "regular_proxy_request" or request.request_type == "regular_proxy_response" do
     Logger.info("[i] Proxy Manager (#{proxy_name}): Processing regular proxy request")
     state = GenServer.call({:global, proxy_name}, :get_state)
-    IO.inspect(state.config, label: "state.config DEBUG <-----------------")
     ProxyHelper.handle_proxy_query(
       request,
       pseq,
