@@ -5,7 +5,7 @@ alias LAP2.Networking.Helpers.OutboundPipelines
 alias LAP2.Crypto.Helpers.CryptoStructHelper
 
 defmodule ConfigBuilder do
-  def make_config(addr, udp_port) do
+  def make_config(addr, udp_port, tcp_port) do
     %{
       main_supervisor: %{name: String.to_atom("lap2_daemon_#{addr}")},
       task_supervisor: %{max_children: 10, name: String.to_atom("lap2_superv_#{addr}")},
@@ -98,7 +98,7 @@ defmodule ConfigBuilder do
       },
       tcp_server: %{
         max_queue_size: 1000,
-        name: :tcp_server,
+        name: String.to_atom("tcp_server_#{addr}"),
         queue_interval: 100,
         registry_table: %{
           conn_supervisor: String.to_atom("conn_supervisor_#{addr}"),
@@ -113,7 +113,7 @@ defmodule ConfigBuilder do
           crypto_manager: String.to_atom("crypto_manager_#{addr}")
         },
         req_timeout: 50000,
-        tcp_port: 3001
+        tcp_port: tcp_port
       },
       udp_server: %{
         max_dgram_handlers: 10,
@@ -155,7 +155,7 @@ defmodule ConfigBuilder do
   end
 end
 
-configs = Enum.map(12000..12040, fn port -> ConfigBuilder.make_config("#{port}", port); end)
+configs = Enum.map(12000..12040, fn port -> ConfigBuilder.make_config("#{port}", port, port); end)
 pids = Enum.map(configs, fn config -> {:ok, pid} = LAP2.start(config); pid; end)
 addresses = Enum.map(configs, fn config -> {config[:router][:lap2_addr], {"127.0.0.1", config[:udp_server][:udp_port]}}; end)
 

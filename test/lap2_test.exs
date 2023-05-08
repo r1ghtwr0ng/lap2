@@ -100,7 +100,7 @@ defmodule LAP2Test do
       },
       tcp_server: %{
         max_queue_size: 1000,
-        name: :tcp_server,
+        name: String.to_atom("tcp_server_#{addr}"),
         queue_interval: 100,
         registry_table: %{
           conn_supervisor: String.to_atom("conn_supervisor_#{addr}"),
@@ -115,7 +115,7 @@ defmodule LAP2Test do
           crypto_manager: String.to_atom("crypto_manager_#{addr}")
         },
         req_timeout: 50000,
-        tcp_port: 3001
+        tcp_port: udp_port # TODO get a TCP_PORT arg to maybe make this less confusing but for now its fine
       },
       udp_server: %{
         max_dgram_handlers: 10,
@@ -183,8 +183,7 @@ defmodule LAP2Test do
         {:ok, pid} ->
           assert Process.alive?(pid)
           assert Process.alive?(GenServer.whereis({:global, config.router.name}))
-          # TODO uncomment once TCP Server is implemented
-          # assert Process.alive?(GenServer.whereis({:global, config.tcp_server.name}))
+          assert Process.alive?(GenServer.whereis({:global, config.tcp_server.name}))
           assert Process.alive?(GenServer.whereis({:global, config.udp_server.name}))
           assert Process.alive?(GenServer.whereis({:global, config.share_handler.name}))
           assert :ok == Supervisor.stop(pid)

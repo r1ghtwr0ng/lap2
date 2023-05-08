@@ -4,6 +4,7 @@ defmodule LAP2.Networking.Sockets.Lap2Socket do
   """
 
   require Logger
+  alias LAP2.Utils.ProtoBuf.QueryHelper
   alias LAP2.Networking.Sockets.UdpServer
   alias LAP2.Utils.ProtoBuf.CloveHelper
 
@@ -21,6 +22,23 @@ defmodule LAP2.Networking.Sockets.Lap2Socket do
     else
       {:error, reason} ->
         Logger.error("[!] Lap2Socket: Error deserialising datagram: #{inspect(reason)}")
+        :error
+    end
+  end
+
+  @doc """
+  Parse a received TCP segment.
+  """
+  @spec parse_segment(String.t(), binary, atom) :: :ok | :error
+  def parse_segment(conn_id, segment, router_name) do
+    # DEBUG: Sleep for 1 second to simulate (unrealistically large) processing time
+    # Process.sleep(1000)
+    # Deserialise segment
+    with {:ok, query} <- QueryHelper.deserialise(segment) do
+      Router.route_tcp(query, conn_id)
+    else
+      {:error, reason} ->
+        Logger.error("[!] Lap2Socket: Error deserialising segment: #{inspect(reason)}")
         :error
     end
   end
