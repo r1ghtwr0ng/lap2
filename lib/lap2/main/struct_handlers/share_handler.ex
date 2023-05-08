@@ -44,11 +44,32 @@ defmodule LAP2.Main.StructHandlers.ShareHandler do
     {:ok, share} = ShareHelper.deserialise(clove.data)
 
     case ProcessorState.route_share(state, share) do
-      :reassemble -> reassemble(state, share, aux_data)
+      :reassemble -> reassemble_and_cast(state, share, aux_data)
 
       :cache -> cache(state, share, aux_data)
 
       :drop -> {:noreply, state}
+    end
+  end
+
+  @spec handle_call({:service_deliver, binary, map}, any, map) ::
+    {:reply, {:reconstructed, binary, list(map)} | :cached | :dropped, map}
+  def handle_call({:service_deliver, data, aux_data}, _from, state) do
+    case ShareHelper.deserialise(data) do
+      {:ok, share} ->
+        case ProcessorState.route_share(state, share) do
+          :reassemble -> response = reassemble(state, share, aux_data)
+            {:reply, response, state}
+
+          :cache -> cache(state, share, aux_data)
+            {:reply, :cached, state}
+
+          :drop -> {:reply, :dropped, state}
+        end
+
+      {:error, reason} ->
+        Logger.error("Share deserialisation failed: #{reason}")
+        {:reply, :dropped, state}
     end
   end
 
@@ -68,28 +89,54 @@ defmodule LAP2.Main.StructHandlers.ShareHandler do
 
   # ---- Public Functions ----
   @doc """
-  Receive data from the network.
+  Reassemble network received shares and route along pipeline.
   """
   @spec deliver(binary, map, atom) :: :ok
   def deliver(data, aux_data, name) do
     GenServer.cast({:global, name}, {:deliver, data, aux_data})
   end
 
+  @doc """
+  Reconstruct service request from shares.
+  """
+  @spec service_deliver(binary, map, atom) ::
+    {:reconstructed, binary, list(map)} | :cached | :dropped
+  def service_deliver(data, routing_info, name) do
+    GenServer.call({:global, name}, {:service_deliver, data, routing_info})
+  end
+
   # ---- Private Functions ----
-  # Reassemble shares and send to the request handler
-  @spec reassemble(map, Share.t(), map) :: {:noreply, map}
+  @spec reassemble(map, Share.t(), map) :: {:reconstructed, binary, list} | :dropped
   defp reassemble(state, share, aux_data) do
     {:ok, ets_struct} = EtsHelper.get_value(state.ets, share.message_id)
     EtsHelper.delete_value(state.ets, share.message_id)
     all_shares = [share | ets_struct.shares]
     aux_list = [aux_data | ets_struct.aux_data]
-    case ShareHelper.format_aux_data(aux_list) do
-      {:ok, formatted_aux_data} ->
-        #Logger.info("[+] Formatted AUX DATA: #{inspect formatted_aux_data} <<<<<<<<<<==================================")
-        cast_reconstructed(all_shares, formatted_aux_data, state.config.registry_table)
+    case ShareHelper.reconstruct(all_shares) do
+      {:ok, reconstructed} ->
+        {:reconstructed, reconstructed, aux_list}
 
       {:error, reason} ->
         Logger.error("Request reconstruction failed: #{reason}")
+        :dropped
+    end
+  end
+
+  # Reassemble shares and send to the request handler
+  @spec reassemble_and_cast(map, Share.t(), map) :: {:noreply, map}
+  defp reassemble_and_cast(state, share, aux_data) do
+    case reassemble(state, share, aux_data) do
+      {:reconstructed, reconstructed, aux_list} ->
+        case ShareHelper.format_aux_data(aux_list) do
+          {:ok, formatted_aux_data} ->
+            #Logger.info("[+] Formatted AUX DATA: #{inspect formatted_aux_data} <<<<<<<<<<==============")
+            cast_reconstructed(reconstructed, formatted_aux_data, state.config.registry_table)
+
+          {:error, reason} ->
+            Logger.error("Aux data formatting failed: #{reason}")
+        end
+      :dropped ->
+        Logger.error("Request reconstruction failed")
     end
 
     new_state =
@@ -101,23 +148,18 @@ defmodule LAP2.Main.StructHandlers.ShareHandler do
   end
 
   # Cast the reconstructed data to the listener
-  @spec cast_reconstructed(list(Share.t()), map, map) :: :ok
-  defp cast_reconstructed(all_shares, formatted_aux, registry_table) do
-    case ShareHelper.reconstruct(all_shares) do
-      {:ok, reconstructed_data} ->
-        # Verify and format the auxiliary data
-        Task.async(fn ->
-          RequestHandler.handle_request(
-            reconstructed_data,
-            formatted_aux,
-            registry_table
-          )
-        end)
-        #Logger.info("[+] Reconstructed: #{inspect reconstructed_data} <<<<<<<<<<==================================")
-
-      {:error, _reason} ->
-        Logger.error("Reconstruction failed")
-    end
+  @spec cast_reconstructed(binary, map, map) :: :ok
+  defp cast_reconstructed(reconstructed_data, formatted_aux, registry_table) do
+    # Verify and format the auxiliary data
+    Task.async(fn ->
+      RequestHandler.handle_request(
+        reconstructed_data,
+        formatted_aux,
+        registry_table
+      )
+    end)
+    :ok
+    #Logger.info("[+] Reconstructed: #{inspect reconstructed_data} <<<<<<<<<<==================================")
   end
 
   # Cache a share inside ETS
