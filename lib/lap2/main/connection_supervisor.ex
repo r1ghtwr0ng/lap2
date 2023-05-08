@@ -13,6 +13,7 @@ defmodule LAP2.Main.ConnectionSupervisor do
   alias LAP2.Main.ServiceProviders
   alias LAP2.Main.Helpers.ListenerHandler
   alias LAP2.Utils.ProtoBuf.QueryHelper
+  alias LAP2.Utils.ProtoBuf.CloveHelper
 
   @doc """
   Start the ConnectionSupervisor process.
@@ -24,6 +25,7 @@ defmodule LAP2.Main.ConnectionSupervisor do
 
   # TODO introduce a heartbeat mechanism to check if the proxy is still alive
   # TODO call ProxyManager.deregister_stream/2 once all the requests have been received/timeout
+  @spec init(map) :: {:ok, map}
   def init(config) do
     # Initialise data handler state
     Logger.info("[i] Connection Supervisor (#{config.name}): Starting GenServer")
@@ -31,6 +33,7 @@ defmodule LAP2.Main.ConnectionSupervisor do
     state = %{
       connections: %{},
       service_providers: %{},
+      response_routes: %{},
       config: config
     }
 
@@ -95,14 +98,28 @@ defmodule LAP2.Main.ConnectionSupervisor do
     end
   end
 
+  # @spec handle_call({:pop_response_route, non_neg_integer}) :: {:reply, non_neg_integer | :error, map}
+  # def handle_call({:pop_response_route, query_id}, _from, state) do
+  #   response = Map.get(state.response_routes, query_id, :error)
+  #   {:reply, response, state}
+  # end
+
+  # @spec handle_call({:add_response_route, non_neg_integer, non_neg_integer}, any, map) ::
+  #   {:reply, :ok, map}
+  # def handle_call({:add_response_route, query_id, proxy_seq}, _from, state) do
+  #   new_routes = Map.put(state.response_routes, query_id, proxy_seq)
+  #   new_state = Map.put(state, :response_routes, new_routes)
+  #   {:reply, :ok, new_state}
+  # end
+
   # ---- Public API ----
   @doc """
   Attempt to establish a new anonymous proxy.
   """
-  @spec establish_proxy(binary, map) :: :ok | :error
-  def establish_proxy(stream_id, registry_table) do
+  @spec establish_proxy(map) :: :ok | :error
+  def establish_proxy(registry_table) do
     proxy_mgr = registry_table.proxy_manager
-    ProxyManager.init_proxy(stream_id, proxy_mgr)
+    ProxyManager.init_proxy(proxy_mgr)
   end
 
   @doc """
@@ -119,8 +136,8 @@ defmodule LAP2.Main.ConnectionSupervisor do
   @doc """
   Send a list of outbound queries via random connections.
   """
-  @spec send_queries(list(Query.t()), binary, map) :: :ok | :error
-  def send_queries(queries, stream_id, registry_table) do
+  @spec send_queries(list(Query.t()), map) :: :ok | :error
+  def send_queries(queries, registry_table) do
     # TODO called from Master, calls ProxyManager.send_query/2
     conns = length(queries)
     conn_sup = registry_table.conn_supervisor
@@ -132,7 +149,7 @@ defmodule LAP2.Main.ConnectionSupervisor do
         |> Enum.each(fn {query, pseq} ->
           case QueryHelper.serialise(query) do
             {:ok, data} ->
-              ProxyManager.send_request(data, stream_id, pseq, proxy_mgr)
+              ProxyManager.send_request(data, pseq, proxy_mgr)
             {:error, reason} ->
               Logger.error("[!] Connection Supervisor (#{registry_table.conn_supervisor}) send_queries error: #{reason}")
             end
@@ -145,15 +162,55 @@ defmodule LAP2.Main.ConnectionSupervisor do
   end
 
   @doc """
+  Send out a list of responses
+  """
+  @spec send_responses(list(map), map) :: :ok | :error
+  def send_responses(response_list, registry_table) do
+    proxy_mgr = registry_table.proxy_manager
+    Enum.each(response_list, fn %{query: query,
+      routing_info: %{
+        proxy_seq: pseq
+      }
+      } ->
+      case QueryHelper.serialise(query) do
+        {:ok, data} ->
+          ProxyManager.send_response(data, pseq, proxy_mgr)
+        {:error, reason} ->
+          Logger.error("[!] Connection Supervisor (#{registry_table.conn_supervisor}) send_responses error: #{reason}")
+        end
+    end)
+  end
+
+  @doc """
   Send an introduction point request to an existing connection.
   A list of service identifiers are passed in the request.
   """
-  @spec request_introduction_point(map) :: :ok | :error
-  def request_introduction_point(registry_table) do
+  @spec request_introduction_point(list(String.t()), map) :: :ok | :error
+  def request_introduction_point(service_ids, registry_table) when is_list(service_ids) do
     # Select a connection and attempt to upgrade it to an introduction point
     conn_sup = registry_table.conn_supervisor
-    get_conns(1, :anon_proxy, conn_sup)
+    proxy_mgr = registry_table.proxy_manager
+    case get_conns(1, :anon_proxy, conn_sup) do
+      {:ok, [proxy_seq]} ->
+        query_id = CloveHelper.gen_seq_num()
+        # TODO build query, send via ProxyManager
+        QueryHelper.build_establish_header(service_ids)
+        |> IO.inspect(label: "Establish header")
+        |> QueryHelper.build_query(query_id, <<>>)
+        |> IO.inspect(label: "Establish query")
+        |> QueryHelper.serialise()
+        |> case do
+          {:ok, serial} -> ProxyManager.send_request(serial, proxy_seq, proxy_mgr)
+          {:error, reason} ->
+            Logger.error("[!] Connection Supervisor (#{registry_table.conn_supervisor}) request_introduction_point error: #{reason}")
+            :error
+          end
+      {:error, reason} ->
+        Logger.error("[!] Connection Supervisor (#{registry_table.conn_supervisor}) request_introduction_point error: #{reason}")
+        :error
+    end
   end
+  def request_introduction_point(_stream_id, _service_ids, _registry_table), do: :error
 
   @doc """
   Send an teardown request to an existing introduction point.
@@ -169,27 +226,26 @@ defmodule LAP2.Main.ConnectionSupervisor do
   @doc """
   Modify an existing connection to an introduction point.
   """
-  @spec modify_connection(non_neg_integer, atom, list(binary), map) :: :ok | :error
-  def modify_connection(proxy_seq, :intro_point, service_ids, registry_table) do
+  @spec modify_connection(non_neg_integer, atom, list(binary), atom) :: :ok | :error
+  def modify_connection(proxy_seq, :intro_point, service_ids, conn_supervisor) do
     # Attempt to register the services, then modify proxy status if allowed
-    conn_sup = registry_table.conn_supervisor
+    conn_sup = conn_supervisor
     case register_services(proxy_seq, service_ids, conn_sup) do
-      :ok -> register_conn(proxy_seq, :intro_point, conn_sup)
+      :ok -> register_conn(:intro_point, proxy_seq, conn_sup)
 
       :error -> :error
     end
   end
 
   @doc """
-  Deliver a response to the appropriate listener using their stream_id
+  Deserialise and deliver an inbound Query to the appropriate route
   """
-  @spec deliver_response(binary, binary, map) :: :ok | :error
-  def deliver_response(data, stream_id, registry_table) do
-    # TODO decode data, call ListenerHandler
-    master_name = registry_table.master
+  @spec deliver_inbound(binary, non_neg_integer, map) :: :ok | :error
+  def deliver_inbound(data, proxy_seq, registry_table) do
     case QueryHelper.deserialise(data) do
       {:ok, query} ->
-        ListenerHandler.deliver(stream_id, query, master_name)
+        ServiceProviders.route_query(query, proxy_seq, registry_table)
+        #add_response_route(query.query_id, proxy_seq, registry_table.conn_supervisor)
         :ok
       {:error, reason} ->
         Logger.error("[!] Connection Supervisor (#{registry_table.conn_supervisor}): Error decoding response: #{reason}")
@@ -198,41 +254,25 @@ defmodule LAP2.Main.ConnectionSupervisor do
   end
 
   @doc """
-  Deserialise and deliver a Query to the appropriate route
+  Proxy establishment successful, broadcast to listeners
   """
-  @spec deliver_request(binary, non_neg_integer, map) :: :ok | :error
-  def deliver_request(data, proxy_seq, registry_table) do
-    # TODO decode data, call ListenerHandler
-    case QueryHelper.deserialise(data) do
-      {:ok, query} ->
-        ServiceProviders.route(query, proxy_seq, registry_table)
-        :ok
-      {:error, reason} ->
-        Logger.error("[!] Connection Supervisor (#{registry_table.conn_supervisor}): Error decoding response: #{reason}")
-        :error
-    end
-  end
-
-  @doc """
-  Proxy establishment successful, notify listener using stream_id
-  """
-  @spec proxy_established(binary, non_neg_integer, map) :: :ok | :error
-  def proxy_established(stream_id, proxy_seq, registry_table) do
+  @spec proxy_established(non_neg_integer, map) :: :ok | :error
+  def proxy_established(proxy_seq, registry_table) do
     conn_sup = registry_table.conn_supervisor
     master_name = registry_table.master
     register_conn(:anon_proxy, proxy_seq, conn_sup)
     notification = "[DEBUG] Anonymous proxy established"
-    ListenerHandler.notify(stream_id, notification, master_name)
+    ListenerHandler.broadcast(notification, master_name)
   end
 
   @doc """
-  Key rotation successful, notify listener using stream_id
+  Key rotation successful, broadcast to listeners
   """
-  @spec successful_key_rotation(binary, non_neg_integer, map) :: :ok | :error
-  def successful_key_rotation(stream_id, proxy_seq, registry_table) do
+  @spec successful_key_rotation(non_neg_integer, map) :: :ok | :error
+  def successful_key_rotation(proxy_seq, registry_table) do
     master_name = registry_table.master
     notification = "[DEBUG] Key rotation for proxy: #{proxy_seq} was successful"
-    ListenerHandler.notify(stream_id, notification, master_name)
+    ListenerHandler.broadcast(notification, master_name)
   end
 
   # ---- Private Functions ----
@@ -262,7 +302,17 @@ defmodule LAP2.Main.ConnectionSupervisor do
       Map.get(state.service_providers, sid, proxy_seq) != proxy_seq
     end)
     within_limit = Map.get(state.connections, proxy_seq, %{type: nil}).type == :intro_point or
-    Map.value(state.service_providers) |> Enum.uniq() |> Enum.size() < state.config.provider_limit
+    (Map.values(state.service_providers) |> Enum.uniq() |> length()) < state.config.provider_limit
     valid_req and within_limit
   end
+
+  # @spec remove_proxy(non_neg_integer, map) :: :ok
+  # defp add_response_route(query_id, proxy_seq, name) do
+  #   GenServer.call({:global, name}, {:add_response_route, query_id, proxy_seq})
+  # end
+
+  # @spec pop_response_route(binary, atom) :: non_neg_integer | :error
+  # defp pop_response_route(query_id, name) do
+  #   GenServer.call({:global, name}, {:pop_response_route, query_id})
+  # end
 end
