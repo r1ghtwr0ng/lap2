@@ -5,7 +5,7 @@ defmodule LAP2.Main.ProxyManager do
 
   use GenServer
   require Logger
-  alias LAP2.Utils.EtsHelper
+  alias LAP2.Utils.ProtoBuf.RequestHelper
   alias LAP2.Main.Helpers.ProxyHelper
   alias LAP2.Utils.ProtoBuf.CloveHelper
 
@@ -27,8 +27,6 @@ defmodule LAP2.Main.ProxyManager do
 
     state = %{
       proxy_pool: %{},
-      temp_registry: %{},
-      request_ets: :ets.new(:request_mapper, [:set, :protected]),
       config: config
     }
 
@@ -39,15 +37,39 @@ defmodule LAP2.Main.ProxyManager do
   @spec handle_call(:get_state, any, map) :: {:reply, map, map}
   def handle_call(:get_state, _from, state), do: {:reply, state, state}
 
-  @spec handle_cast({:init_proxy, binary}, map) :: {:noreply, map}
-  def handle_cast({:init_proxy, stream_id}, state) do
+  # TODO implement wrapper
+  @spec handle_call({:send_to_proxy, binary, non_neg_integer}, any, map) :: {:reply, atom, map}
+  def handle_call({:send_to_proxy, data, proxy_seq}, _from, state) do
+    # Build request struct
+    request_id = CloveHelper.gen_seq_num()
+    crypto_hdr = RequestHelper.build_symmetric_crypto()
+    request = RequestHelper.build_request(crypto_hdr, data, "regular_proxy_request", request_id)
+    relay_pool = Map.get(state.proxy_pool, proxy_seq, [])
+    resp = ProxyHelper.send_to_proxy(request, proxy_seq, relay_pool, state.config.registry_table)
+    {:reply, resp, state}
+  end
+
+  @spec handle_call({:respond_to_proxy, binary, non_neg_integer, non_neg_integer}, any, map) :: {:reply, atom, map}
+  def handle_call({:respond_to_proxy, data, request_id, proxy_seq}, _from, state) do
+    # Build request struct
+    crypto_hdr = RequestHelper.build_symmetric_crypto()
+    request = RequestHelper.build_request(crypto_hdr, data, "regular_proxy_response", request_id)
+    relay_pool = Map.get(state.proxy_pool, proxy_seq, [])
+    status = ProxyHelper.send_to_proxy(request, proxy_seq, relay_pool, state.config.registry_table)
+    {:reply, status, state}
+  end
+
+  @spec handle_call({:init_proxy}, any, map) :: {:reply, atom, map}
+  def handle_call({:init_proxy}, _from, state) do
     clove_seq = CloveHelper.gen_seq_num()
-    case ProxyHelper.init_proxy_request(state.config.registry_table, clove_seq, state.config.clove_casts) do
-      :ok ->
-        new_state = Map.put(state, :temp_registry, Map.put(state.temp_registry, clove_seq, stream_id))
-        {:noreply, new_state}
-      :error -> {:noreply, state}
-    end
+    resp = ProxyHelper.init_proxy_request(state.config.registry_table, clove_seq, state.config.clove_casts)
+    {:reply, resp, state}
+  end
+
+  @spec handle_call({:remove_proxy, non_neg_integer}, map) :: {:reply, atom, map}
+  def handle_call({:remove_proxy, proxy_seq}, state) do
+    new_state = ProxyHelper.remove_proxy(state, proxy_seq)
+    {:reply, :ok, new_state}
   end
 
   @spec handle_cast({:proxy_request, Request.t(), %{
@@ -70,43 +92,57 @@ defmodule LAP2.Main.ProxyManager do
   @spec handle_cast({:discovery_response, Request.t(), map}, map) :: {:noreply, map}
   def handle_cast({:discovery_response, request, aux_data}, state) do
     case ProxyHelper.handle_discovery_response(request, aux_data, state) do
-      {:ok, updated_state} ->
-        case register_stream(updated_state, aux_data.proxy_seq, aux_data.clove_seq) do
-          {:ok, new_state} -> {:noreply, new_state}
-          {:error, reason} ->
-            Logger.error("[!] Proxy Manager (#{state.config.name}): Failed to register stream: #{inspect(reason)}")
-            {:noreply, state}
-        end
+      {:ok, new_state} -> {:noreply, new_state}
       {:error, _} -> {:noreply, state}
     end
   end
 
-  @spec handle_cast({:remove_proxy, non_neg_integer}, map) :: {:noreply, map}
-  def handle_cast({:remove_proxy, proxy_seq}, state) do
-    new_state = ProxyHelper.remove_proxy(state, proxy_seq)
-    {:noreply, new_state}
+  # ---- Public API Functions ----
+  # TODO debug only
+  @spec debug(atom) :: map
+  def debug(name), do: GenServer.call({:global, name}, :get_state)
+
+  @doc """
+  Send a query to a specific proxy.
+  """
+  @spec send_request(binary, non_neg_integer, atom) :: :ok | :error
+  def send_request(data, proxy_seq, name) do
+    GenServer.call({:global, name}, {:send_to_proxy, data, proxy_seq})
   end
 
-  # Cleanup the ETS table on exit
-  @spec terminate(any, map) :: :ok
-  def terminate(_reason, state) do
-    :ets.delete(state.request_ets)
-    :ok
+  @doc """
+  Send a response to a specific proxy.
+  """
+  @spec send_response(binary, non_neg_integer, atom) :: :ok | :error
+  def send_response(data, proxy_seq, name) do
+    request_id = CloveHelper.gen_seq_num()
+    GenServer.call({:global, name}, {:respond_to_proxy, data, request_id, proxy_seq})
   end
 
-  # ---- Public Functions ----
+  @doc """
+  Initialise the proxy discovery process.
+  """
+  @spec init_proxy(atom) :: :ok
+  def init_proxy(proxy_name) do
+    GenServer.call({:global, proxy_name}, {:init_proxy})
+  end
+
+  @doc """
+  Remove a proxy from the pool.
+  """
+  @spec remove_proxy(non_neg_integer, atom) :: :ok
+  def remove_proxy(proxy_seq, proxy_name) do
+    Logger.info("[i] Proxy Manager (#{proxy_name}): Removing proxy #{proxy_seq}")
+    GenServer.call({:global, proxy_name}, {:remove_proxy, proxy_seq})
+  end
+
+  # ---- Handler Functions ----
   @doc """
   Handle a proxy request.
   """
   @spec handle_proxy_request(Request.t(), map, atom) :: :ok
   def handle_proxy_request(request, aux_data, proxy_name) do
     GenServer.cast({:global, proxy_name}, {:proxy_request, request, aux_data})
-  end
-
-  # TODO debug
-  @spec debug(atom) :: map
-  def debug(name) do
-    GenServer.call({:global, name}, :get_state)
   end
 
   @doc """
@@ -118,98 +154,53 @@ defmodule LAP2.Main.ProxyManager do
   end
 
   @doc """
-  Add a proxy to the pool.
-  """
-  @spec add_proxy(atom, non_neg_integer, pid) :: :ok
-  def add_proxy(proxy_name, proxy_seq, proxy_pid) do
-    GenServer.call({:global, proxy_name}, {:add_proxy, proxy_seq, proxy_pid})
-  end
-
-  @doc """
-  Initialise the proxy discovery process.
-  """
-  @spec init_proxy(binary, atom) :: :ok
-  def init_proxy(stream_id, proxy_name) do
-    GenServer.cast({:global, proxy_name}, {:init_proxy, stream_id})
-  end
-
-  @doc """
   Handle a regular proxy request/response.
   """
+  # Handle regular proxy request
   @spec handle_regular_proxy(Request.t(), non_neg_integer, atom) :: :ok | :error
   def handle_regular_proxy(%Request{crypto: {:sym_key, _}} = request, pseq, proxy_name)
-      when request.request_type == "regular_proxy_request" do
+      when request.request_type == "regular_proxy_request" or request.request_type == "regular_proxy_response" do
     Logger.info("[i] Proxy Manager (#{proxy_name}): Processing regular proxy request")
     state = GenServer.call({:global, proxy_name}, :get_state)
+    IO.inspect(state.config, label: "state.config DEBUG <-----------------")
     ProxyHelper.handle_proxy_query(
       request,
-      state.request_ets,
       pseq,
-      state.config.registry_table.crypto_manager
+      state.config.registry_table
     )
     :ok
   end
-  def handle_regular_proxy(%Request{crypto: {:sym_key, _}} = request, pseq, proxy_name)
-      when request.request_type == "regular_proxy_response" do
-    Logger.info("[i] Proxy Manager (#{proxy_name}): Processing regular proxy response")
-    state = GenServer.call({:global, proxy_name}, :get_state)
-
-    ProxyHelper.handle_proxy_response(
-      request,
-      state.request_ets,
-      pseq,
-      state.config.registry_table.crypto_manager
-    )
-    :ok
-  end
+  # Handle final key exchange request
   def handle_regular_proxy(%Request{crypto: {:fin_ke, _}} = request, pseq, proxy_name) do
     Logger.info("[i] Proxy Manager (#{proxy_name}): Processing final key exchange request")
     state = GenServer.call({:global, proxy_name}, :get_state)
     ProxyHelper.handle_fin_key_exhange(request, pseq, state)
   end
+  # Handle key exchange acknowledgement
+  def handle_regular_proxy(%Request{crypto: {:sym_key, _}} = request, pseq, proxy_name)
+    when request.request_type == "ack_fin_ke" do
+    # TODO it seems to work but might need to be checked
+    Logger.info("[i] Proxy Manager (#{proxy_name}): Received key exchange acknowledgement")
+    state = GenServer.call({:global, proxy_name}, :get_state)
+    ProxyHelper.handle_key_exchange_ack(pseq, state.config.registry_table)
+  end
+  # Handle key rotation request
   def handle_regular_proxy(%Request{crypto: {:key_rot, _}} = request, pseq, proxy_name) do
     Logger.info("[i] Proxy Manager (#{proxy_name}): Processing key rotation request")
     state = GenServer.call({:global, proxy_name}, :get_state)
     ProxyHelper.handle_key_rotation(request, pseq, state)
-    :ok
   end
+  # Handle acknowledgement of key rotation
   def handle_regular_proxy(%Request{crypto: {:sym_key, _}} = request, pseq, proxy_name)
       when request.request_type == "ack_key_rotation" do
     Logger.info("[i] Proxy Manager (#{proxy_name}): Received key rotation acknowledgement")
     state = GenServer.call({:global, proxy_name}, :get_state)
-    ProxyHelper.handle_key_rotation_ack(request, pseq, state)
-    :ok
+    conn_supervisor = state.config.registry_table.conn_supervisor
+    ProxyHelper.handle_key_rotation_ack(pseq, conn_supervisor)
   end
-  def handle_regular_proxy(%Request{crypto: {:sym_key, _}} = request, _, proxy_name)
-      when request.request_type == "ack_fin_ke" do
-    # TODO it seems to work but might need to be checked
-    Logger.info("[i] Proxy Manager (#{proxy_name}): Received key exchange acknowledgement")
-    :ok
-  end
+  # Match all other requests
   def handle_regular_proxy(request, _, _) do
     Logger.error("Invalid request type: #{request.request_type}")
     :error
-  end
-
-  @doc """
-  Remove a proxy from the pool.
-  """
-  @spec remove_proxy(non_neg_integer, atom) :: :ok
-  def remove_proxy(proxy_seq, proxy_name) do
-    Logger.info("[i] Proxy Manager (#{proxy_name}): Removing proxy #{proxy_seq}")
-    GenServer.cast({:global, proxy_name}, {:remove_proxy, proxy_seq})
-  end
-
-  # ---- Private Functions ----
-  @spec register_stream(map, non_neg_integer, non_neg_integer) :: {:ok, map} | {:error, atom}
-  defp register_stream(state, proxy_seq, clove_seq) do
-    # Remove stream_id from temp_registry and register it in request_ets
-    case Map.get(state.temp_registry, clove_seq) do
-      nil -> {:error, :missing_stream}
-      stream_id ->
-        Logger.info("[i] Proxy Manager #{state.config.registry_table.proxy_manager}: Registering stream #{stream_id}")
-        EtsHelper.insert_value(state.request_ets, proxy_seq, stream_id)
-        {:ok, Map.put(state, :temp_registry, Map.delete(state.temp_registry, clove_seq))}
-    end
   end
 end
