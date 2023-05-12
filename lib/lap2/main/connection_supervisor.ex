@@ -244,7 +244,7 @@ defmodule LAP2.Main.ConnectionSupervisor do
         :error
     end
   end
-  def request_introduction_point(_stream_id, _service_ids, _registry_table), do: :error
+  def request_introduction_point(_listener_id, _service_ids, _registry_table), do: :error
 
   @doc """
   Send an teardown request to an existing introduction point.
@@ -344,14 +344,4 @@ defmodule LAP2.Main.ConnectionSupervisor do
     (Map.values(state.service_providers) |> Enum.uniq() |> length()) < state.config.max_service_providers
     valid_req and within_limit
   end
-
-  # @spec remove_proxy(non_neg_integer, map) :: :ok
-  # defp add_response_route(query_id, proxy_seq, name) do
-  #   GenServer.call({:global, name}, {:add_response_route, query_id, proxy_seq})
-  # end
-
-  # @spec pop_response_route(binary, atom) :: non_neg_integer | :error
-  # defp pop_response_route(query_id, name) do
-  #   GenServer.call({:global, name}, {:pop_response_route, query_id})
-  # end
 end

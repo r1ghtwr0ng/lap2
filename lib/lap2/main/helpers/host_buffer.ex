@@ -36,10 +36,10 @@ defmodule LAP2.Main.Helpers.HostBuffer do
       {:reconstructed, data, routing_data} ->
         Logger.info("[DEBUG] Reconstructed query data: #{inspect data}")
         case Master.service_lookup(service_id, registry_table.master) do
-          {:ok, stream_id} ->
+          {:ok, listener_id} ->
             query_ids = Enum.reduce(routing_data, [qid], fn %{query_id: q}, acc -> [q | acc]; end)
             Master.cache_query(query, aux_data, service_id, registry_table.master)
-            ListenerHandler.deliver(stream_id, "query", data, query_ids, registry_table.master)
+            ListenerHandler.deliver(listener_id, "query", data, query_ids, registry_table.master)
 
           {:error, reason} ->
             Logger.error("Service lookup failed: #{inspect reason}")
@@ -75,13 +75,19 @@ defmodule LAP2.Main.Helpers.HostBuffer do
             Logger.error("Service lookup failed: no return registered for QID #{qid}")
             :error
 
-          service_id ->
-            {:ok, stream_id} = Master.service_lookup(service_id, registry_table.master)
+            listener ->
+            IO.inspect(service_id, label: "[DEBUG] Reconstructed response data: ")
             query_ids = Enum.reduce(routing_data, [qid], fn %{query_id: q}, acc ->
               ret = Master.pop_return(q, registry_table.master) # Delete the query IDs from the map
-              if ret == service_id, do: [ret | acc], else: Logger.error("Query ID not found in return values"); acc
+              [ret | acc]
             end)
-            ListenerHandler.deliver(stream_id, "response", data, query_ids, registry_table.master)
+            cmd = %{
+              type: "response",
+              data: data,
+              query_ids: query_ids
+            }
+            Master.get_listener_struct(listener, registry_table.master)
+            |> ListenerHandler.deliver_to_listener(cmd, registry_table.master)
         end
 
       :cached -> Master.cache_query(query, aux_data, service_id, registry_table.master)
@@ -114,8 +120,8 @@ defmodule LAP2.Main.Helpers.HostBuffer do
   @doc """
   Send out requests for remote service data.
   """
-  @spec request_remote(list({String.t(), non_neg_integer}), binary, String.t(), map) :: :ok | :error
-  def request_remote(intro_points, data, service_id, registry_table) do
+  @spec request_remote(list({String.t(), non_neg_integer}), binary, String.t(), String.t(), map) :: :ok | :error
+  def request_remote(intro_points, data, service_id, listener_id, registry_table) do
     # Disperse the data into shares
     len = length(intro_points) * 2
     n = if len > 1, do: len, else: 2
@@ -130,7 +136,8 @@ defmodule LAP2.Main.Helpers.HostBuffer do
     Enum.map(share_to_addr, fn {{addr, port}, share} ->
       {:ok, serial} = ShareHelper.serialise(share)
       qid = CloveHelper.gen_seq_num()
-      Master.register_return(qid, service_id, registry_table.master)
+      Logger.info("[DEBUG] Registering response listener: #{inspect listener_id}")
+      Master.register_return(qid, listener_id, registry_table.master)
       QueryHelper.build_remote_query_header(addr, port, service_id)
       |> QueryHelper.build_query(qid, serial)
     end)

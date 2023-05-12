@@ -48,21 +48,28 @@ defmodule LAP2.Main.Master do
 
   @spec handle_call({:deliver, binary, String.t()}, any, map) ::
     {:reply, {:ok, atom | tuple} | {:error, atom}, map}
-  def handle_call({:deliver, stream_id}, _from, state) do
-    {:reply, get_listener(stream_id, state), state}
+  def handle_call({:deliver, listener_id}, _from, state) do
+    {:reply, get_listener(listener_id, state), state}
   end
 
   @spec handle_call({:register_listener, String.t(), atom | tuple}, any, map) :: {:noreply, map}
-  def handle_call({:register_listener, stream_id, listener}, _from, state) do
-    #Logger.info("[+] Registering listener: #{inspect(listener)} for stream ID: #{inspect(stream_id)}")
-    new_state = %{state | listeners: Map.put(state.listeners, stream_id, listener)}
+  def handle_call({:register_listener, listener_id, listener}, _from, state) do
+    #Logger.info("[+] Registering listener: #{inspect(listener)} for stream ID: #{inspect(listener_id)}")
+    new_state = %{state | listeners: Map.put(state.listeners, listener_id, listener)}
     {:reply, :ok, new_state}
   end
 
+  @spec handle_call({:get_listener_struct, String.t()}, any, map) ::
+    {:reply, {:ok, atom | tuple} | {:error, atom}, map}
+  def handle_call({:get_listener_struct, listener_id}, _from, state) when is_map_key(state.listeners, listener_id) do
+    {:reply, Map.get(state.listeners, listener_id), state}
+  end
+  def handle_call({:get_listener_struct, _}, _from, state), do: {:reply, {:error, :missing_listener}, state}
+
   @spec handle_call({:deregister_listener, String.t()}, any, map) :: {:reply, :ok, map}
-  def handle_call({:deregister_listener, stream_id}, _from, state) do
-    #Logger.info("[+] Deregistering listener for stream ID: #{inspect(stream_id)}")
-    new_state = %{state | listeners: Map.delete(state.listeners, stream_id)}
+  def handle_call({:deregister_listener, listener_id}, _from, state) do
+    #Logger.info("[+] Deregistering listener for stream ID: #{inspect(listener_id)}")
+    new_state = %{state | listeners: Map.delete(state.listeners, listener_id)}
     {:reply, :ok, new_state}
   end
 
@@ -88,13 +95,13 @@ defmodule LAP2.Main.Master do
   end
 
   @spec handle_call({:register_service, String.t(), String.t()}, any, map) :: {:reply, {:ok, String.t()} | {:error, atom}, map}
-  def handle_call({:register_service, service_id, stream_id}, _from, state) do
+  def handle_call({:register_service, service_id, listener_id}, _from, state) do
     cond do
       not is_map_key(state.services, service_id) ->
         secret = crypto_gen(32)
         serv_construct = %{
           hash: Hash.sha256!(secret),
-          stream_id: stream_id
+          listener_id: listener_id
         }
         new_serv = Map.put(state.services, service_id, serv_construct)
         new_state = Map.put(state, :services, new_serv)
@@ -110,7 +117,7 @@ defmodule LAP2.Main.Master do
 
   @spec handle_call({:service_lookup, String.t()}, any, map) :: {:reply, {:ok, binary} | {:error, atom}, map}
   def handle_call({:service_lookup, service_id}, _from, state) when is_map_key(state.services, service_id) do
-    {:reply, {:ok, state.services[service_id].stream_id}, state}
+    {:reply, {:ok, state.services[service_id].listener_id}, state}
   end
   def handle_call({:service_lookup, _service_id}, _from, state), do: {:reply, {:error, :not_found}, state}
 
@@ -182,9 +189,15 @@ defmodule LAP2.Main.Master do
   Send a response to the appropriate listener socket.
   """
   @spec get_service_target(String.t(), atom) :: {:ok, atom | tuple} | {:error, atom}
-  def get_service_target(stream_id, master_name) do
-    Logger.info("[+] MASTER (#{master_name}): Delivering response to stream ID: #{inspect(stream_id)}")
-    GenServer.call({:global, master_name}, {:deliver, stream_id})
+  def get_service_target(listener_id, master_name) do
+    Logger.info("[+] MASTER (#{master_name}): Delivering response to Listener ID: #{inspect(listener_id)}")
+    GenServer.call({:global, master_name}, {:deliver, listener_id})
+    |> IO.inspect(label: "[DEBUG] MASTER (#{master_name}): Listener info")
+  end
+
+  @spec get_listener_struct(String.t(), atom) :: {:ok, map} | {:error, atom}
+  def get_listener_struct(listener_id, master_name) do
+    GenServer.call({:global, master_name}, {:get_listener_struct, listener_id})
   end
 
   @doc """
@@ -204,17 +217,17 @@ defmodule LAP2.Main.Master do
   """
   @spec register_listener(atom | tuple, atom) :: {:ok, String.t()}
   def register_listener(listener, master_name) do
-    stream_id = crypto_gen(16)
-    GenServer.call({:global, master_name}, {:register_listener, stream_id, listener})
-    {:ok, stream_id}
+    listener_id = crypto_gen(16)
+    GenServer.call({:global, master_name}, {:register_listener, listener_id, listener})
+    {:ok, listener_id}
   end
 
   @doc """
   Deregister a listener with a given stream ID.
   """
   @spec deregister_listener(String.t(), atom) :: :ok
-  def deregister_listener(stream_id, master_name) do
-    GenServer.cast({:global, master_name}, {:deregister_listener, stream_id})
+  def deregister_listener(listener_id, master_name) do
+    GenServer.cast({:global, master_name}, {:deregister_listener, listener_id})
   end
 
   @doc """
@@ -222,8 +235,8 @@ defmodule LAP2.Main.Master do
   This function returs a secret key needed to modify the registered service.
   """
   @spec register_service(String.t(), String.t(), atom) :: {:ok, String.t()} | {:error, atom}
-  def register_service(service_id, stream_id, master_name) do
-    GenServer.call({:global, master_name}, {:register_service, service_id, stream_id})
+  def register_service(service_id, listener_id, master_name) do
+    GenServer.call({:global, master_name}, {:register_service, service_id, listener_id})
   end
 
   @doc """
@@ -243,8 +256,8 @@ defmodule LAP2.Main.Master do
   end
 
   @spec register_return(non_neg_integer, String.t(), atom) :: :ok
-  def register_return(query_id, service_id, name) do
-    GenServer.call({:global, name}, {:register_return, query_id, service_id})
+  def register_return(query_id, listener_id, name) do
+    GenServer.call({:global, name}, {:register_return, query_id, listener_id})
   end
 
   @spec pop_return(non_neg_integer, atom) :: String.t() | :error
@@ -295,18 +308,18 @@ defmodule LAP2.Main.Master do
     ConnectionSupervisor.request_introduction_point(service_ids, registry_table)
   end
 
-  @spec request_remote(list({String.t(), non_neg_integer}), binary, String.t(), atom) ::
+  @spec request_remote(list({String.t(), non_neg_integer}), binary, String.t(), String.t(), atom) ::
     :ok | :error
-  def request_remote(intro_points, data, service_id, name) do
-    HostBuffer.request_remote(intro_points, data, service_id, get_registry_table(name))
+  def request_remote(intro_points, data, service_id, listener_id, name) do
+    HostBuffer.request_remote(intro_points, data, service_id, listener_id, get_registry_table(name))
   end
 
   # ---- Private Functions ----
   @spec get_listener(binary, map) :: {:ok, any} | {:error, any}
-  defp get_listener(stream_id, state) when is_map_key(state.listeners, stream_id) do
-    {:ok, Map.get(state.listeners, stream_id)}
+  defp get_listener(listener_id, state) when is_map_key(state.listeners, listener_id) do
+    {:ok, Map.get(state.listeners, listener_id)}
   end
-  defp get_listener(_stream_id, _state), do: {:error, :no_listener}
+  defp get_listener(_listener_id, _state), do: {:error, :no_listener}
 
   @spec crypto_gen(non_neg_integer) :: String.t()
   defp crypto_gen(bytes) do
