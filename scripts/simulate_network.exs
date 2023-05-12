@@ -183,4 +183,5 @@ req = %{filename: "README.md"} |> Jason.encode!()
 Master.setup_introduction_point([srv_id], master_0)
 Master.setup_introduction_point([srv_id], master_0)
 check = fn port -> Map.get(ConnectionSupervisor.debug(String.to_atom("conn_supervisor_#{port}")), :service_providers); end
+{:ok, listener_id} = Master.register_listener(:stdout, master_1)
 ip = [{"127.0.0.1", 120}]

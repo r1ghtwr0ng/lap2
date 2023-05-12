@@ -5,6 +5,7 @@ defmodule LAP2.Services.FileIO do
 
   require Logger
   alias LAP2.Main.Master
+  alias LAP2.Utils.JsonUtils
 
   @doc """
   Start the Master process.
@@ -78,17 +79,14 @@ defmodule LAP2.Services.FileIO do
   """
   @spec parse_cmd(map | binary, atom, String.t()) :: :ok | :error
   def parse_cmd(json_data, master_name, serv_id) when is_binary(json_data) do
-    case Jason.decode(json_data) do
-      {:ok, decoded_map} ->
-        parse_cmd(decoded_map, master_name, serv_id)
-      {:error, _} ->
-        {:error, :invalid_json}
-    end
+    JsonUtils.parse_json(json_data)
+    |> JsonUtils.keys_to_atoms()
+    |> parse_cmd(master_name, serv_id)
   end
   def parse_cmd(%{
-    "query_ids" => qids,
-    "type" => "query",
-    "data" => json_data
+    query_ids: qids,
+    type: "query",
+    data: json_data
   }, master_name, serv_id) do
     Logger.info("[i] File IO: Parsing query")
     case Jason.decode(json_data) do
@@ -110,8 +108,8 @@ defmodule LAP2.Services.FileIO do
     end
   end
   def parse_cmd(%{
-    "type" => "response",
-    "data" => response_data
+    type: "response",
+    data: response_data
   }) do
     IO.inspect(response_data, label: "[RESPONSE]")
   end
