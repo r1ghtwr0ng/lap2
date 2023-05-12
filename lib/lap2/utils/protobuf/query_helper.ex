@@ -99,4 +99,13 @@ defmodule LAP2.Utils.ProtoBuf.QueryHelper do
       service_id: service_id
     }}
   end
+
+  @doc """
+  Build a DHT request header
+  Currently not fully implemented
+  """
+  @spec build_dht_request_header() :: {:dht_request, DHTRequest.t()} | {:error, :invalid_dht_request_header}
+  def build_dht_request_header() do
+    {:dht_request, %DhtRequest{}}
+  end
 end
