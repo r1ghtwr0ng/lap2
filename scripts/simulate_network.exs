@@ -1,8 +1,10 @@
 alias LAP2.Networking.Router
 alias LAP2.Main.Master
 alias LAP2.Main.ProxyManager
+alias LAP2.Services.FileIO
 alias LAP2.Networking.Helpers.OutboundPipelines
 alias LAP2.Crypto.Helpers.CryptoStructHelper
+alias LAP2.Main.ConnectionSupervisor
 
 defmodule ConfigBuilder do
   def make_config(addr, udp_port, tcp_port) do
@@ -165,11 +167,20 @@ Enum.each(configs, fn config ->
 end)
 
 cfg_0 = Enum.at(configs, 0)
-master = cfg_0.master.name
-srv_id = "Test service id"
-{:ok, stream_id} = Master.register_listener(:stdout, master)
-{:ok, secret} = Master.register_service(srv_id, stream_id, master)
-Master.discover_proxy(master)
-Master.discover_proxy(master)
-Master.discover_proxy(master)
-Master.setup_introduction_point([srv_id], master)
+cfg_1 = Enum.at(configs, 1)
+master_0 = cfg_0.master.name
+master_1 = cfg_1.master.name
+
+srv_id = "fileiosrv_#{:crypto.strong_rand_bytes(4) |> Base.encode16}"
+FileIO.run_service(srv_id, master_0)
+Master.discover_proxy(master_0)
+Master.discover_proxy(master_0)
+Master.discover_proxy(master_0)
+Master.discover_proxy(master_1)
+Master.discover_proxy(master_1)
+Master.discover_proxy(master_1)
+req = %{filename: "README.md"} |> Jason.encode!()
+Master.setup_introduction_point([srv_id], master_0)
+Master.setup_introduction_point([srv_id], master_0)
+check = fn port -> Map.get(ConnectionSupervisor.debug(String.to_atom("conn_supervisor_#{port}")), :service_providers); end
+ip = [{"127.0.0.1", 120}]
