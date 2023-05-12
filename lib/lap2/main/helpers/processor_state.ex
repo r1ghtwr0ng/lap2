@@ -14,9 +14,11 @@ defmodule LAP2.Main.Helpers.ProcessorState do
   def route_share(state, share) do
     cond do
       ShareHelper.verify_share(share) ->
+        Logger.info("[i] ShareHandler: Share verified")
         handle_valid_share(state, share)
 
       true ->
+        Logger.error("[!] ShareHandler: Invalid share received")
         :drop
     end
   end
@@ -37,8 +39,8 @@ defmodule LAP2.Main.Helpers.ProcessorState do
         timestamp: :os.system_time(:millisecond)
     }
 
-    new_share_info = Map.put(state.share_info, msg_id, new_entry)
-    %{state | share_info: new_share_info}
+    new_share_info = Map.put(state.share_info, :share_info, new_entry)
+    Map.put(state, :share_info, new_share_info)
   end
 
   def cache_share(state, %Share{
@@ -54,7 +56,7 @@ defmodule LAP2.Main.Helpers.ProcessorState do
     }
 
     new_share_info = Map.put(state.share_info, msg_id, new_entry)
-    %{state | share_info: new_share_info}
+    Map.put(state, :share_info, new_share_info)
   end
 
   @doc """
@@ -63,7 +65,7 @@ defmodule LAP2.Main.Helpers.ProcessorState do
   @spec delete_from_cache(map, non_neg_integer) :: map
   def delete_from_cache(state, msg_id) do
     new_share_info = Map.delete(state.share_info, msg_id)
-    %{state | share_info: new_share_info}
+    Map.put(state, :share_info, new_share_info)
   end
 
   @doc """
@@ -71,7 +73,7 @@ defmodule LAP2.Main.Helpers.ProcessorState do
   """
   @spec add_to_drop_list(map, non_neg_integer) :: map
   def add_to_drop_list(state, msg_id) do
-    %{state | drop_list: [msg_id | state.drop_list]}
+    Map.put(state, :drop_list, [msg_id | state.drop_list])
   end
 
   # ---- ETS Functions ----
@@ -105,14 +107,13 @@ defmodule LAP2.Main.Helpers.ProcessorState do
   # Handle valid share routing
   @spec handle_valid_share(map, Share.t()) :: :drop | :reassemble | :cache
   defp handle_valid_share(state, share) when is_map_key(state.share_info, share.message_id) do
-    share_cache = state.share_info[share.message_id]
-
+    share_cache = Map.get(state.share_info, share.message_id)
+    Logger.info("[SHARE DEBUG] SHARE CACHE: #{inspect(share_cache)}")
     cond do
       share.share_idx in share_cache.share_idxs -> :drop
       true -> check_share_count(share_cache)
     end
   end
-
   defp handle_valid_share(_, _), do: :cache
 
   # Check the share count to determine if we should reassemble or cache
