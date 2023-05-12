@@ -161,10 +161,12 @@ configs = Enum.map(12000..12040, fn port -> ConfigBuilder.make_config("#{port}",
 pids = Enum.map(configs, fn config -> {:ok, pid} = LAP2.start(config); pid; end)
 addresses = Enum.map(configs, fn config -> {config[:router][:lap2_addr], {"127.0.0.1", config[:udp_server][:udp_port]}}; end)
 
-# Register DHT entries
-Enum.each(configs, fn config ->
-  Enum.each(Enum.take_random(addresses, 25), fn {lap2_addr, ip_addr} -> Router.append_dht(lap2_addr, ip_addr, config.router.name); end)
+# Register DHT entries to one of the nodes
+Enum.each(addresses, fn {lap2_addr, ip_addr} ->
+  Router.append_dht(lap2_addr, ip_addr, Enum.at(configs, 10).router.name)
 end)
+
+Enum.each(List.delete_at(configs, 10), fn cfg -> Master.bootstrap_dht({"127.0.0.1", 12010}, cfg.master.name); end)
 
 cfg_0 = Enum.at(configs, 0)
 cfg_1 = Enum.at(configs, 1)
