@@ -28,7 +28,7 @@ defmodule LAP2.Networking.Sockets.TcpServer do
 
     case :gen_tcp.listen(config[:tcp_port], [:binary, active: false, reuseaddr: true]) do
       {:ok, listener} ->
-        Task.async(fn -> accept_connections(listener, config.name); end)
+        Task.async(fn -> accept_connections(listener, config.registry_table); end)
         {:ok, %{state | tcp_sock: listener}}
 
       {:error, e} ->
@@ -38,13 +38,13 @@ defmodule LAP2.Networking.Sockets.TcpServer do
   end
 
   def handle_call({:cache_conn, conn_id, socket}, _from, state) do
-    {:reply, :ok, %{state | connections: Map.put(state.connections, conn_id, socket)}}
+    new_state = Map.put(state, :connections, Map.put(state.connections, conn_id, socket))
+    {:reply, :ok, new_state}
   end
 
-  def handle_call({:pop_conn, conn_id}, _from, state) do
+  def handle_call({:get_conn, conn_id}, _from, state) do
     socket = Map.get(state.connections, conn_id)
-    new_state =  Map.put(state, :connections, Map.delete(state.connections, conn_id))
-    {:reply, socket, new_state}
+    {:reply, socket, state}
   end
 
   @doc """
@@ -54,35 +54,35 @@ defmodule LAP2.Networking.Sockets.TcpServer do
   def terminate(reason, %{tcp_sock: nil}) do
     Logger.error("TCP socket terminated unexpectedly. Reason: #{inspect(reason)}")
   end
-
   def terminate(_reason, %{tcp_sock: tcp_sock}) do
     #Logger.info("[i] TCP: Stopping TCP server")
     :gen_tcp.close(tcp_sock)
   end
 
-  defp accept_connections(listener, name) do
+  # Handle incoming TCP connections by creating a new socket.
+  @spec accept_connections(any, map) :: :ok | :error
+  defp accept_connections(listener, regisry_table) do
     Logger.info("Accepting connections")
     case :gen_tcp.accept(listener) do
       {:ok, socket} ->
         # Loop to handle incoming messages
-        Task.async(fn -> handle_conn(socket, name); end)
+        Task.async(fn -> handle_conn(socket, regisry_table); end)
 
         # Recurse to accept new connections
-        accept_connections(listener, name)
+        accept_connections(listener, regisry_table)
 
       {:error, :closed} ->
         Logger.info("Listener closed")
     end
   end
 
-  @spec handle_conn(any, atom) :: :ok | :error
-  defp handle_conn(socket, name) do
+  @spec handle_conn(any, map) :: :ok | :error
+  defp handle_conn(socket, regisry_table) do
     Logger.info("Handling connection")
     case :gen_tcp.recv(socket, 0, 10_000) do
       {:ok, msg} ->
-        Logger.info("Received message: #{inspect msg}")
-        conn_id = cache_conn(socket, name)
-        spawn_worker(conn_id, msg, name)
+        conn_id = cache_conn(socket, regisry_table.tcp_server)
+        spawn_worker(conn_id, msg, regisry_table)
 
       {:error, _} ->
         Logger.info("Connection closed")
@@ -90,8 +90,9 @@ defmodule LAP2.Networking.Sockets.TcpServer do
     end
   end
 
-  @spec handle_round_trip(String.t(), non_neg_integer, binary, atom) :: :ok | :error
-  defp handle_round_trip(addr, port, data, _name) do
+  @spec handle_round_trip(String.t(), non_neg_integer, binary, map) :: :ok | :error
+  defp handle_round_trip(addr, port, data, registry_table) do
+    IO.inspect(addr, label: "[TCP] SENDING MESSAGE TO:")
     addr
     |> String.to_charlist()
     |> :inet.parse_address()
@@ -101,9 +102,16 @@ defmodule LAP2.Networking.Sockets.TcpServer do
           {:ok, socket} ->
             Logger.info("Sending message")
             :gen_tcp.send(socket, data)
-            {:ok, msg} = :gen_tcp.recv(socket, 0, 10_000)
-            IO.inspect(msg, label: "Received message")
-            :gen_tcp.close(socket)
+            case recv_data(socket, 10_000, []) do
+              {:ok, msg} ->
+                IO.inspect(msg, label: "[TCP] Received message (HOST: #{registry_table.tcp_server})")
+                cid = :crypto.strong_rand_bytes(16) |> Base.encode16()
+                spawn_worker(cid, msg, registry_table)
+
+              {:error, e} ->
+                Logger.error("Error receiving TCP data: #{inspect(e)}")
+                :error
+            end
 
           {:error, e} ->
             Logger.error("Error opening TCP socket: #{inspect(e)}")
@@ -116,26 +124,27 @@ defmodule LAP2.Networking.Sockets.TcpServer do
     end
   end
   # ---- Public functions ----
-  @spec send({String.t(), non_neg_integer}, binary, atom) :: :ok
-  def send({addr, port}, data, name) do
-    Logger.info("Sending message")
-    Task.async(fn -> handle_round_trip(addr, port, data, name); end)
+  @spec send({String.t(), non_neg_integer}, binary, map) :: :ok
+  def send({addr, port}, data, registry_table) do
+    Logger.info("[TCP] Sending message")
+    Task.async(fn -> handle_round_trip(addr, port, data, registry_table); end)
     :ok
   end
 
   @spec respond(String.t(), binary, atom) :: :ok | {:error, atom}
   def respond(conn_id, data, name) do
-    Logger.info("Responding to message")
-    socket = pop_conn(conn_id, name)
+    Logger.info("[TCP] Responding to message")
+    socket = get_conn(conn_id, name)
     :gen_tcp.send(socket, data)
+    :gen_tcp.close(socket)
   end
 
   # ---- Private functions ----
-  @spec spawn_worker(String.t(), binary, atom) :: :ok | :error
-  defp spawn_worker(conn_id, msg, router) do
+  @spec spawn_worker(String.t(), binary, map) :: :ok | :error
+  defp spawn_worker(conn_id, msg, registry_table) do
     Task.async(fn ->
-      Logger.debug("Starting task to parse TCP segment")
-      Lap2Socket.parse_segment(conn_id, msg, router)
+      Logger.debug("[TCP] Starting task to parse TCP segment")
+      Lap2Socket.parse_segment(conn_id, msg, registry_table)
     end)
     :ok
   end
@@ -144,13 +153,29 @@ defmodule LAP2.Networking.Sockets.TcpServer do
   defp cache_conn(socket, name) do
     Logger.info("Caching connection")
     conn_id = :crypto.strong_rand_bytes(16) |> Base.encode16(case: :lower)
-    IO.inspect(conn_id, label: "Connection ID")
     GenServer.call({:global, name}, {:cache_conn, conn_id, socket})
     conn_id
   end
 
-  @spec pop_conn(String.t(), atom) :: any
-  defp pop_conn(conn_id, name) do
-    GenServer.call({:global, name}, {:pop_conn, conn_id})
+  @spec get_conn(String.t(), atom) :: any
+  defp get_conn(conn_id, name) do
+    GenServer.call({:global, name}, {:get_conn, conn_id})
+  end
+
+  # Receive and reassemble all TCP segments
+  @spec recv_data(any, non_neg_integer, list) :: {:ok, binary} | {:error, any}
+  defp recv_data(socket, timeout, acc) do
+    case :gen_tcp.recv(socket, 0, timeout) do
+      {:ok, data} ->
+        recv_data(socket, timeout, [data | acc])
+
+      {:error, :closed} ->
+        reconstructed = Enum.reverse(acc)
+        |> Enum.reduce(<<>>, fn bitstr, acc -> acc <> bitstr; end)
+        {:ok, reconstructed}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
   end
 end

@@ -4,6 +4,8 @@ defmodule LAP2.Networking.Sockets.Lap2Socket do
   """
 
   require Logger
+  alias LAP2.Networking.Sockets.TcpServer
+  alias LAP2.Main.ServiceProviders
   alias LAP2.Utils.ProtoBuf.QueryHelper
   alias LAP2.Networking.Sockets.UdpServer
   alias LAP2.Utils.ProtoBuf.CloveHelper
@@ -29,13 +31,13 @@ defmodule LAP2.Networking.Sockets.Lap2Socket do
   @doc """
   Parse a received TCP segment.
   """
-  @spec parse_segment(String.t(), binary, atom) :: :ok | :error
-  def parse_segment(conn_id, segment, router_name) do
+  @spec parse_segment(String.t(), binary, map) :: :ok | :error
+  def parse_segment(conn_id, segment, registry_table) do
     # DEBUG: Sleep for 1 second to simulate (unrealistically large) processing time
     # Process.sleep(1000)
     # Deserialise segment
     with {:ok, query} <- QueryHelper.deserialise(segment) do
-      Router.route_tcp(query, conn_id)
+      ServiceProviders.route_tcp_query(query, conn_id, registry_table)
     else
       {:error, reason} ->
         Logger.error("[!] Lap2Socket: Error deserialising segment: #{inspect(reason)}")
@@ -57,6 +59,36 @@ defmodule LAP2.Networking.Sockets.Lap2Socket do
 
       {:error, reason} ->
         Logger.error("[!] Lap2Socket: Error serialising clove: #{inspect(reason)}")
+        :error
+    end
+  end
+
+  @doc """
+  Reply to a TCP request with a response Query.
+  """
+  @spec respond_tcp(Query.t(), String.t(), atom) :: :ok | :error
+  def respond_tcp(query, conn_id, tcp_name) do
+    case QueryHelper.serialise(query) do
+      {:ok, segment} ->
+        IO.inspect(segment, label: "RESPONDING WITH SEGMENT (serialised)", limit: :infinity)
+        Task.async(fn -> TcpServer.respond(conn_id, segment, tcp_name); end)
+        :ok
+      {:error, reason} ->
+        Logger.error("[!] Lap2Socket: Error serialising query: #{inspect(reason)}")
+        :error
+    end
+  end
+  @doc """
+  Send out a TCP request and wait for a response.
+  """
+  @spec send_tcp({String.t(), non_neg_integer}, Query.t(), map) :: :ok | :error
+  def send_tcp({dest_addr, port}, query, registry_table) do
+    case QueryHelper.serialise(query) do
+      {:ok, segment} ->
+        Task.async(fn -> TcpServer.send({dest_addr, port}, segment, registry_table); end)
+        :ok
+      {:error, reason} ->
+        Logger.error("[!] Lap2Socket: Error serialising query: #{inspect(reason)}")
         :error
     end
   end
