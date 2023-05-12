@@ -73,14 +73,14 @@ The following tasks are planned for the LAP2 project:
 
 - [x] Efficient UDP datagram buffering and handling
 - [x] UDP socket wrapper
-- [ ] TCP socket wrapper
+- [x] TCP socket wrapper
 - [x] ProtoBuff serialisation/deserialisation
 - [x] Peer connection and discovery
-- [ ] Distributed hash table
+- [x] Distributed hash table
 - [x] Clove storage and relay
-- [ ] Introduction Points
+- [x] Introduction Points
 - [x] Proxy routing
-- [ ] Connection supervisor module
+- [x] Connection supervisor module
 
 ### **Garlic Cast**
 
