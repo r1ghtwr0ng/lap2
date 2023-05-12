@@ -70,7 +70,6 @@ defmodule LAP2.Networking.Sockets.Lap2Socket do
   def respond_tcp(query, conn_id, tcp_name) do
     case QueryHelper.serialise(query) do
       {:ok, segment} ->
-        IO.inspect(segment, label: "RESPONDING WITH SEGMENT (serialised)", limit: :infinity)
         Task.async(fn -> TcpServer.respond(conn_id, segment, tcp_name); end)
         :ok
       {:error, reason} ->

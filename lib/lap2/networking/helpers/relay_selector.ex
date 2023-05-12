@@ -20,7 +20,7 @@ defmodule LAP2.Networking.Helpers.RelaySelector do
 
   def cast_proxy_discovery(data, clove_seq, random_neighbors, clove_limit, router_name) do
     # Split data into shares, then create cloves
-    proxy_discovery_hdr = %{clove_seq: clove_seq, drop_probab: CloveHelper.gen_drop_probab(0.7, 1.0)}
+    proxy_discovery_hdr = %{clove_seq: clove_seq, drop_probab: CloveHelper.gen_drop_probab(0.8, 1.0)}
     target_neighbors = Enum.take_random(random_neighbors, clove_limit)
     cloves = split_into_cloves(data, proxy_discovery_hdr, :proxy_discovery)
 
