@@ -5,10 +5,12 @@ defmodule LAP2.Main.Master do
 
   use GenServer
   require Logger
-  alias LAP2.Main.ConnectionSupervisor
   alias ExCrypto.Hash
   alias LAP2.Main.ProxyManager
+  alias LAP2.Main.ConnectionSupervisor
   alias LAP2.Main.Helpers.HostBuffer
+  alias LAP2.Networking.Resolver
+  alias LAP2.Networking.Sockets.Lap2Socket
 
   @doc """
   Start the Master process.
@@ -30,6 +32,7 @@ defmodule LAP2.Main.Master do
 
     state = %{
       query_cache: :ets.new(:query_cache, [:set]),
+      dht_requests: [],
       services: %{},
       listeners: %{},
       return_map: %{},
@@ -50,6 +53,24 @@ defmodule LAP2.Main.Master do
     {:reply, {:ok, atom | tuple} | {:error, atom}, map}
   def handle_call({:deliver, listener_id}, _from, state) do
     {:reply, get_listener(listener_id, state), state}
+  end
+
+  @spec handle_call({:register_dht_request, non_neg_integer}, any, map) ::
+    {:reply, :ok, map}
+  def handle_call({:register_dht_request, query_id}, _from, state) do
+    new_state = Map.put(state, :dht_requests, [query_id | state.dht_requests])
+    {:reply, :ok, new_state}
+  end
+
+  @spec handle_call({:verify_dht_response, non_neg_integer}, any, map) ::
+    {:reply, boolean, map}
+  def handle_call({:verify_dht_response, query_id}, _from, state) do
+    cond do
+      Enum.member?(state.dht_requests, query_id) ->
+        new_state = Map.put(state, :dht_requests, List.delete(state.dht_requests, query_id))
+        {:reply, true, new_state}
+      true -> {:reply, false, state}
+    end
   end
 
   @spec handle_call({:register_listener, String.t(), atom | tuple}, any, map) :: {:noreply, map}
@@ -208,6 +229,22 @@ defmodule LAP2.Main.Master do
     GenServer.call({:global, name}, {:cache_query, query, routing_info, service_id})
   end
 
+  @doc """
+  Remember a query ID for a DHT request to verify the response
+  """
+  @spec register_dht_request(non_neg_integer, atom) :: :ok
+  def register_dht_request(query_id, name) do
+    GenServer.call({:global, name}, {:register_dht_request, query_id})
+  end
+
+  @doc """
+  Verify if a query ID is valid for a DHT request
+  """
+  @spec valid_dht_request?(non_neg_integer, atom) :: boolean
+  def valid_dht_request?(query_id, name) do
+    GenServer.call({:global, name}, {:verify_dht_response, query_id})
+  end
+
   # ---- Public API ----
   @doc """
   Register a listener with a unique stream ID.
@@ -296,6 +333,16 @@ defmodule LAP2.Main.Master do
   @spec discover_proxy(atom) :: :ok
   def discover_proxy(master_name) do
     GenServer.cast({:global, master_name}, {:discover_proxy})
+  end
+
+  @doc """
+  Bootstrap the DHT table with a request to a known network node.
+  """
+  @spec bootstrap_dht({String.t(), non_neg_integer}, atom) :: :ok | :error
+  def bootstrap_dht(bootstrap_addr, master_name) do
+    query = Resolver.build_dht_query()
+    register_dht_request(query.query_id, master_name)
+    Lap2Socket.send_tcp(bootstrap_addr, query, get_registry_table(master_name))
   end
 
   @doc """

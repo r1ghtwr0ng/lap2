@@ -10,13 +10,15 @@ defmodule LAP2.Main.ServiceProviders do
   """
 
   require Logger
+  alias LAP2.Main.Master
+  alias LAP2.Networking.Router
+  alias LAP2.Networking.Resolver
+  alias LAP2.Networking.Sockets.Lap2Socket
   alias LAP2.Utils.ProtoBuf.CloveHelper
   alias LAP2.Utils.ProtoBuf.QueryHelper
   alias LAP2.Main.Helpers.HostBuffer
   alias LAP2.Main.Helpers.ListenerHandler
   alias LAP2.Main.ConnectionSupervisor
-  alias LAP2.Networking.Router
-  alias LAP2.Networking.Sockets.Lap2Socket
 
   @doc """
   Route a query to the appropriate service provider.
@@ -135,6 +137,35 @@ defmodule LAP2.Main.ServiceProviders do
 
       {:error, _} ->
         Logger.error("[DEBUG] Introduction Point (#{registry_table.master}): No cached query found for Query ID: #{query.query_id}")
+        :error
+    end
+  end
+  def route_tcp_query(%Query{ack: false,
+    headers: {:dht_request, %DhtRequest{}}} = query, conn_id, registry_table) do
+    # DHT request handling
+    case Resolver.distribute_dht(query, registry_table.router) do
+      {:ok, response_query} ->
+        Lap2Socket.respond_tcp(response_query, conn_id, registry_table.tcp_server)
+        :ok
+
+      {:error, _} ->
+        Logger.error("[DEBUG] Introduction Point (#{registry_table.master}): DHT request failed")
+        :error
+    end
+  end
+  def route_tcp_query(%Query{ack: true,
+    query_id: qid,
+    data: dht_data,
+    headers: {:dht_request, %DhtRequest{}}}, _conn_id, registry_table) do
+    # DHT response handling
+    cond do
+      Master.valid_dht_request?(qid, registry_table.master) ->
+        Logger.info("[DEBUG] Host (#{registry_table.master}): Received DHT update request from master")
+        Resolver.update_dht(dht_data, registry_table.router)
+        :ok
+
+      true ->
+        Logger.error("[ERROR] Host (#{registry_table.master}): DHT update not requested")
         :error
     end
   end

@@ -65,6 +65,11 @@ defmodule LAP2.Networking.Router do
     {:reply, state, state}
   end
 
+  @spec handle_call(:get_dht, any, map) :: {:reply, map, map}
+  def handle_call(:get_dht, _from, state) do
+    {:reply, state.routing_table, state}
+  end
+
   # Caches info for incoming TCP Queries so the response can be routed back (Introduction Point stuff)
   @spec handle_call({:cache_query, Query.t(), non_neg_integer, String.t()}, any, map) :: {:reply, :ok, map}
   def handle_call({:cache_query, query, new_qid, conn_id}, _from, state) do
@@ -367,10 +372,27 @@ defmodule LAP2.Networking.Router do
   end
 
   @doc """
+  Get the DHT from the state
+  """
+  @spec get_dht(atom) :: map
+  def get_dht(name) do
+    GenServer.call({:global, name}, :get_dht)
+  end
+
+  @doc """
   Inspect the router state.
   """
   @spec debug(atom) :: :ok
   def debug(name) do
     GenServer.call({:global, name}, {:debug})
+  end
+
+  @spec drop_test(atom | tuple, float) :: atom | tuple
+  def drop_test(:drop, _), do: :drop
+  def drop_test(route, drop_probab) do
+    cond do
+      :rand.uniform() < drop_probab -> :drop
+      true -> route
+    end
   end
 end
