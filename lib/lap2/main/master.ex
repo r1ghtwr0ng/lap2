@@ -46,17 +46,12 @@ defmodule LAP2.Main.Master do
     {:noreply, state}
   end
 
-  @spec handle_cast({:deliver, binary, String.t()}, map) :: {:noreply, map}
-  def handle_cast({:deliver, data, stream_id}, state) do
-    case get_listener(stream_id, state) do
-      {:ok, :stdout} -> IO.inspect(data, label: "[STDOUT]")
-      {:ok, {:tcp, addr}} -> IO.inspect(data, label: "[TCP] #{inspect(addr)}") # TODO implement TCP listener
-      {:error, _} -> Logger.error("No listener registered for stream ID #{stream_id}")
-    end
-    {:noreply, state}
+  @spec handle_call({:deliver, binary, String.t()}, any, map) ::
+    {:reply, {:ok, atom | tuple} | {:error, atom}, map}
+  def handle_call({:deliver, stream_id}, _from, state) do
+    {:reply, get_listener(stream_id, state), state}
   end
 
-  # TODO specify listener type
   @spec handle_call({:register_listener, String.t(), atom | tuple}, any, map) :: {:noreply, map}
   def handle_call({:register_listener, stream_id, listener}, _from, state) do
     #Logger.info("[+] Registering listener: #{inspect(listener)} for stream ID: #{inspect(stream_id)}")
@@ -64,7 +59,6 @@ defmodule LAP2.Main.Master do
     {:reply, :ok, new_state}
   end
 
-  # TODO specify listener type
   @spec handle_call({:deregister_listener, String.t()}, any, map) :: {:reply, :ok, map}
   def handle_call({:deregister_listener, stream_id}, _from, state) do
     #Logger.info("[+] Deregistering listener for stream ID: #{inspect(stream_id)}")
@@ -110,6 +104,9 @@ defmodule LAP2.Main.Master do
         {:reply, {:error, :exists}, state}
     end
   end
+
+  # TODO DELETE THIS
+  def handle_call(:debug, _from, state), do: {:reply, state, state}
 
   @spec handle_call({:service_lookup, String.t()}, any, map) :: {:reply, {:ok, binary} | {:error, atom}, map}
   def handle_call({:service_lookup, service_id}, _from, state) when is_map_key(state.services, service_id) do
@@ -159,9 +156,13 @@ defmodule LAP2.Main.Master do
     cond do
       valid_secret?(secret, state.services[service_id].hash) ->
         response_list = Enum.map(query_ids, fn qid ->
-          pop_ets(state.query_cache, service_id, qid)
+          case pop_ets(state.query_cache, service_id, qid) do
+            {:ok, qid} -> qid
+            {:error, :not_found} -> nil
+          end
         end)
-        {:reply, response_list, state}
+        |> List.delete(nil)
+        {:reply, {:ok, response_list}, state}
       true ->
         Logger.error("[-] MASTER: Invalid secret key for service ID: #{inspect(service_id)}")
         {:reply, {:error, :unauthorised}, state}
@@ -180,26 +181,10 @@ defmodule LAP2.Main.Master do
   @doc """
   Send a response to the appropriate listener socket.
   """
-  @spec deliver(binary, String.t(), atom) :: :ok
-  def deliver(data, stream_id, master_name) do
-    Logger.info("[+] MASTER (#{master_name}): Delivering response: #{inspect(data)} to stream ID: #{inspect(stream_id)}")
-    GenServer.cast({:global, master_name}, {:deliver, data, stream_id})
-    :ok
-  end
-
-  @doc """
-  Deliver data to a service.
-  """
-  @spec deliver_to_service(binary, String.t(), atom) :: :ok | :error
-  def deliver_to_service(data, service_id, master_name) do
-    case service_lookup(service_id, master_name) do
-      {:ok, stream_id} ->
-        deliver(data, stream_id, master_name)
-
-      {:error, _} ->
-        Logger.error("[-] MASTER (#{master_name}): No service registered for service ID: #{inspect(service_id)}")
-        :error
-    end
+  @spec get_service_target(String.t(), atom) :: {:ok, atom | tuple} | {:error, atom}
+  def get_service_target(stream_id, master_name) do
+    Logger.info("[+] MASTER (#{master_name}): Delivering response to stream ID: #{inspect(stream_id)}")
+    GenServer.call({:global, master_name}, {:deliver, stream_id})
   end
 
   @doc """
@@ -215,8 +200,9 @@ defmodule LAP2.Main.Master do
   Register a listener with a unique stream ID.
   :stdout for STDOUT
   {:tcp, {ip, port}} for TCP
+  {:native, funct, service_id} for a native listener function
   """
-  @spec register_listener(atom | {atom, {String.t(), non_neg_integer}}, atom) :: {:ok, String.t()}
+  @spec register_listener(atom | tuple, atom) :: {:ok, String.t()}
   def register_listener(listener, master_name) do
     stream_id = crypto_gen(16)
     GenServer.call({:global, master_name}, {:register_listener, stream_id, listener})

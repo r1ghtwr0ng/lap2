@@ -88,6 +88,18 @@ defmodule LAP2.Main.ConnectionSupervisor do
     end
   end
 
+  @spec handle_call({:service_lookup, String.t()}, any, map) ::
+    {:reply, {:ok, non_neg_integer} | {:error, atom}, map}
+  def handle_call({:service_lookup, service_id}, _from, state) do
+    case Map.get(state.service_providers, service_id, nil) do
+      nil ->
+        {:reply, {:error, :no_service}, state}
+
+      proxy_seq ->
+        {:reply, {:ok, proxy_seq}, state}
+    end
+  end
+
   @spec handle_call({:get_connections, non_neg_integer, atom}, any, map) ::
     {:reply, {:ok, list(non_neg_integer)} | {:error, :insufficient_conns}, map}
   def handle_call({:get_connections, conns, conn_type}, _from, state) do
@@ -100,7 +112,7 @@ defmodule LAP2.Main.ConnectionSupervisor do
 
       map_size(filtered) < conns ->
         # Return an error
-        {:reply, :error, state}
+        {:reply, {:error, :insufficient_conns}, state}
     end
   end
 
@@ -172,6 +184,20 @@ defmodule LAP2.Main.ConnectionSupervisor do
   end
 
   @doc """
+  Send a query to an introduction point/host
+  """
+  @spec send_query(Query.t(), non_neg_integer, map) :: :ok | :error
+  def send_query(query, proxy_seq, registry_table) do
+    proxy_mgr = registry_table.proxy_manager
+    case QueryHelper.serialise(query) do
+      {:ok, data} ->
+        ProxyManager.send_request(data, proxy_seq, proxy_mgr)
+      {:error, reason} ->
+        Logger.error("[!] Connection Supervisor (#{registry_table.conn_supervisor}) send_query error: #{reason}")
+    end
+  end
+
+  @doc """
   Send out a list of responses
   """
   @spec send_responses(list(map), map) :: :ok | :error
@@ -229,6 +255,11 @@ defmodule LAP2.Main.ConnectionSupervisor do
     # TODO called from Master, calls ProxyManager
     # TODO send teardown request to proxy_seq, then delete the data
     remove_proxy(proxy_seq, registry_table)
+  end
+
+  @spec service_lookup(String.t(), atom) :: {:ok, non_neg_integer} | {:error, atom}
+  def service_lookup(service_id, name) do
+    GenServer.call({:global, name}, {:service_lookup, service_id})
   end
 
   @doc """
