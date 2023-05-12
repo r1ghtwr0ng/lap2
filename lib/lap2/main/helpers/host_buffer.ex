@@ -34,6 +34,7 @@ defmodule LAP2.Main.Helpers.HostBuffer do
     }
     case ShareHandler.service_deliver(data, aux_data, registry_table.share_handler) do
       {:reconstructed, data, routing_data} ->
+        Logger.info("[DEBUG] Reconstructed query data: #{inspect data}")
         case Master.service_lookup(service_id, registry_table.master) do
           {:ok, stream_id} ->
             query_ids = Enum.reduce(routing_data, [qid], fn %{query_id: q}, acc -> [q | acc]; end)
@@ -45,9 +46,13 @@ defmodule LAP2.Main.Helpers.HostBuffer do
             :error
         end
 
-      :cached -> Master.cache_query(query, aux_data, service_id, registry_table.master)
+      :cached ->
+        Logger.info("[DEBUG] Caching query data ")
+        Master.cache_query(query, aux_data, service_id, registry_table.master)
 
-      :dropped -> :error
+      :dropped ->
+        Logger.error("[!] Query dropped: #{inspect query}")
+        :error
     end
   end
   # Matches query responses

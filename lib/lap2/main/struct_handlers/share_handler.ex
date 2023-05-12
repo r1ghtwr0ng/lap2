@@ -46,7 +46,8 @@ defmodule LAP2.Main.StructHandlers.ShareHandler do
     case ProcessorState.route_share(state, share) do
       :reassemble -> reassemble_and_cast(state, share, aux_data)
 
-      :cache -> cache(state, share, aux_data)
+      :cache -> new_state = cache(state, share, aux_data)
+        {:noreply, new_state}
 
       :drop -> {:noreply, state}
     end
@@ -61,8 +62,8 @@ defmodule LAP2.Main.StructHandlers.ShareHandler do
           :reassemble -> response = reassemble(state, share, aux_data)
             {:reply, response, state}
 
-          :cache -> cache(state, share, aux_data)
-            {:reply, :cached, state}
+          :cache -> new_state = cache(state, share, aux_data)
+            {:reply, :cached, new_state}
 
           :drop -> {:reply, :dropped, state}
         end
@@ -163,11 +164,10 @@ defmodule LAP2.Main.StructHandlers.ShareHandler do
   end
 
   # Cache a share inside ETS
-  @spec cache(map, Share.t(), map) :: {:noreply, map}
+  @spec cache(map, Share.t(), map) :: map
   defp cache(state, share, aux_data) do
     # Add the share to the cache
-    new_state = ProcessorState.cache_share(state, share)
     ProcessorState.add_share_to_ets(state.ets, share, aux_data)
-    {:noreply, new_state}
+    ProcessorState.cache_share(state, share)
   end
 end
