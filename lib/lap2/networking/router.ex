@@ -7,6 +7,7 @@ defmodule LAP2.Networking.Router do
   """
   use GenServer
   require Logger
+  alias LAP2.Networking.Sockets.Lap2Socket
   alias LAP2.Networking.Resolver
   alias LAP2.Networking.Helpers.State
   alias LAP2.Networking.Routing.{Remote, Local}
@@ -29,6 +30,9 @@ defmodule LAP2.Networking.Router do
 
     state = %{
       clove_cache: %{},
+      query_cache: %{}, # TODO terrible hack, purge this off the face of the earth after FYP submission
+      conn_relay: %{}, # Also terrible, just refactor caching in a seperate GenServer
+      query_relay: %{},
       random_neighbors: [],
       own_cloves: [],
       drop_rules: %{clove_seq: [], ip_addr: [], proxy_seq: []},
@@ -44,7 +48,6 @@ defmodule LAP2.Networking.Router do
         proxy_policy: config.proxy_policy,
         proxy_limit: config.proxy_limit
       }
-
       # TODO replace with config: config, this is just for debugging
     }
 
@@ -60,6 +63,41 @@ defmodule LAP2.Networking.Router do
   @spec handle_call({:debug}, any, map) :: {:reply, map, map}
   def handle_call({:debug}, _from, state) do
     {:reply, state, state}
+  end
+
+  # Caches info for incoming TCP Queries so the response can be routed back (Introduction Point stuff)
+  @spec handle_call({:cache_query, Query.t(), non_neg_integer, String.t()}, any, map) :: {:reply, :ok, map}
+  def handle_call({:cache_query, query, new_qid, conn_id}, _from, state) do
+    updated_cache = Map.put(state.query_cache, new_qid, query)
+    updated_conn_relay = Map.put(state.conn_relay, query.query_id, conn_id)
+    new_state = state
+    |> Map.put(:query_cache, updated_cache)
+    |> Map.put(:conn_relay, updated_conn_relay)
+    {:reply, :ok, new_state}
+  end
+
+  @spec handle_call({:get_cached_query, non_neg_integer}, any, map) ::
+    {:reply, {:ok, Query.t()} | {:error, atom}, map}
+  def handle_call({:get_cached_query, qid}, _from, state) do
+    case Map.get(state.query_cache, qid) do
+      nil -> {:reply, {:error, :not_found}, state}
+      query ->
+        new_cache = Map.delete(state.query_cache, qid)
+        new_state = Map.put(state, :query_cache, new_cache)
+        {:reply, {:ok, query}, new_state}
+    end
+  end
+
+  @spec handle_call({:get_query_relay, non_neg_integer}, any, map) ::
+    {:reply, {:ok, non_neg_integer} | {:error, atom}, map}
+  def handle_call({:get_query_relay, query_id}, _from, state) do
+    case Map.get(state.query_relay, query_id) do
+      nil ->
+        {:reply, {:error, :no_route}, state}
+
+      proxy_seq ->
+        {:reply, {:ok, proxy_seq}, state}
+    end
   end
 
   # Handle received cloves
@@ -114,12 +152,29 @@ defmodule LAP2.Networking.Router do
 
   # Route outbound cloves
   @spec handle_cast({:route_outbound, {String.t(), non_neg_integer}, Clove.t()}, map) ::
-          {:noreply, map}
+    {:noreply, map}
   def handle_cast({:route_outbound, dest, clove}, state) do
     #Logger.info("[+] Router GenServer (#{state.config.lap2_addr}): In route outbound handle cast")
     Logger.info("[from #{state.config.lap2_addr}] ----> [to #{inspect dest}] (OUTBOUND)")
     Remote.route_outbound(state, dest, clove)
     {:noreply, state}
+  end
+
+  @spec handle_cast({:route_tcp, Query.t()}, map) :: {:noreply, map}
+  def handle_cast({:route_tcp, query}, state) do
+    conn_id = Map.get(state.conn_relay, query.query_id)
+    case conn_id do
+      nil ->
+        Logger.error("[-] Router GenServer (#{state.config.lap2_addr}): Unable to find connection id for query: #{inspect query}")
+        {:noreply, state}
+
+      _ ->
+        #Logger.info("[from #{state.config.lap2_addr}] ----> [to #{conn_id}] (TCP ROUTE)")
+        new_state = Map.put(state, :conn_relay, Map.delete(state.conn_relay, query.query_id))
+        tcp_name = state.config.registry_table.tcp_server
+        Lap2Socket.respond_tcp(query, conn_id, tcp_name)
+        {:noreply, new_state}
+    end
   end
 
   # Route outbound proxy discovery cloves
@@ -137,6 +192,12 @@ defmodule LAP2.Networking.Router do
         Logger.error("[-] Router GenServer (#{state.config.lap2_addr}): Unable to resolve address: #{lap2_addr}")
         {:noreply, state}
     end
+  end
+
+  @spec handle_cast({:save_query_relay, non_neg_integer, non_neg_integer}, map) :: {:noreply, map}
+  def handle_cast({:save_query_relay, query_id, proxy_seq}, state) do
+    new_state = State.add_query_relay(state, query_id, proxy_seq)
+    {:noreply, new_state}
   end
 
   # Add a proxy relay to relay table
@@ -208,6 +269,46 @@ defmodule LAP2.Networking.Router do
   def route_inbound(source, clove, name) do
     #Logger.info("[+] Router (#{name}): Routing inbound clove")
     GenServer.cast({:global, name}, {:route_inbound, source, clove})
+  end
+
+  @spec route_tcp(Query.t(), atom) :: :ok
+  def route_tcp(query, name) do
+    GenServer.cast({:global, name}, {:route_tcp, query})
+  end
+
+  @doc """
+  Cache an inbound TCP query so it can be used in the response.
+  This is a used by Introduction Points.
+  """
+  @spec cache_query(Query.t(), non_neg_integer, String.t(), atom) :: :ok
+  def cache_query(query, new_qid, conn_id, name) do
+    GenServer.call({:global, name}, {:cache_query, query, new_qid, conn_id})
+  end
+
+  @doc """
+  Attempt to fetch a cached query from the router's cache.
+  If retrieved, it is deleted from the cache to conserve memory.
+  """
+  @spec get_cached_query(non_neg_integer, atom) :: {:ok, Query.t()} | {:error, atom}
+  def get_cached_query(qid, name) do
+    GenServer.call({:global, name}, {:get_cached_query, qid})
+  end
+
+  @doc """
+  Save the origin relay sequence number for a given query ID.
+  This is done so responses can be routed back to the requesting node.
+  """
+  @spec save_query_relay(non_neg_integer, non_neg_integer, atom) :: :ok
+  def save_query_relay(query_id, proxy_seq, name) do
+    GenServer.cast({:global, name}, {:save_query_relay, query_id, proxy_seq})
+  end
+
+  @doc """
+  Retrieve the origin proxy sequence number for a given query ID.
+  """
+  @spec get_query_relay(non_neg_integer, atom) :: {:ok, non_neg_integer} | {:error, atom}
+  def get_query_relay(query_id, name) do
+    GenServer.call({:global, name}, {:get_query_relay, query_id})
   end
 
   @doc """

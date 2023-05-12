@@ -157,6 +157,11 @@ defmodule LAP2.Networking.Helpers.State do
     |> Map.put(:relay_table, updated_relays)
   end
 
+  @spec add_query_relay(map, non_neg_integer, non_neg_integer) :: map
+  def add_query_relay(state, query_id, proxy_seq) do
+    Map.put(state, :query_relay, Map.put(state.query_relay, query_id, proxy_seq))
+  end
+
   @doc """
   Get routing information from state
   """
