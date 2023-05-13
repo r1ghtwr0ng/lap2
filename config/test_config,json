@@ -1,9 +1,0 @@
-{
-    "main_supervisor": {
-        "name": "lap2_test"
-    },
-    "task_supervisor": {
-        "name": "test_superv",
-        "max_children": 10
-    }
-}
