@@ -23,7 +23,7 @@ defmodule LAP2.Crypto.CryptoManager do
     # Ensure that the ETS gets cleaned up on exit
     Process.flag(:trap_exit, true)
     # Initialise data handler state
-    IO.puts("[i] CryptoManager (#{config.name}): Starting GenServer")
+    Logger.info("[i] CryptoManager (#{config.name}): Starting GenServer")
     state = %{
       ets: :ets.new(:key_manager, [:set, :private]),
       temp_crypto: %{},

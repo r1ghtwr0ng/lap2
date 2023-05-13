@@ -213,7 +213,6 @@ defmodule LAP2.Main.Master do
   def get_service_target(listener_id, master_name) do
     Logger.info("[+] MASTER (#{master_name}): Delivering response to Listener ID: #{inspect(listener_id)}")
     GenServer.call({:global, master_name}, {:deliver, listener_id})
-    |> IO.inspect(label: "[DEBUG] MASTER (#{master_name}): Listener info")
   end
 
   @spec get_listener_struct(String.t(), atom) :: {:ok, map} | {:error, atom}
@@ -361,6 +360,11 @@ defmodule LAP2.Main.Master do
     HostBuffer.request_remote(intro_points, data, service_id, listener_id, get_registry_table(name))
   end
 
+  @spec get_registry_table(atom) :: map
+  def get_registry_table(name) do
+    GenServer.call({:global, name}, :get_registry_table)
+  end
+
   # ---- Private Functions ----
   @spec get_listener(binary, map) :: {:ok, any} | {:error, any}
   defp get_listener(listener_id, state) when is_map_key(state.listeners, listener_id) do
@@ -431,10 +435,5 @@ defmodule LAP2.Main.Master do
   defp delete_ets_service(ets, service_id) do
     :ets.delete(ets, service_id)
     :ok
-  end
-
-  @spec get_registry_table(atom) :: map
-  defp get_registry_table(name) do
-    GenServer.call({:global, name}, :get_registry_table)
   end
 end

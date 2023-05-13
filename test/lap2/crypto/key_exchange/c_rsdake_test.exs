@@ -52,7 +52,6 @@ defmodule LAP2.Crypto.KeyExchange.C_RSDAKETest do
     test "Test with invalid request" do
       # Setup arguments
       ident_r = 'IDENTITY_RESPONDER'
-      lt_keys = ClaimableRS.crs_gen()
 
       expected = {:error, :invalid_arguments}
       assert expected == C_RSDAKE.respond(ident_r, %{}, %{})

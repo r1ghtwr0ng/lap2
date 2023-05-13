@@ -47,8 +47,6 @@ defmodule LAP2 do
     try do
       # Selects appropriate config for DEBUG or PROD environment
       env = System.get_env("LAP2_ENV") || "DEBUG"
-      # Set logging level
-      Logger.configure(level: config_log_level(env))
       # Get coonfig
       ConfigParser.get_config(env)
     rescue
@@ -84,8 +82,4 @@ defmodule LAP2 do
 
     Supervisor.start_link(children, opts)
   end
-
-  # Set the log level based on the environment, default to debug if not PROD
-  defp config_log_level("PROD"), do: :info
-  defp config_log_level(_), do: :debug
 end

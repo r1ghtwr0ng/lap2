@@ -92,7 +92,6 @@ defmodule LAP2.Networking.Sockets.TcpServer do
 
   @spec handle_round_trip(String.t(), non_neg_integer, binary, map) :: :ok | :error
   defp handle_round_trip(addr, port, data, registry_table) do
-    IO.inspect(addr, label: "[TCP] SENDING MESSAGE TO:")
     addr
     |> String.to_charlist()
     |> :inet.parse_address()
@@ -104,7 +103,6 @@ defmodule LAP2.Networking.Sockets.TcpServer do
             :gen_tcp.send(socket, data)
             case recv_data(socket, 10_000, []) do
               {:ok, msg} ->
-                IO.inspect(msg, label: "[TCP] Received message (HOST: #{registry_table.tcp_server})")
                 cid = :crypto.strong_rand_bytes(16) |> Base.encode16()
                 spawn_worker(cid, msg, registry_table)
 
