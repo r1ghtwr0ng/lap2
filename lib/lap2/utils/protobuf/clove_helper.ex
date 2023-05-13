@@ -99,12 +99,6 @@ defmodule LAP2.Utils.ProtoBuf.CloveHelper do
   def verify_headers({:regular_proxy, %RegularProxyHeader{proxy_seq: _}}), do: true
   def verify_headers(_), do: false
 
-  # ---- Header field generation functions ----
-  @spec gen_seq_num() :: non_neg_integer
-  def gen_seq_num(), do: :crypto.strong_rand_bytes(8) |> :binary.decode_unsigned()
-  @spec gen_drop_probab(float, float) :: float
-  def gen_drop_probab(min, max), do: :rand.uniform() * (max - min) + min
-
   # ---- Private Functions ----
   # Build Clove struct
   @spec build_clove(map, atom) :: Clove.t()

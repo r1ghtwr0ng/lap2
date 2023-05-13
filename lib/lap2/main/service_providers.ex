@@ -14,7 +14,7 @@ defmodule LAP2.Main.ServiceProviders do
   alias LAP2.Networking.Router
   alias LAP2.Networking.Resolver
   alias LAP2.Networking.Sockets.Lap2Socket
-  alias LAP2.Utils.ProtoBuf.CloveHelper
+  alias LAP2.Utils.Generator
   alias LAP2.Utils.ProtoBuf.QueryHelper
   alias LAP2.Main.Helpers.HostBuffer
   alias LAP2.Main.Helpers.ListenerHandler
@@ -105,7 +105,7 @@ defmodule LAP2.Main.ServiceProviders do
     # Handle received remote query
     # TODO relay to remote service provider via TCP
     # TODO record TCP conn to query_id mapping
-    new_qid = CloveHelper.gen_seq_num()
+    new_qid = Generator.generate_integer(8)
     Router.cache_query(query, new_qid, conn_id, registry_table.router)
     conn_supervisor = registry_table.conn_supervisor
     case ConnectionSupervisor.service_lookup(service_id, conn_supervisor) do

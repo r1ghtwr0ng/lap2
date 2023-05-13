@@ -10,7 +10,7 @@ defmodule LAP2.Main.Helpers.HostBuffer do
   alias LAP2.Main.Master
   alias LAP2.Main.Helpers.ListenerHandler
   alias LAP2.Main.ConnectionSupervisor
-  alias LAP2.Utils.ProtoBuf.CloveHelper
+  alias LAP2.Utils.Generator
   alias LAP2.Utils.ProtoBuf.QueryHelper
   alias LAP2.Utils.ProtoBuf.ShareHelper
   alias LAP2.Main.StructHandlers.ShareHandler
@@ -76,7 +76,6 @@ defmodule LAP2.Main.Helpers.HostBuffer do
             :error
 
             listener ->
-            IO.inspect(service_id, label: "[DEBUG] Reconstructed response data: ")
             query_ids = Enum.reduce(routing_data, [qid], fn %{query_id: q}, acc ->
               ret = Master.pop_return(q, registry_table.master) # Delete the query IDs from the map
               [ret | acc]
@@ -106,7 +105,7 @@ defmodule LAP2.Main.Helpers.HostBuffer do
     len = length(response_list)
     n = if len > 1, do: len, else: 2
     m = if n > 2, do: ceil(n / 2), else: 2
-    shares = SecureIDA.disperse(data, n, m, CloveHelper.gen_seq_num())
+    shares = SecureIDA.disperse(data, n, m, Generator.generate_integer(8))
     # Bind each share to a response
     Enum.zip(response_list, shares)
     |> Enum.map(fn {%{query: query} = resp, share} ->
@@ -126,7 +125,7 @@ defmodule LAP2.Main.Helpers.HostBuffer do
     len = length(intro_points) * 2
     n = if len > 1, do: len, else: 2
     m = if n > 2, do: ceil(n / 2), else: 2
-    shares = SecureIDA.disperse(data, n, m, CloveHelper.gen_seq_num())
+    shares = SecureIDA.disperse(data, n, m, Generator.generate_integer(8))
     # Bind each share to an introduction point address, 2:1 ratio
     share_to_addr = List.duplicate(intro_points, 2)
     |> List.flatten()
@@ -135,7 +134,7 @@ defmodule LAP2.Main.Helpers.HostBuffer do
     # Serialise the shares and build a list of Query structs, then send them
     Enum.map(share_to_addr, fn {{addr, port}, share} ->
       {:ok, serial} = ShareHelper.serialise(share)
-      qid = CloveHelper.gen_seq_num()
+      qid = Generator.generate_integer(8)
       Logger.info("[DEBUG] Registering response listener: #{inspect listener_id}")
       Master.register_return(qid, listener_id, registry_table.master)
       QueryHelper.build_remote_query_header(addr, port, service_id)

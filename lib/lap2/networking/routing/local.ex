@@ -4,7 +4,7 @@ defmodule LAP2.Networking.Routing.Local do
   """
 
   require Logger
-  alias LAP2.Utils.ProtoBuf.CloveHelper
+  alias LAP2.Utils.Generator
   alias LAP2.Networking.Helpers.State
   alias LAP2.Main.StructHandlers.ShareHandler
 
@@ -62,7 +62,7 @@ defmodule LAP2.Networking.Routing.Local do
     # TODO remove debug print
     #Logger.info("[+] Local: Relaying via proxy request from #{inspect(source)}")
     prev_hop = state.clove_cache[cseq].prev_hop
-    proxy_seq = CloveHelper.gen_seq_num()
+    proxy_seq = Generator.generate_integer(8)
 
     aux_data = %{
       request_type: :proxy_request,

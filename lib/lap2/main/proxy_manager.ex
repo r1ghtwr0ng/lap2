@@ -5,9 +5,9 @@ defmodule LAP2.Main.ProxyManager do
 
   use GenServer
   require Logger
+  alias LAP2.Utils.Generator
   alias LAP2.Utils.ProtoBuf.RequestHelper
   alias LAP2.Main.Helpers.ProxyHelper
-  alias LAP2.Utils.ProtoBuf.CloveHelper
 
   @doc """
   Start the ProxyManager process.
@@ -41,7 +41,7 @@ defmodule LAP2.Main.ProxyManager do
   @spec handle_call({:send_to_proxy, binary, non_neg_integer}, any, map) :: {:reply, atom, map}
   def handle_call({:send_to_proxy, data, proxy_seq}, _from, state) do
     # Build request struct
-    request_id = CloveHelper.gen_seq_num()
+    request_id = Generator.generate_integer(8)
     crypto_hdr = RequestHelper.build_symmetric_crypto()
     request = RequestHelper.build_request(crypto_hdr, data, "regular_proxy_request", request_id)
     relay_pool = Map.get(state.proxy_pool, proxy_seq, [])
@@ -61,7 +61,7 @@ defmodule LAP2.Main.ProxyManager do
 
   @spec handle_call({:init_proxy}, any, map) :: {:reply, atom, map}
   def handle_call({:init_proxy}, _from, state) do
-    clove_seq = CloveHelper.gen_seq_num()
+    clove_seq = Generator.generate_integer(8)
     resp = ProxyHelper.init_proxy_request(state.config.registry_table, clove_seq, state.config.clove_casts)
     {:reply, resp, state}
   end
@@ -115,7 +115,7 @@ defmodule LAP2.Main.ProxyManager do
   """
   @spec send_response(binary, non_neg_integer, atom) :: :ok | :error
   def send_response(data, proxy_seq, name) do
-    request_id = CloveHelper.gen_seq_num()
+    request_id = Generator.generate_integer(8)
     GenServer.call({:global, name}, {:respond_to_proxy, data, request_id, proxy_seq})
   end
 

@@ -13,7 +13,7 @@ defmodule LAP2.Main.ConnectionSupervisor do
   alias LAP2.Main.ServiceProviders
   alias LAP2.Main.Helpers.ListenerHandler
   alias LAP2.Utils.ProtoBuf.QueryHelper
-  alias LAP2.Utils.ProtoBuf.CloveHelper
+  alias LAP2.Utils.Generator
 
   @doc """
   Start the ConnectionSupervisor process.
@@ -228,7 +228,7 @@ defmodule LAP2.Main.ConnectionSupervisor do
     proxy_mgr = registry_table.proxy_manager
     case get_conns(1, :anon_proxy, conn_sup) do
       {:ok, [proxy_seq]} ->
-        query_id = CloveHelper.gen_seq_num()
+        query_id = Generator.generate_integer(8)
         # TODO build query, send via ProxyManager
         QueryHelper.build_establish_header(service_ids)
         |> QueryHelper.build_query(query_id, <<>>)

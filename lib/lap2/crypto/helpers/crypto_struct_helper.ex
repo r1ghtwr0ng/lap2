@@ -5,7 +5,7 @@ defmodule LAP2.Crypto.Helpers.CryptoStructHelper do
 
   alias LAP2.Crypto.CryptoManager
   alias LAP2.Crypto.KeyExchange.C_RSDAKE
-  alias LAP2.Utils.ProtoBuf.CloveHelper
+  alias LAP2.Utils.Generator
   alias LAP2.Utils.ProtoBuf.RequestHelper
   alias LAP2.Crypto.Constructions.ClaimableRS
 
@@ -87,7 +87,7 @@ defmodule LAP2.Crypto.Helpers.CryptoStructHelper do
     # Generate (un)encrypted request struct
     case C_RSDAKE.finalise(identity, temp_struct, crypto_hdr) do
       {:ok, {crypto_struct, fin_hdr}} ->
-        RequestHelper.build_request(fin_hdr, <<>>, "key_exchange_fin", CloveHelper.gen_seq_num())
+        RequestHelper.build_request(fin_hdr, <<>>, "key_exchange_fin", Generator.generate_integer(8))
         |> RequestHelper.wrap_unencrypted()
         |> build_return(crypto_struct)
       err -> err
@@ -108,7 +108,7 @@ defmodule LAP2.Crypto.Helpers.CryptoStructHelper do
 
     # Generate encrypted request struct
     RequestHelper.build_key_rotation(aes_key)
-    |> RequestHelper.build_request(<<>>, "key_rotation", CloveHelper.gen_seq_num())
+    |> RequestHelper.build_request(<<>>, "key_rotation", Generator.generate_integer(8))
     |> RequestHelper.encrypt_and_wrap(proxy_seq, crypto_mgr_name)
     |> build_return(crypto_struct)
   end

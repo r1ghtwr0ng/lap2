@@ -4,6 +4,7 @@ defmodule LAP2Test do
 
   require Logger
   alias LAP2.Networking.Router
+  alias LAP2.Utils.Generator
   alias LAP2.Utils.ProtoBuf.CloveHelper
 
   # Configs
@@ -148,7 +149,7 @@ defmodule LAP2Test do
                        )
               # Create the clove
               data = "Hello World"
-              hdr = %{clove_seq: LAP2.Utils.ProtoBuf.CloveHelper.gen_seq_num(), drop_probab: 0.7}
+              hdr = %{clove_seq: Generator.generate_integer(8), drop_probab: 0.7}
               clove = CloveHelper.create_clove(data, hdr, :proxy_discovery)
 
               assert :ok ==

@@ -1,6 +1,7 @@
 defmodule LAP2.Utils.ProtoBuf.CloveHelperTest do
   use ExUnit.Case
 
+  alias LAP2.Utils.Generator
   alias LAP2.Utils.ProtoBuf.CloveHelper
 
   describe "verify_checksum/1" do
@@ -23,8 +24,8 @@ defmodule LAP2.Utils.ProtoBuf.CloveHelperTest do
 
       # Different types of headers
       hdr = %ProxyDiscoveryHeader{
-        clove_seq: CloveHelper.gen_seq_num(),
-        drop_probab: CloveHelper.gen_drop_probab(0.7, 1.0)
+        clove_seq: Generator.generate_integer(8),
+        drop_probab: Generator.generate_float(0.7, 1.0)
       }
 
       # How the clove should look like
@@ -40,8 +41,8 @@ defmodule LAP2.Utils.ProtoBuf.CloveHelperTest do
 
       # Different types of headers
       hdr = %ProxyResponseHeader{
-        clove_seq: CloveHelper.gen_seq_num(),
-        proxy_seq: CloveHelper.gen_seq_num(),
+        clove_seq: Generator.generate_integer(8),
+        proxy_seq: Generator.generate_integer(8),
         hop_count: 0
       }
 
@@ -57,7 +58,7 @@ defmodule LAP2.Utils.ProtoBuf.CloveHelperTest do
       data = "TEST_DATA"
 
       # Different types of headers
-      hdr = %RegularProxyHeader{proxy_seq: CloveHelper.gen_seq_num()}
+      hdr = %RegularProxyHeader{proxy_seq: Generator.generate_integer(8)}
       # How the clove should look like
       clove = %Clove{data: data, headers: {:regular_proxy, hdr}, checksum: CRC.crc_32(data)}
       # Set headers
@@ -192,7 +193,7 @@ defmodule LAP2.Utils.ProtoBuf.CloveHelperTest do
 
   describe "gen_seq_num/0" do
     test "Test sequence number generation" do
-      seq_num = CloveHelper.gen_seq_num()
+      seq_num = Generator.generate_integer(8)
       assert is_integer(seq_num)
     end
   end
@@ -201,7 +202,7 @@ defmodule LAP2.Utils.ProtoBuf.CloveHelperTest do
     test "Test drop probability generation" do
       min = 0.3
       max = 0.8
-      drop_probab = CloveHelper.gen_drop_probab(min, max)
+      drop_probab = Generator.generate_float(min, max)
       assert is_float(drop_probab)
       assert drop_probab >= min
       assert drop_probab <= max

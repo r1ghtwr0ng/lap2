@@ -5,8 +5,9 @@ defmodule LAP2.Networking.Helpers.RelaySelector do
   """
 
   alias LAP2.Networking.Router
-  alias LAP2.Utils.ProtoBuf.ShareHelper
+  alias LAP2.Utils.Generator
   alias LAP2.Utils.ProtoBuf.CloveHelper
+  alias LAP2.Utils.ProtoBuf.ShareHelper
   alias LAP2.Crypto.InformationDispersal.SecureIDA
 
   require Logger
@@ -20,14 +21,13 @@ defmodule LAP2.Networking.Helpers.RelaySelector do
 
   def cast_proxy_discovery(data, clove_seq, random_neighbors, clove_limit, router_name) do
     # Split data into shares, then create cloves
-    proxy_discovery_hdr = %{clove_seq: clove_seq, drop_probab: CloveHelper.gen_drop_probab(0.8, 1.0)}
+    proxy_discovery_hdr = %{clove_seq: clove_seq, drop_probab: Generator.generate_float(0.8, 1.0)}
     target_neighbors = Enum.take_random(random_neighbors, clove_limit)
     cloves = split_into_cloves(data, proxy_discovery_hdr, :proxy_discovery)
 
     # Send cloves to neighbors
     Enum.with_index(target_neighbors, fn neighbor, idx ->
       clove = Enum.at(cloves, Integer.mod(idx, length(cloves)))
-      #Logger.info("CAST PROXY DISCOVERY OUTBOUND CLOVE (#{router_name})")
       Router.route_outbound_discovery(neighbor, clove, router_name)
     end)
     :ok
@@ -57,7 +57,7 @@ defmodule LAP2.Networking.Helpers.RelaySelector do
   # Split data into two shares and create cloves from them
   @spec split_into_cloves(binary, map, :proxy_discovery | :regular_proxy | :proxy_response) :: list
   defp split_into_cloves(data, clove_hdr, clove_type) do
-    SecureIDA.disperse(data, 2, 2, CloveHelper.gen_seq_num())
+    SecureIDA.disperse(data, 2, 2, Generator.generate_integer(8))
     |> Enum.map(fn share ->
       {:ok, share_data} = ShareHelper.serialise(share)
       CloveHelper.create_clove(share_data, clove_hdr, clove_type)

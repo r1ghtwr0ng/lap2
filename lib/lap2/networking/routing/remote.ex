@@ -3,8 +3,8 @@ defmodule LAP2.Networking.Routing.Remote do
   Module for routing cloves to remote destinations.
   """
   require Logger
+  alias LAP2.Utils.Generator
   alias LAP2.Networking.Resolver
-  alias LAP2.Utils.ProtoBuf.CloveHelper
   alias LAP2.Networking.Sockets.Lap2Socket
   alias LAP2.Networking.Helpers.State
 
@@ -75,7 +75,7 @@ defmodule LAP2.Networking.Routing.Remote do
   def route_outbound_discovery(state, dest, clove) do
     # Set random drop probability
     {hdr_type, hdr} = clove.headers
-    new_header = {hdr_type, Map.put(hdr, :drop_probab, CloveHelper.gen_drop_probab(0.8, 1.0))}
+    new_header = {hdr_type, Map.put(hdr, :drop_probab, Generator.generate_float(0.8, 1.0))}
     clove = Map.put(clove, :headers, new_header)
     # Route clove
     udp_name = state.config.registry_table.udp_server

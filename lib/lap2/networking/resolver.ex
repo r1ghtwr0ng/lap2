@@ -5,8 +5,8 @@ defmodule LAP2.Networking.Resolver do
 
   require Logger
   alias LAP2.Networking.Router
+  alias LAP2.Utils.Generator
   alias LAP2.Utils.ProtoBuf.QueryHelper
-  alias LAP2.Utils.ProtoBuf.CloveHelper
 
   # ---- Public functions ----
   @doc """
@@ -16,7 +16,7 @@ defmodule LAP2.Networking.Resolver do
   def build_dht_query() do
     # TODO build query
     QueryHelper.build_dht_request_header()
-    |> QueryHelper.build_query(CloveHelper.gen_seq_num(), <<>>)
+    |> QueryHelper.build_query(Generator.generate_integer(8), <<>>)
   end
 
   @doc """

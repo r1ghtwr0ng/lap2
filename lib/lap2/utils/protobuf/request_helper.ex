@@ -5,10 +5,10 @@ defmodule LAP2.Utils.ProtoBuf.RequestHelper do
   """
 
   require Logger
+  alias LAP2.Utils.Generator
   alias LAP2.Networking.ProtoBuf
   alias LAP2.Crypto.CryptoManager
   alias LAP2.Crypto.Helpers.CryptoStructHelper
-  alias LAP2.Utils.ProtoBuf.CloveHelper
 
   # ---- Build Requests ----
   @doc """
@@ -17,7 +17,7 @@ defmodule LAP2.Utils.ProtoBuf.RequestHelper do
   @spec init_exchange(atom) ::
     {:ok, EncryptedRequest.t()} | {:error, atom}
   def init_exchange(crypto_mgr) do
-    request_id = CloveHelper.gen_seq_num() # TOGO gen
+    request_id = Generator.generate_integer(8) # TOGO gen
     case CryptoStructHelper.gen_init_crypto(request_id, crypto_mgr) do
       {:ok, %{
         crypto_struct: temp_crypto_struct,
