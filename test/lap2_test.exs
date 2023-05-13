@@ -7,55 +7,23 @@ defmodule LAP2Test do
   alias LAP2.Utils.ProtoBuf.CloveHelper
 
   # Configs
-  defp make_config(addr, udp_port) do
+  def make_config(addr, udp_port, tcp_port) do
+    registry_table = make_registry_table(addr)
     %{
       main_supervisor: %{name: String.to_atom("lap2_daemon_#{addr}")},
       task_supervisor: %{max_children: 10, name: String.to_atom("lap2_superv_#{addr}")},
       conn_supervisor: %{
         name: String.to_atom("conn_supervisor_#{addr}"),
-        registry_table: %{
-          conn_supervisor: String.to_atom("conn_supervisor_#{addr}"),
-          master: String.to_atom("master_#{addr}"),
-          proxy_manager: String.to_atom("proxy_manager_#{addr}"),
-          share_handler: String.to_atom("share_handler_#{addr}"),
-          router: String.to_atom("router_#{addr}"),
-          main_supervisor: String.to_atom("lap2_daemon_#{addr}"),
-          task_supervisor: String.to_atom("lap2_superv_#{addr}"),
-          tcp_server: String.to_atom("tcp_server_#{addr}"),
-          udp_server: String.to_atom("udp_server_#{addr}"),
-          crypto_manager: String.to_atom("crypto_manager_#{addr}")
-        },
+        registry_table: registry_table,
         max_service_providers: 10
       },
       master: %{
         name: String.to_atom("master_#{addr}"),
-        registry_table: %{
-          conn_supervisor: String.to_atom("conn_supervisor_#{addr}"),
-          master: String.to_atom("master_#{addr}"),
-          proxy_manager: String.to_atom("proxy_manager_#{addr}"),
-          share_handler: String.to_atom("share_handler_#{addr}"),
-          router: String.to_atom("router_#{addr}"),
-          main_supervisor: String.to_atom("lap2_daemon_#{addr}"),
-          task_supervisor: String.to_atom("lap2_superv_#{addr}"),
-          tcp_server: String.to_atom("tcp_server_#{addr}"),
-          udp_server: String.to_atom("udp_server_#{addr}"),
-          crypto_manager: String.to_atom("crypto_manager_#{addr}")
-        }
+        registry_table: registry_table
       },
       proxy_manager: %{
         name: String.to_atom("proxy_manager_#{addr}"),
-        registry_table: %{
-          conn_supervisor: String.to_atom("conn_supervisor_#{addr}"),
-          master: String.to_atom("master_#{addr}"),
-          proxy_manager: String.to_atom("proxy_manager_#{addr}"),
-          share_handler: String.to_atom("share_handler_#{addr}"),
-          router: String.to_atom("router_#{addr}"),
-          main_supervisor: String.to_atom("lap2_daemon_#{addr}"),
-          task_supervisor: String.to_atom("lap2_superv_#{addr}"),
-          tcp_server: String.to_atom("tcp_server_#{addr}"),
-          udp_server: String.to_atom("udp_server_#{addr}"),
-          crypto_manager: String.to_atom("crypto_manager_#{addr}")
-        },
+        registry_table: registry_table,
         clove_casts: 6,
         max_hops: 10,
         min_hops: 1,
@@ -64,18 +32,7 @@ defmodule LAP2Test do
       },
       crypto_manager: %{name: String.to_atom("crypto_manager_#{addr}"),
         identity: "IDENT_#{addr}",
-        registry_table: %{
-          conn_supervisor: String.to_atom("conn_supervisor_#{addr}"),
-          master: String.to_atom("master_#{addr}"),
-          proxy_manager: String.to_atom("proxy_manager_#{addr}"),
-          share_handler: String.to_atom("share_handler_#{addr}"),
-          router: String.to_atom("router_#{addr}"),
-          main_supervisor: String.to_atom("lap2_daemon_#{addr}"),
-          task_supervisor: String.to_atom("lap2_superv_#{addr}"),
-          tcp_server: String.to_atom("tcp_server_#{addr}"),
-          udp_server: String.to_atom("udp_server_#{addr}"),
-          crypto_manager: String.to_atom("crypto_manager_#{addr}")
-        }},
+        registry_table: registry_table},
       router: %{
         clove_cache_size: 1000,
         clove_cache_ttl: 30000,
@@ -83,18 +40,7 @@ defmodule LAP2Test do
         name: String.to_atom("router_#{addr}"),
         proxy_limit: 20,
         proxy_policy: true,
-        registry_table: %{
-          conn_supervisor: String.to_atom("conn_supervisor_#{addr}"),
-          master: String.to_atom("master_#{addr}"),
-          proxy_manager: String.to_atom("proxy_manager_#{addr}"),
-          share_handler: String.to_atom("share_handler_#{addr}"),
-          router: String.to_atom("router_#{addr}"),
-          main_supervisor: String.to_atom("lap2_daemon_#{addr}"),
-          task_supervisor: String.to_atom("lap2_superv_#{addr}"),
-          tcp_server: String.to_atom("tcp_server_#{addr}"),
-          udp_server: String.to_atom("udp_server_#{addr}"),
-          crypto_manager: String.to_atom("crypto_manager_#{addr}")
-        },
+        registry_table: registry_table,
         relay_table_size: 5000,
         relay_table_ttl: 1_800_000
       },
@@ -102,57 +48,40 @@ defmodule LAP2Test do
         max_queue_size: 1000,
         name: String.to_atom("tcp_server_#{addr}"),
         queue_interval: 100,
-        registry_table: %{
-          conn_supervisor: String.to_atom("conn_supervisor_#{addr}"),
-          master: String.to_atom("master_#{addr}"),
-          proxy_manager: String.to_atom("proxy_manager_#{addr}"),
-          share_handler: String.to_atom("share_handler_#{addr}"),
-          router: String.to_atom("router_#{addr}"),
-          main_supervisor: String.to_atom("lap2_daemon_#{addr}"),
-          task_supervisor: String.to_atom("lap2_superv_#{addr}"),
-          tcp_server: String.to_atom("tcp_server_#{addr}"),
-          udp_server: String.to_atom("udp_server_#{addr}"),
-          crypto_manager: String.to_atom("crypto_manager_#{addr}")
-        },
+        registry_table: registry_table,
         req_timeout: 50000,
-        tcp_port: udp_port # TODO get a TCP_PORT arg to maybe make this less confusing but for now its fine
+        tcp_port: tcp_port
       },
       udp_server: %{
         max_dgram_handlers: 10,
         max_queue_size: 1000,
         name: String.to_atom("udp_server_#{addr}"),
         queue_interval: 100,
-        registry_table: %{
-          conn_supervisor: String.to_atom("conn_supervisor_#{addr}"),
-          master: String.to_atom("master_#{addr}"),
-          proxy_manager: String.to_atom("proxy_manager_#{addr}"),
-          share_handler: String.to_atom("share_handler_#{addr}"),
-          router: String.to_atom("router_#{addr}"),
-          main_supervisor: String.to_atom("lap2_daemon_#{addr}"),
-          task_supervisor: String.to_atom("lap2_superv_#{addr}"),
-          tcp_server: String.to_atom("tcp_server_#{addr}"),
-          udp_server: String.to_atom("udp_server_#{addr}"),
-          crypto_manager: String.to_atom("crypto_manager_#{addr}")
-        },
+        registry_table: registry_table,
         req_timeout: 50000,
         udp_port: udp_port
       },
       share_handler: %{
         name: String.to_atom("share_handler_#{addr}"),
-        registry_table: %{
-          conn_supervisor: String.to_atom("conn_supervisor_#{addr}"),
-          master: String.to_atom("master_#{addr}"),
-          proxy_manager: String.to_atom("proxy_manager_#{addr}"),
-          share_handler: String.to_atom("share_handler_#{addr}"),
-          router: String.to_atom("router_#{addr}"),
-          main_supervisor: String.to_atom("lap2_daemon_#{addr}"),
-          task_supervisor: String.to_atom("lap2_superv_#{addr}"),
-          tcp_server: String.to_atom("tcp_server_#{addr}"),
-          udp_server: String.to_atom("udp_server_#{addr}"),
-          crypto_manager: String.to_atom("crypto_manager_#{addr}")
-        },
+        registry_table: registry_table,
         share_ttl: 60000
       }
+    }
+  end
+
+  @spec make_registry_table(String.t) :: map
+  defp make_registry_table(addr) do
+    %{
+      conn_supervisor: String.to_atom("conn_supervisor_#{addr}"),
+      master: String.to_atom("master_#{addr}"),
+      proxy_manager: String.to_atom("proxy_manager_#{addr}"),
+      share_handler: String.to_atom("share_handler_#{addr}"),
+      router: String.to_atom("router_#{addr}"),
+      main_supervisor: String.to_atom("lap2_daemon_#{addr}"),
+      task_supervisor: String.to_atom("lap2_superv_#{addr}"),
+      tcp_server: String.to_atom("tcp_server_#{addr}"),
+      udp_server: String.to_atom("udp_server_#{addr}"),
+      crypto_manager: String.to_atom("crypto_manager_#{addr}")
     }
   end
 
@@ -162,8 +91,7 @@ defmodule LAP2Test do
         {:ok, pid} ->
           assert Process.alive?(pid)
           assert Process.alive?(GenServer.whereis({:global, :router}))
-          # TODO uncomment once TCP Server is implemented
-          # assert Process.alive?(GenServer.whereis({:global, config.tcp_server.name}))
+          assert Process.alive?(GenServer.whereis({:global, :tcp_server}))
           assert Process.alive?(GenServer.whereis({:global, :udp_server}))
           assert Process.alive?(GenServer.whereis({:global, :share_handler}))
           assert :ok == Supervisor.stop(pid)
@@ -177,7 +105,7 @@ defmodule LAP2Test do
   describe "start/1" do
     test "Test starting from custom config map" do
       addr = :crypto.strong_rand_bytes(16) |> Base.encode16()
-      config = make_config(addr, 0)
+      config = make_config(addr, 0, 0)
 
       case LAP2.start(config) do
         {:ok, pid} ->
@@ -203,8 +131,8 @@ defmodule LAP2Test do
       bstrp_port = 0
       port = 0
 
-      main_config = make_config(addr, port)
-      bstrp_config = make_config(bstrp_addr, bstrp_port)
+      main_config = make_config(addr, port, 0)
+      bstrp_config = make_config(bstrp_addr, port, 0)
 
       case LAP2.start(main_config) do
         {:ok, main_pid} ->
