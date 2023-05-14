@@ -14,7 +14,7 @@ alias LAP2.Crypto.Constructions.ClaimableRS
 alias LAP2.Services.FileIO
 alias LAP2.Utils.Generator
 
-defmodule Utilities do
+defmodule NetUtils do
   @spec make_registry_table(String.t) :: map
   def make_registry_table(addr) do
     %{
@@ -94,36 +94,254 @@ defmodule Utilities do
     }
   end
 
-  # Spawn a node
-  def spawn_node(:verbose, cfg) do
+  # Start a node
+  @spec start_node(map) :: :ok | :error
+  def start_node(cfg) do
     case LAP2.start(cfg) do
       {:ok, pid} ->
-        {:ok, pid}
+        registry = %{
+          genservers: cfg.master.registry_table,
+          ip_addr: {"127.0.0.1", cfg.tcp_server.tcp_port},
+          pid: pid
+        }
+        :ets.insert(:network_registry, {lap2_addr, registry})
+        :ok
+
       {:error, reason} ->
         Logger.error("Failed to start node: #{inspect(reason)}")
+        :error
     end
-  end
-  def spawn_node(:silent, cfg) do
-    # TODO
-    LAP2.start(cfg)
   end
 
-  # Spawn a network of nodes
-  def spawn_network(mode, nodes, starting_port) do
-    :ets.new(:network_registry, [:named_table, :set, :public])
-    case starting_port do
-      0 ->
-        Enum.map(0..nodes, fn _ ->
-          lap2_addr = Generator.generate_hex(8)
-          cfg = make_config(lap2_addr, 0, 0)
-          spawn_node(mode, cfg)
-        end)
-      _ ->
-        Enum.map(0..nodes, fn i ->
-          lap2_addr = Generator.generate_hex(8)
-          cfg = make_config(lap2_addr, starting_port + i, starting_port + i)
-          spawn_node(mode, cfg)
-        end)
+  # Start a network of nodes, return a list of their network addresses
+  @spec start_network(non_neg_integer, non_neg_integer) :: list(String.t())
+  def start_network(nodes, starting_port) do
+    # Create the network registry ETS if it doesn't exist
+    case :ets.whereis(:network_registry) do
+      :undefined -> :ets.new(:network_registry, [:named_table, :set, :public])
+      _ -> :ok
+    end
+    Enum.map(0..nodes-1, fn i ->
+      lap2_addr = Generator.generate_hex(8)
+      udp_port = starting_port + i
+      tcp_port = udp_port
+      cfg = make_config(lap2_addr, udp_port, tcp_port)
+      case start_node(cfg) do
+        :ok -> lap2_addr
+        :error -> nil
+      end
+    end)
+    |> Enum.filter(&(&1 != nil))
+  end
+
+  # Wrapper for retry_anon_proxy/2
+  @spec find_anon_proxy(String.t()) :: :ok | :error
+  def find_anon_proxy(lap2_addr), do: retry_anon_proxy(lap2_addr, 0)
+
+  # Register a service provider with an introduction point from the proxy pool
+  @spec find_intro_point(String.t(), String.t()) :: :ok | :error
+  def find_intro_point(lap2_addr, service_id) do
+    case :ets.lookup(:network_registry, lap2_addr) do
+      {_, %{genservers: %{master: master}}} ->
+        Master.setup_introduction_point(service_id, master)
+
+      _ -> :error
     end
   end
+
+  # Seed a single (random) network node's DHT table
+  @spec seed_node() :: {:ok, {String.t(), non_neg_integer}} | {:error, :no_nodes}
+  def seed_node() do
+    # Define a lambda to run on the network map
+    seed_lambda = fn network_map ->
+      {seed_addr, seed_ip} = Enum.random(network_map)
+      [{_, %{genservers: %{router: router}}}] = :ets.lookup(:network_registry, seed_addr)
+      add_dht(network_map, router)
+      {:ok, seed_ip}
+    end
+    # Run the lambda on the network map
+    map_network(seed_lambda)
+  end
+
+  # Seed all of the nodes in the network
+  @spec seed_network() :: :ok | :error
+  def seed_network() do
+    # Define a lambda to run on the network map
+    seed_all = fn network_map ->
+      Enum.each(network_map, fn {addr, _} ->
+        [{_, %{genservers: %{router: router}}}] = :ets.lookup(:network_registry, addr)
+        add_dht(network_map, router)
+      end)
+      :ok
+    end
+    # Run the lambda on the network map
+    map_network(seed_all)
+  end
+
+  # Make a node request DHT updates from an (already seeded) single node
+  @spec bootstrap_single(String.t(), {String.t(), non_neg_integer}) :: :ok | :error
+  def bootstrap_single(lap2_addr, seed_ip) do
+    case :ets.lookup(:network_registry, lap2_addr) do
+      [{_, %{ip_addr: ^seed_ip}}] -> :ok # Don't bootstrap from self
+      [{_, %{genservers: %{master: master}}}] ->
+        Master.bootstrap_dht(seed_ip, master)
+
+      [] ->
+        Logger.error("Node not found: #{lap2_addr}")
+        :error
+    end
+  end
+
+  # Bootstrap all nodes in the network, without seeding
+  @spec bootstrap_network() :: :ok | :error
+  def bootstrap_network() do
+    # Define a lambda to run on the network map
+    bootstrap_lambda = fn network_map ->
+      case seed_node() do
+        {:ok, seed_ip} ->
+          Logger.info("Seeded DHT with #{inspect seed_ip}")
+          Enum.each(network_map, fn
+            {_, ^seed_ip} -> :ok # Don't bootstrap from self
+            {lap2_addr, _} ->
+              bootstrap_single(lap2_addr, seed_ip)
+              :timer.sleep(50) # Allow the network requests to propagate
+          end)
+
+        {:error, :no_nodes} ->
+          Logger.error("No nodes found to seed DHT")
+          :error
+      end
+    end
+    # Run the lambda on the network map
+    map_network(bootstrap_lambda)
+  end
+
+  # Stop a single nodes in the network
+  @spec stop_node(String.t()) :: :ok | :error
+  def stop_node(lap2_addr) do
+    case :ets.lookup(:network_registry, lap2_addr) do
+      [{_, %{pid: pid}}] ->
+        # Kill the process supervisor and remove the node from the registry
+        Logger.info("Stopping node: #{lap2_addr}")
+        :ets.delete(:network_registry, lap2_addr)
+        LAP2.kill(pid)
+
+      [] ->
+        Logger.error("Node not found: #{lap2_addr}")
+        :error
+    end
+  end
+
+  # Stop all nodes in the network
+  @spec stop_network() :: :ok | :error
+  def stop_network() do
+    # Define a lambda to run on the network map
+    stop_lambda = fn network_map ->
+      Enum.each(network_map, fn {lap2_addr, _} ->
+        stop_node(lap2_addr)
+      end)
+      :ok
+    end
+    # Run the lambda on the network map
+    map_network(stop_lambda)
+    # Delete the network registry ETS
+    :ets.delete(:network_registry)
+  end
+
+  # Inspect DHT entries for a specific node
+  @spec inspect_dht(String.t()) :: :ok | :error
+  def inspect_dht(lap2_addr) do
+    case :ets.lookup(:network_registry, lap2_addr) do
+      [{_, %{genservers: %{router: router}}}] ->
+        Router.debug(router).routing_table
+
+      [] ->
+        Logger.error("Node not found: #{lap2_addr}")
+        :error
+    end
+  end
+
+  # List all introduction points
+  @spec list_introduction_points() :: map
+  def list_introduction_points() do
+    :ets.tab2list(:network_registry)
+    |> Enum.reduce(%{}, fn
+      {addr, %{genservers: %{conn_supervisor: cs}}}, acc ->
+        IO.inspect(cs, label: "Connection Supervisor")
+        case ConnectionSupervisor.debug(cs).service_providers do
+          serv_ids when map_size(serv_ids) == 0 -> acc
+          serv_ids -> Map.put(acc, addr, serv_ids)
+        end
+    end)
+  end
+
+  # Attempt to establish an anonymous proxy in the network
+  @spec retry_anon_proxy(String.t(), non_neg_integer) :: :ok | :error
+  defp retry_anon_proxy(_, 5), do: Logger.error("Unable to find proxy after 5 attempts"); :error
+  defp retry_anon_proxy(lap2_addr, iter) do
+    case :ets.lookup(:network_registry, lap2_addr) do
+      [{_, registry}] ->
+        proxies = map_size(get_proxy_pool(registry.genservers.proxy_manager))
+        IO.inspect(proxies, label: "Proxies")
+        Master.discover_proxy(registry.genservers.master)
+        :timer.sleep(500)
+        cond do
+          map_size(get_proxy_pool(registry.genservers.proxy_manager)) > proxies ->
+            :ok
+          true ->
+            Logger.warn("Failed to find anonymous proxy, retrying (attempt: #{iter + 1})")
+            retry_anon_proxy(lap2_addr, iter + 1)
+        end
+
+      [] ->
+        Logger.error("Failed to find anonymous proxy: network address not found")
+        :error
+    end
+  end
+
+  # Get the proxy pool for a node
+  @spec get_proxy_pool(atom) :: map
+  defp get_proxy_pool(proxy_mgr) do
+    Map.get(ProxyManager.debug(proxy_mgr), :proxy_pool)
+  end
+
+  # Get all LAP2 => IP address mappings in the network
+  @spec get_network_map() :: map
+  defp get_network_map() do
+    :ets.tab2list(:network_registry)
+    |> Enum.reduce(%{}, fn {lap2_addr, registry}, acc ->
+      ip_addr = Map.get(registry, :ip_addr)
+      Map.put(acc, lap2_addr, ip_addr)
+    end)
+  end
+
+  # Perform a function over all network nodes
+  @spec map_network(term) :: {:ok, any} | {:error, :no_nodes}
+  defp map_network(lambda) do
+    case get_network_map() do
+      [] ->
+        Logger.error("No nodes in network")
+        {:error, :no_nodes}
+
+      network_map -> lambda.(network_map)
+    end
+  end
+
+  # Add entries to a node's DHT table
+  @spec add_dht(map, atom) :: :ok
+  defp add_dht(network_map, router) do
+    Enum.each(network_map, fn {addr, ip} ->
+      Router.append_dht(addr, ip, router)
+    end)
+  end
 end
+
+# Provide utilities for testing cryptographic modules
+# defmodule CryptoUtils do
+
+# end
+
+# Provide utilities for the FileIO service
+# defmodule FileUtils do
+
+# end

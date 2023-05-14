@@ -26,7 +26,7 @@
 ---
 ## **Usage** 
 
-The documentation for LAP2 project can be found [here](https://r1ghtwr0ng.github.io/lap2/LAP2.html).<br>
+The documentation for the LAP2 project can be found [here](https://r1ghtwr0ng.github.io/lap2/LAP2.html).<br>
 It is recommended that you use the project inside a Docker container. To do that, follow the instructions in the next section:
 
 ### **Docker Setup**
@@ -59,35 +59,161 @@ It is recommended that you use the project inside a Docker container. To do that
     ```
 
 - The shell can be exited by pressing `Ctrl+C` twice.
-- The IEx shell can be used to test out much of the functionality of the modules in the project (with the exception of private functions). The following sections show some examples of how to test out some of LAP2's most important features.
-#### **Networking**
-- In order to simulate a network environment, multiple nodes can be spawned simultaneously. This can be done using the `spawn_network` function, made available by the utility script. The function takes in the number of nodes to spawn and the port to use for the first node (subsequent nodes' port numbers are incremented by 1). The function returns a hash map of network and IP addresses for the instanciated nodes. For example, to spawn 5 nodes starting from port 5000 and save the return in the addresses variable, run the following command:
+- The IEx shell can be used to test out much of the functionality of the modules in the project (with the exception of private functions). The following sections show some examples of how to test out some of LAP2's most important features. If needed, a short syntax reference for Elixir can be found [here](https://hexdocs.pm/elixir/1.12.3/syntax-reference.html), however the code examples should provide enough context to understand what is going on. 
+---
+### **File transfer example**
+We can test out the file transfer functionality of the project by using the `NetUtils` module to simulate the network of nodes and then using the `FileUtils` module to transfer files between them.
+Here is a general example of testing out file transfer over the simulated LAP2 network inside the IEx shell:
+
+```elixir
+iex> addresses = NetUtils.spawn_network(100, 40000) # Start network
+iex> NetUtils.bootstrap_network() # Setup routing tables
+iex> host = Enum.random(addresses) # Pick a random host
+iex> client = Enum.random(addresses) # Pick a random client
+iex> Enum.each(0..5, fn _ -> # Establish anonymous routes
+...         NetUtils.find_anon_proxy(host)
+...         NetUtils.find_anon_proxy(client)
+...     end)
+iex> # TODO
+iex> NetUtils.stop_network() # Stop the network
+```
+
+### **C-RSDAKE example**
+In the previous example C-RSDAKE was used during the anonymous route establishment phase. To test out the C-RSDAKE protocol in isolation, we can use the `CryptoUtils` module.
+Here is a general example of testing out the C-RSDAKE protocol inside the IEx shell:
+
+```elixir
+iex> # TODO
+```
+For more detailed usage instructions as well as more specific test examples for the various modules, refer to the sections below.
+
+---
+### **NetUtils Module (Networking)**
+
+To start off, use the `NetUtils.spawn_network` function to simulate a network environment by starting multiple network nodes simultaneously.
+
+#### **_Arguments:_**
+
+This function takes the following arguments:
+
+1. `num_nodes`: (integer) The number of nodes to be started.
+2. `start_port`: (integer) The starting port for the first node. The port numbers for subsequent nodes are incremented by 1 from this number.
+
+#### **_Returns:_**
+
+This function returns a list of network addresses (string type) for the spawned nodes.
+
+#### **_Usage Example:_**
+
+In the following example, we are spawning 100 nodes starting from port 40000. The returned network addresses are stored in the `addresses` variable:
+
+```elixir
+iex> addresses = NetUtils.spawn_network(100, 40000)
+```
+> **Note:** The number of running nodes is limited by the number of available ports on the host machine. If you get an error saying that the port is already in use, try using a different port number. Try to run less than 1000 nodes to avoid hitting an open port or experiencing performance issues.
+
+The network address of any node can be obtained using the `Enum` module as such:
+
+```elixir
+iex> address_0 = Enum.at(addresses, 0) # Take the address at index 0
+iex> rand_address = Enum.random(addresses) # Take a random address
+```
+
+Alternatively, nodes can be spawned individually using `NetUtils.start_node`. To do this, first construct a config file for the node using the `NetUtils.make_config` function, then pass the config file to the `NetUtils.start_node` function. However, if `NetUtils.start_network` has not been called before, the ETS table must be created manually before spawning the node. This can be done using the following commands:
+
+```elixir
+iex> :ets.new(:network_registry, [:named_table, :set, :public]) # Create ETS table
+iex> udp_port = 40000 # Set UDP port
+iex> tcp_port = 40000 # Set TCP port
+iex> addr = Generator.generate_hex(8) # Set network address, any string will do
+iex> config = NetUtils.make_config(addr, udp_port, tcp_port) # Create config
+iex> NetUtils.spawn_node(config) # Start node
+```
+---
+Once the network has been started, the nodes' routing tables should be bootstrapped. This can be accomplished in multiple ways:
+
+- If you wish to bootstrap all network nodes **without** making any network requests (quickest and most reliable way), use `NetUtils.seed_network`. This function will update each node's routing table with a copy of the global one (stored in an ETS table). This function takes no arguments:
 
     ```elixir
-    addresses = spawn_network(5, 5000)
+    iex> NetUtils.seed_network()
     ```
-- Once the network has been started, the nodes' routing tables should be bootstrapped. This can be done using the `bootstrap_nodes` utility function. The function takes in the addresses hash map and updates the routing tables of all the nodes with a part of the addresses hash map. For example, to bootstrap the nodes with the addresses hash map created in the previous step, run the following command:
+
+- Alternatively, if you wish to bootstrap all network nodes by using network DHT update requests, use `NetUtils.bootstrap_network`. This function will first seed a single node with the global registry table, then instruct all other nodes to request a DHT update from it. Again, this function takes no arguments and returns an atom of the status of the operation:
 
     ```elixir
-    bootstrap_nodes(addresses)
+    iex> NetUtils.bootstrap_network()
     ```
 
-- If you want to perform routing table updates over the network, then you can use the `bootstrap_single_node` function to bootstrap a single node with the addresses hash map. This function accepts the addresses hash map and the node's LAP2 address as arguments. For example, to bootstrap node #3 with the addresses hash map created in the previous step, run the following command:
+- The final option is to bootstrap individual nodes. To do that, first use `NetUtils.seed_node` to setup a random node's DHT table as before. This function accepts no arguments but returns the IP address and port of the node that was seeded:
 
     ```elixir
-    node_3_address = Enum.at(Enum.keys(addresses), 2)
-    bootstrap_single_node(addresses, node_3_address)
+    iex> {:ok, seed_addr} = NetUtils.seed_node()
     ```
 
-- From here, DHT update requests can be performed over the network. For example, here's how to perform a DHT update request from node #1 to node #3:
+- Then, use `NetUtils.bootstrap_node` to instruct another node to request a DHT update from the seeded node. This function takes the network address of the client node and the IP address and port of DHT provider node:
 
     ```elixir
-    node_1_address = Enum.at(Enum.keys(addresses), 0)
-    update_dht(node_1_address, node_3_address)
+    iex> NetUtils.update_dht(lap2_addr, seed_addr)
     ```
-    
-#### **Cryptography**
+
+    This process can be repeated to bootstrap the entire network (which is exactly what `NetUtils.bootstrap_network` does).
+
+To check the contents of a node's routing table, use `NetUtils.inspect_dht`. This function takes the network address of the node as an argument and returns a map of the node's routing table:
+
+```elixir
+iex> NetUtils.inspect_dht(lap2_addr)
+```
+---
+Once the nodes have had their routing tables set up, they can start communicating with each other. To set up anonymous routes, select any node and use `NetUtils.find_anon_proxy` to instruct it to find an anonymous proxy. This function takes the network address of the node as an argument and returns the status of the operation:
+
+```elixir
+iex> NetUtils.find_anon_proxy(lap2_addr)
+```
+
+The function can be called multiple times to establish multiple proxies:
+
+```elixir
+iex> Enum.each(1..num_proxies, fn _ -> NetUtils.find_anon_proxy(lap2_addr) end)
+```
+
+Once a sufficient number of proxies has been established (depends on config setup, usually >1 in DEV environment), a node can request a random proxy to become its introduction point. To do this, use `NetUtils.find_intro_point`.
+
+**_Arguments:_**
+This function expects the following arguments:
+1. `lap2_addr`: (string) The network address of the node requesting the introduction point.
+2. `service_identifier`: (string) The service identifier of the service that the node wishes to access. See how to generate service identifiers in the [FileUtils](#fileutils-services) section.
+```
+iex> NetUtils.find_intro_point(lap2_addr, service_identifier)
+```
+
+Verify that an introduction point has been setup and find its network address by using `NetUtils.list_intro_points` (no arguments required):
+
+```elixir
+iex> NetUtils.list_intro_points()
+```
+
+Retrieving remote files anonymously is covered in the [FileUtils](#fileutils-services) section.
+
+---
+Finally, to stop the network, use `NetUtils.stop_network`. This function takes no arguments and returns the status of the operation:
+
+```elixir
+iex> NetUtils.stop_network()
+```
+
+If needed, individual nodes can be stopped using `NetUtils.stop_node`. This function takes the network address of the node as an argument and returns the status of the operation:
+
+```elixir
+iex> NetUtils.stop_node(lap2_addr)
+```
+
+This just about covers the networking section of the LAP2 project. The following sections will cover the other modules in the project.
+
+---
+### **(Cryptography)**
 - The cryptographic section has a wide range of modules that can be tested out. To start off, 
+---
+### **FileUtils (Services)**
 ---
 ## **Task List**
 

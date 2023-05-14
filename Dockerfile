@@ -5,6 +5,7 @@ SHELL ["/bin/bash", "-c"]
 
 # Copy the application files
 WORKDIR /app
+COPY .iex.exs /app/.iex.exs
 COPY config /app/config
 COPY lib /app/lib
 COPY native /app/native
