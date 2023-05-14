@@ -1,6 +1,7 @@
 defmodule LAP2.Crypto.KeyExchange.C_RSDAKE do
   @moduledoc """
   This module implements the C-RSDAKE key exchange protocol.
+  See:
   """
 
   # Type definitions
@@ -20,6 +21,11 @@ defmodule LAP2.Crypto.KeyExchange.C_RSDAKE do
 
   @doc """
   Implements RSDAKE's key exchange protocol initialisation phase.
+  ## Arguments
+    * `identity` - The identity of the initiator (charlist)
+  ## Returns
+    * `{:ok, {crypto_state, init_struct}}` - The initialisation message and the new crypto state
+    * `{:error, :invalid_identity}` - The identity is invalid
   """
   @spec initialise(charlist) :: {:ok, {crypto_state(), {:init_ke, KeyExchangeInit.t()}}} | {:error, :invalid_identity}
   def initialise(identity) when is_list(identity) do
@@ -56,6 +62,14 @@ defmodule LAP2.Crypto.KeyExchange.C_RSDAKE do
 
   @doc """
   Implements RSDAKE's response phase.
+  ## Parameters
+    * `identity` - The identity of the responder (charlist)
+    * `sk_lt` - The long-term secret key of the responder (map)
+    * `recv_init` - The received initialisation message (KeyExchangeInit.t())
+  ## Returns
+    * `{:ok, {crypto_state, response_struct}}` - The response message and the new crypto state
+    * `{:error, :invalid_aguments}` - The identity is invalid
+    * `{:error, :invalid_signature}` - The signature is invalid
   """
   @spec respond(charlist, map, KeyExchangeInit.t()) ::
     {:ok, {crypto_state(), {:resp_ke, KeyExchangeResponse.t()}}} | {:error, atom}
@@ -121,6 +135,16 @@ defmodule LAP2.Crypto.KeyExchange.C_RSDAKE do
 
   @doc """
   Implements RSDAKE's finalisation phase.
+  ## Arguments
+    * `identity` - The identity of the responder (charlist)
+    * `sk_lt` - The long-term secret key of the responder (map)
+    * `recv_resp` - The response received from the other party (KeyExchangeResponse.t()
+  ## Returns
+    * {:ok, {crypto_state, {:fin_ke, KeyExchangeFinal.t()}}}
+    * {:error, :invalid_arguments}
+    * {:error, :invalid_signature}
+    * {:error, :invalid_identity}
+    * {:error, :invalid_ring_signature}
   """
   @spec finalise(charlist, crypto_state(), KeyExchangeResponse.t()) ::
   {:ok, {crypto_state(), {:fin_ke, KeyExchangeFinal.t()}}} | {:error, atom}
@@ -180,6 +204,14 @@ defmodule LAP2.Crypto.KeyExchange.C_RSDAKE do
 
   @doc """
   Implements RSDAKE's final response verification phase.
+  ## Arguments
+    * `identity` - The identity of the responder (charlist)
+    * `crypto_state` - The crypto state of the responder (map)
+    * `recv_resp` - The response received from the other party (KeyExchangeResponse.t()
+  ## Returns
+    * {:ok, true | false}
+    * {:error, :invalid_arguments}
+    * {:error, :invalid_ring_signature}
   """
   @spec verify_final(charlist, crypto_state(), KeyExchangeFinal.t()) ::
     {:ok, boolean} | {:error, atom}

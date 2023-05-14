@@ -11,10 +11,14 @@ defmodule LAP2.Crypto.InformationDispersal.RabinIDA do
   # ---- Public Functions ----
   @doc """
   Split the data into the given number of shares.
-  n is the number of shares to split the data into.
-  m is the number of shares required to reconstruct the data (threshold).
+  ## Arguments
+    * `data` - The data to split (binary)
+    * `n` - The number of shares to generate (non-negative integer)
+    * `m` - The size of each share (non-negative integer)
+  ## Returns
+    * A list of shares, each containing the share data and its index (list(map))
   """
-  @spec split(binary, non_neg_integer, non_neg_integer) :: list(binary)
+  @spec split(binary, non_neg_integer, non_neg_integer) :: list(map)
   def split(data, n, m) do
     # Pad the data to be a multiple of m and split it into n chunks of size m
     byte_chunks =
@@ -39,6 +43,11 @@ defmodule LAP2.Crypto.InformationDispersal.RabinIDA do
   Generates the reassembly matrix and performs matrix multiplication with the dat
   a in the shares.
   Finally, the data is un-padded and returned.
+  ## Arguments
+    * `shares` - The shares to reconstruct the data from (list(map))
+  ## Returns
+    * `{:ok, binary}` - The reconstructed data
+    * `{:error, nil}` - The shares are not enough to reconstruct the data
   """
   @spec reconstruct(list(map)) :: {:ok, binary} | {:error, nil}
   def reconstruct(shares) do

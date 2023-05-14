@@ -30,6 +30,13 @@ defmodule LAP2.Crypto.Constructions.ClaimableRS do
   Generate an SAG ring signature for a message.
   This function verifies the validity of the arguments before
   calling the Rust NIF.
+  ## Arguments
+    * `ring_idx` - The index of the ring member in the ring
+    * `sk` - The secret key of the ring member
+    * `ring` - The ring of public keys
+    * `msg` - The message to sign
+  ## Returns
+    * `{:ok, sig}` if the arguments are valid, `{:error, reason}` otherwise
   """
   @spec rs_sign(non_neg_integer, charlist, list(charlist), charlist) ::
     {:error, atom} | {:ok, SAG.t()}
@@ -46,6 +53,12 @@ defmodule LAP2.Crypto.Constructions.ClaimableRS do
 
   @doc """
   Verify an SAG ring signature for a message.
+  ## Arguments
+    * `sag` - The SAG ring signature
+    * `msg` - The message to verify
+  ## Returns
+    * `{:ok, true}` if the signature is valid, `{:ok, false}` otherwise
+    * `{:error, reason}` if the arguments are invalid
   """
   @spec rs_vrfy(SAG.t(), charlist) ::
     {:error, atom} | {:ok, boolean}
@@ -62,6 +75,7 @@ defmodule LAP2.Crypto.Constructions.ClaimableRS do
 
   @doc """
   Generate a Claimable RS (C-RS) key pair.
+  Returns a map with the secret and verification keys (sk, vk) respectively.
   """
   @spec crs_gen() :: %{vk: {charlist, charlist},
     sk: {{charlist, charlist}, charlist, charlist, charlist}}
@@ -80,10 +94,18 @@ defmodule LAP2.Crypto.Constructions.ClaimableRS do
 
   @doc """
   Generate a C-RS signature.
+  ## Arguments
+    * `ring_idx` - The positional index of the signer in the ring (secret).
+    * `sk` - The C-RS secret key tuple.
+    * `ring` - The ring of verification (public) keys.
+    * `msg` - The message to sign (charlist).
+  ## Returns
+    * `{:ok, signature}` - The C-RS signature.
+    * `{:error, reason}` - The reason for failure.
   """
   @spec crs_sign(non_neg_integer, {{charlist, charlist}, charlist, charlist, charlist}, list(charlist), charlist) ::
     {:ok, SAG.t()} | {:error, atom}
-  def crs_sign(ring_idx, {{pk_rs, pk_sig}, sk_rs, sk_sig, sk_prf}, ring, msg) do
+  def crs_sign(ring_idx, {{pk_rs, pk_sig}, sk_rs, sk_sig, sk_prf} = _sk, ring, msg) do
     # Verify the arguments before using unsafe functions
     crypto_structs = [sk_rs, sk_prf, pk_rs]
     case verify_args(ring_idx, ring, crypto_structs) do
@@ -121,6 +143,9 @@ defmodule LAP2.Crypto.Constructions.ClaimableRS do
 
   @doc """
   Verify a C-RS signature.
+  ## Arguments
+    * `sag` - The C-RS signature (SAG.t()).
+    * `msg` - The message to verify (charlist).
   """
   @spec crs_vrfy(SAG.t(), charlist) ::
     {:ok, boolean} | {:error, atom}
@@ -144,10 +169,17 @@ defmodule LAP2.Crypto.Constructions.ClaimableRS do
 
   @doc """
   Generate a claim for a C-RS signature.
+  ## Arguments
+    * `ring_idx` - The positional index of the signer in the ring (secret).
+    * `sk` - The C-RS secret key tuple.
+    * `sag` - The C-RS signature (SAG.t()).
+  ## Returns
+    * `{:ok, claim}` - The C-RS claim ({commitment, signature}).
+    * `{:error, reason}` - The reason for failure.
   """
   @spec crs_claim(non_neg_integer, {{charlist, charlist}, charlist, charlist, charlist}, SAG.t()) ::
     {:ok, {charlist, charlist} | :invalid_commitment} | {:error, atom}
-  def crs_claim(ring_idx, {{pk_rs, vk_sig}, sk_rs, sk_sig, sk_prf}, sag) when is_map_key(sag, :commitment) do
+  def crs_claim(ring_idx, {{pk_rs, vk_sig}, sk_rs, sk_sig, sk_prf} = _sk, sag) when is_map_key(sag, :commitment) do
     # Verify the arguments before using unsafe functions
     crypto_structs = Enum.reduce(sag.resp, [pk_rs, sk_rs, sk_prf, sag.chal, sag.commitment],
     fn x, acc ->
@@ -185,6 +217,10 @@ defmodule LAP2.Crypto.Constructions.ClaimableRS do
 
   @doc """
   Verify the validity of a claim for a C-RS signature.
+  ## Arguments
+    * `vk` - The C-RS verification (public) key.
+    * `sag` - The C-RS signature (SAG.t()).
+    * `claim` - The C-RS claim ({commitment, signature}).
   """
   @spec crs_vrfy_claim({charlist, charlist}, SAG.t(), {charlist, charlist}) ::
     {:ok, boolean} | {:error, atom}
@@ -220,6 +256,10 @@ defmodule LAP2.Crypto.Constructions.ClaimableRS do
 
   @doc """
   Merge a SAG struct to a flat charlist.
+  ## Arguments
+    * `sag` - The SAG struct.
+  ## Returns
+    * `charlist` - The flattened SAG struct.
   """
   @spec sag_to_charlist(SAG.t()) :: charlist
   def sag_to_charlist(sag) do

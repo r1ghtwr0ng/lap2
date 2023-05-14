@@ -11,9 +11,14 @@ defmodule LAP2.Crypto.InformationDispersal.SecureIDA do
 
   # ---- Public Functions ----
   @doc """
-  Split the data into the given number of shares.
-  m is the number of shares required to reconstruct the data (threshold).
-  n is the number of shares to split the data into.
+  Encrypt and split the data into the given number of shares.
+  Encryption keys are split using Shamir's secret sharing, while the data is split using Rabin's IDA.
+  ## Arguments
+    * `data` - The data to split (binary)
+    * `n` - The number of shares to generate (non-negative integer)
+    * `m` - The size of each share (non-negative integer)
+  ## Returns
+    * A list of shares, each containing the share data and its index (list(Share.t()))
   """
   @spec disperse(binary, integer, integer, integer) :: list(Share.t())
   def disperse(data, n, m, message_id) do
@@ -54,8 +59,12 @@ defmodule LAP2.Crypto.InformationDispersal.SecureIDA do
   end
 
   @doc """
-  Reconstruct the data from the given shares.
-  m is the number of shares required to reconstruct the data (threshold).
+  Reconstruct the original data from the given shares.
+  ## Arguments
+    * `shares` - The shares to reconstruct the data from (list(Share.t()))
+  ## Returns
+    * `{:ok, data}` - The reconstructed data (binary)
+    * `{:error, reason}` - The reason why the data could not be reconstructed (binary)
   """
   @spec reconstruct(list(Share)) :: {:ok, binary}
   def reconstruct(shares) do
