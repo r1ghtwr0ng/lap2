@@ -61,7 +61,7 @@ defmodule NetUtils do
       router: %{
         clove_cache_size: 1000,
         clove_cache_ttl: 30000,
-        lap2_addr: "LAP2_ADDR_#{addr}",
+        lap2_addr: addr,
         name: String.to_atom("router_#{addr}"),
         proxy_limit: 20,
         proxy_policy: true,
@@ -104,7 +104,7 @@ defmodule NetUtils do
           ip_addr: {"127.0.0.1", cfg.tcp_server.tcp_port},
           pid: pid
         }
-        :ets.insert(:network_registry, {lap2_addr, registry})
+        :ets.insert(:network_registry, {cfg.router.lap2_addr, registry})
         :ok
 
       {:error, reason} ->
@@ -335,13 +335,3 @@ defmodule NetUtils do
     end)
   end
 end
-
-# Provide utilities for testing cryptographic modules
-# defmodule CryptoUtils do
-
-# end
-
-# Provide utilities for the FileIO service
-# defmodule FileUtils do
-
-# end
