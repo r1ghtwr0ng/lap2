@@ -109,16 +109,21 @@ defmodule LAP2.Main.StructHandlers.ShareHandler do
   # ---- Private Functions ----
   @spec reassemble(map, Share.t(), map) :: {:reconstructed, binary, list} | :dropped
   defp reassemble(state, share, aux_data) do
-    {:ok, ets_struct} = EtsHelper.get_value(state.ets, share.message_id)
-    EtsHelper.delete_value(state.ets, share.message_id)
-    all_shares = [share | ets_struct.shares]
-    aux_list = [aux_data | ets_struct.aux_data]
-    case ShareHelper.reconstruct(all_shares) do
-      {:ok, reconstructed} ->
-        {:reconstructed, reconstructed, aux_list}
+    case EtsHelper.get_value(state.ets, share.message_id) do
+      {:ok, ets_struct} ->
+        EtsHelper.delete_value(state.ets, share.message_id)
+        all_shares = [share | ets_struct.shares]
+        aux_list = [aux_data | ets_struct.aux_data]
+        case ShareHelper.reconstruct(all_shares) do
+          {:ok, reconstructed} ->
+            {:reconstructed, reconstructed, aux_list}
 
-      {:error, reason} ->
-        Logger.error("Request reconstruction failed: #{reason}")
+          {:error, reason} ->
+            Logger.error("Request reconstruction failed: #{reason}")
+            :dropped
+        end
+      {:error, :not_found} ->
+        Logger.warn("[+] ShareHandler: Share not found in ETS")
         :dropped
     end
   end

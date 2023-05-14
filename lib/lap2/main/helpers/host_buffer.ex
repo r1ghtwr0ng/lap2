@@ -86,7 +86,7 @@ defmodule LAP2.Main.Helpers.HostBuffer do
               query_ids: query_ids
             }
             Master.get_listener_struct(listener, registry_table.master)
-            |> ListenerHandler.deliver_to_listener(cmd, registry_table.master)
+            |> ListenerHandler.deliver_to_listener(cmd)
         end
 
       :cached -> Master.cache_query(query, aux_data, service_id, registry_table.master)
@@ -141,6 +141,5 @@ defmodule LAP2.Main.Helpers.HostBuffer do
       |> QueryHelper.build_query(qid, serial)
     end)
     |> ConnectionSupervisor.send_queries(registry_table)
-    :ok
   end
 end

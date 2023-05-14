@@ -173,8 +173,7 @@ cfg_1 = Enum.at(configs, 1)
 master_0 = cfg_0.master.name
 master_1 = cfg_1.master.name
 
-srv_id = "fileiosrv_#{:crypto.strong_rand_bytes(4) |> Base.encode16}"
-FileIO.run_service(srv_id, master_0)
+{:ok, srv_id} = FileIO.run_service(master_0)
 Master.discover_proxy(master_0)
 Master.discover_proxy(master_0)
 Master.discover_proxy(master_0)
@@ -186,4 +185,5 @@ req = %{filename: "README.md"} |> Jason.encode!()
 Master.setup_introduction_point([srv_id], master_0)
 Master.setup_introduction_point([srv_id], master_0)
 check = fn port -> Map.get(ConnectionSupervisor.debug(String.to_atom("conn_supervisor_#{port}")), :service_providers); end
-{:ok, listener_id} = Master.register_listener(:stdout, master_1)
+Enum.each(configs, fn cfg -> IO.inspect(ConnectionSupervisor.debug(cfg.conn_supervisor.name).service_providers); end)
+{:ok, recv_srv_id} = FileIO.run_service(master_1)

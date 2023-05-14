@@ -20,7 +20,7 @@ defmodule LAP2.Main.Helpers.ListenerHandler do
 
     Master.get_service_target(listener_id, master_name)
     |> case do
-      {:ok, listener} -> deliver_to_listener(listener, cmd, master_name)
+      {:ok, listener} -> deliver_to_listener(listener, cmd)
       {:error, _} -> Logger.error("Invalid stream ID: #{inspect listener_id}")
     end
   end
@@ -37,12 +37,12 @@ defmodule LAP2.Main.Helpers.ListenerHandler do
   @doc """
   Deliver a JSON command to a listener.
   """
-  @spec deliver_to_listener(atom | tuple, map, atom) :: :ok | :error
-  def deliver_to_listener(listener_id, cmd, master_name) do
+  @spec deliver_to_listener(atom | tuple, map) :: :ok | :error
+  def deliver_to_listener(listener_id, cmd) do
     case listener_id do
       :stdout -> IO.inspect(cmd, label: "[STDOUT]")
       {:tcp, addr} -> IO.inspect(cmd, label: "[TCP] #{inspect addr}") # TODO
-      {:native, funct, name} -> funct.(cmd, master_name, name)
+      {:native, funct, name} -> funct.(cmd, name)
       list -> Logger.error("Unknown listener type: #{inspect list}")
     end
   end
