@@ -48,14 +48,46 @@ It is recommended that you use the project inside a Docker container. To do that
 
     That's it! Now you can use the project inside a Docker container.
 
-### **LAP2 Debug Shell**
-- TODO not completed yet
-- The LAP2 project provides an interactive debug shell for testing out various features of the project. To start the shell, run the following command in the root directory:
+    **Note:** If ran interactively using docker, the project should automatically start in the IEx shell (unless the Dockerfile entrypoint is changed).
+
+### **IEx interactive shell**
+
+- The LAP2 project can be demoed using Elixir's interactive shell (IEx). To improve the user experience, a utility script sets up the IEx environment (aliases, utility lambdas, etc). To start the shell, run the following command in the root directory:
 
     ```bash
     mix run
     ```
-    **Note:** If ran interactively using docker, the project should automatically start in the debug shell.
+
+- The shell can be exited by pressing `Ctrl+C` twice.
+- The IEx shell can be used to test out much of the functionality of the modules in the project (with the exception of private functions). The following sections show some examples of how to test out some of LAP2's most important features.
+#### **Networking**
+- In order to simulate a network environment, multiple nodes can be spawned simultaneously. This can be done using the `spawn_network` function, made available by the utility script. The function takes in the number of nodes to spawn and the port to use for the first node (subsequent nodes' port numbers are incremented by 1). The function returns a hash map of network and IP addresses for the instanciated nodes. For example, to spawn 5 nodes starting from port 5000 and save the return in the addresses variable, run the following command:
+
+    ```elixir
+    addresses = spawn_network(5, 5000)
+    ```
+- Once the network has been started, the nodes' routing tables should be bootstrapped. This can be done using the `bootstrap_nodes` utility function. The function takes in the addresses hash map and updates the routing tables of all the nodes with a part of the addresses hash map. For example, to bootstrap the nodes with the addresses hash map created in the previous step, run the following command:
+
+    ```elixir
+    bootstrap_nodes(addresses)
+    ```
+
+- If you want to perform routing table updates over the network, then you can use the `bootstrap_single_node` function to bootstrap a single node with the addresses hash map. This function accepts the addresses hash map and the node's LAP2 address as arguments. For example, to bootstrap node #3 with the addresses hash map created in the previous step, run the following command:
+
+    ```elixir
+    node_3_address = Enum.at(Enum.keys(addresses), 2)
+    bootstrap_single_node(addresses, node_3_address)
+    ```
+
+- From here, DHT update requests can be performed over the network. For example, here's how to perform a DHT update request from node #1 to node #3:
+
+    ```elixir
+    node_1_address = Enum.at(Enum.keys(addresses), 0)
+    update_dht(node_1_address, node_3_address)
+    ```
+    
+#### **Cryptography**
+- The cryptographic section has a wide range of modules that can be tested out. To start off, 
 ---
 ## **Task List**
 
