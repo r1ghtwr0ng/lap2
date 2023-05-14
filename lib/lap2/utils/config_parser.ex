@@ -49,10 +49,11 @@ defmodule LAP2.Utils.ConfigParser do
   end
 
   # Get the config path based on the environment, default to DEBUG if not PROD
+  # TODO fix to use Mix.env
   @spec get_config_path(String.t()) :: String.t()
   defp get_config_path("PROD"),
     do: System.get_env("LAP2_PROD_CONFIG_PATH") || "./config/prod_config.json"
 
   defp get_config_path(_),
-    do: System.get_env("LAP2_DEBUG_CONFIG_PATH") || "./config/debug_config.json"
+    do: System.get_env("LAP2_DEV_CONFIG_PATH") || "./config/dev_config.json"
 end

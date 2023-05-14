@@ -8,10 +8,10 @@ defmodule LAP2 do
 
   @doc """
   Start the server without a config file.
-  The config files`debug_config.json` and `prod_config.json` can be found in the config dir.
+  The config files`dev_config.json` and `prod_config.json` can be found in the config dir.
   By default, the DEBUG config is used, if the environment variable `LAP2_ENV` is set to
   `PROD`, the prod config is used. To use a custom config file, set the environment variable
-  `LAP2_PROD_CONFIG_PATH` or `LAP2_DEBUG_CONFIG_PATH` to the path of the config file.
+  `LAP2_PROD_CONFIG_PATH` or `LAP2_DEV_CONFIG_PATH` to the path of the config file.
   """
   @spec start :: {:error, any} | {:ok, pid}
   def start() do
@@ -36,17 +36,17 @@ defmodule LAP2 do
   end
 
   @doc """
-  Kill supervisor and its children
+  Kill main process supervisor (this stops the whole supervision tree)
   """
   @spec kill(pid) :: :ok
   def kill(pid), do: Supervisor.stop(pid)
 
-  # Load the config file and handle thrown errors (by dying lol)
+  # Load the config file and handle thrown errors
   @spec load_config :: {:ok, map} | :init.stop()
   def load_config() do
     try do
       # Selects appropriate config for DEBUG or PROD environment
-      env = System.get_env("LAP2_ENV") || "DEBUG"
+      env = System.get_env("LAP2_ENV") || "DEV"
       # Get coonfig
       ConfigParser.get_config(env)
     rescue
@@ -59,7 +59,7 @@ defmodule LAP2 do
     end
   end
 
-  # Start the supervisor and spawns the children
+  # Starts the supervisor tree
   @spec start_supervisor(map) :: {:ok, pid} | {:error, any}
   defp start_supervisor(config) do
     opts = [strategy: :one_for_one, name: {:global, config.main_supervisor.name}]
