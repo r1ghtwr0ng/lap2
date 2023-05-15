@@ -139,11 +139,11 @@ defmodule NetUtils do
   def find_anon_proxy(lap2_addr), do: retry_anon_proxy(lap2_addr, 0)
 
   # Register a service provider with an introduction point from the proxy pool
-  @spec find_intro_point(String.t(), String.t()) :: :ok | :error
-  def find_intro_point(lap2_addr, service_id) do
+  @spec find_intro_point(String.t(), list(String.t())) :: :ok | :error
+  def find_intro_point(lap2_addr, service_ids) do
     case :ets.lookup(:network_registry, lap2_addr) do
-      {_, %{genservers: %{master: master}}} ->
-        Master.setup_introduction_point(service_id, master)
+      [{_, %{genservers: %{master: master}}}] ->
+        Master.setup_introduction_point(service_ids, master)
 
       _ -> :error
     end
@@ -204,7 +204,7 @@ defmodule NetUtils do
             {_, ^seed_ip} -> :ok # Don't bootstrap from self
             {lap2_addr, _} ->
               bootstrap_single(lap2_addr, seed_ip)
-              :timer.sleep(50) # Allow the network requests to propagate
+              :timer.sleep(25) # Allow the network requests to propagate
           end)
 
         {:error, :no_nodes} ->
@@ -267,12 +267,38 @@ defmodule NetUtils do
     :ets.tab2list(:network_registry)
     |> Enum.reduce(%{}, fn
       {addr, %{genservers: %{conn_supervisor: cs}}}, acc ->
-        IO.inspect(cs, label: "Connection Supervisor")
         case ConnectionSupervisor.debug(cs).service_providers do
           serv_ids when map_size(serv_ids) == 0 -> acc
           serv_ids -> Map.put(acc, addr, serv_ids)
         end
     end)
+  end
+
+  # Get the introduction point addresses for a specific service
+  @spec get_introduction_points(String.t()) :: list(String.t())
+  def get_introduction_points(service) do
+    list_introduction_points()
+    |> Enum.reduce([], fn {node, services}, acc ->
+      cond do
+        is_map_key(services, service) ->
+          [node | acc]
+        true ->
+          acc
+      end
+    end)
+  end
+
+  # Run a FileIO service
+  @spec run_fileio(String.t()) :: {:ok, String.t()} | :error
+  def run_fileio(lap2_addr) do
+    case :ets.lookup(:network_registry, lap2_addr) do
+      [{_, %{genservers: %{master: master}}}] ->
+        FileIO.run_service(master)
+
+      [] ->
+        Logger.error("Node not found: #{lap2_addr}")
+        :error
+    end
   end
 
   # Attempt to establish an anonymous proxy in the network
@@ -282,7 +308,6 @@ defmodule NetUtils do
     case :ets.lookup(:network_registry, lap2_addr) do
       [{_, registry}] ->
         proxies = map_size(get_proxy_pool(registry.genservers.proxy_manager))
-        IO.inspect(proxies, label: "Proxies")
         Master.discover_proxy(registry.genservers.master)
         :timer.sleep(500)
         cond do
@@ -333,5 +358,46 @@ defmodule NetUtils do
     Enum.each(network_map, fn {addr, ip} ->
       Router.append_dht(addr, ip, router)
     end)
+  end
+end
+
+defmodule CryptoUtils do
+  @spec gen_ring(non_neg_integer,charlist, non_neg_integer) :: list(charlist) | :error
+  def gen_ring(ring_idx, pk, ring_size) when ring_idx < ring_size and ring_size > 1 do
+    Enum.map(1..ring_size-1, fn _ ->
+      {_, other_key} = ClaimableRS.rs_gen()
+      other_key
+    end)
+    |> List.insert_at(ring_idx, pk)
+  end
+  def gen_ring(_, _, _) do
+    Logger.error("Invalid ring index or ring size")
+    :error
+  end
+
+  @spec list_to_hex(list) :: String.t()
+  def list_to_hex(list) do
+    list
+    |> :binary.list_to_bin()
+    |> Base.encode16()
+  end
+
+  @spec hex_to_list(String.t()) :: list
+  def hex_to_list(hex) do
+    Base.decode16!(hex)
+    |> :binary.bin_to_list()
+  end
+
+  @spec list_to_b64(list) :: String.t()
+  def list_to_b64(list) do
+    list
+    |> :binary.list_to_bin()
+    |> Base.encode64()
+  end
+
+  @spec b64_to_list(String.t()) :: list
+  def b64_to_list(hex) do
+    Base.decode64!(hex)
+    |> :binary.bin_to_list()
   end
 end
