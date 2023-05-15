@@ -7,13 +7,13 @@
     <meta name="generator" content="ExDoc v0.29.4">
     <meta name="project" content="LAP2 v0.1.0">
 
-    <title>LAP2.Crypto.Padding.PKCS7 — LAP2 v0.1.0</title>
+    <title>LAP2.Main.ServiceProviders — LAP2 v0.1.0</title>
     <link rel="stylesheet" href="dist/html-elixir-HHVY3JYD.css" />
 
 
     <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
     <script src="dist/handlebars.templates-XWGFFSCD.js"></script>
-    <script src="dist/sidebar_items-6C7E0438.js"></script>
+    <script src="dist/sidebar_items-08CB9D83.js"></script>
 
       <script src="docs_config.js"></script>
 
@@ -100,19 +100,21 @@ LAP2
 </button>
 
 
-    <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/padding/pkcs7.ex#L1" title="View Source" class="icon-action" rel="help">
+    <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/service_providers.ex#L1" title="View Source" class="icon-action" rel="help">
       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
       <span class="sr-only">View Source</span>
     </a>
 
-  <span translate="no">LAP2.Crypto.Padding.PKCS7</span> 
+  <span translate="no">LAP2.Main.ServiceProviders</span> 
   <small class="app-vsn" translate="no">(LAP2 v0.1.0)</small>
 
 </h1>
 
 
   <section id="moduledoc">
-<p>PKCS7 padding and unpadding.</p>
+<p>Module for registering and routing various services over the network.
+Anonymous proxies and introduction points perform:</p><ul><li>Remote resource access</li><li>Remote resource response
+Hidden hosts these provide:</li><li>File transfer (upload/download)</li><li>Any other request/response based service</li></ul>
   </section>
 
 
@@ -131,21 +133,19 @@ LAP2
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#pad/2" translate="no">pad(data, len)</a>
+        <a href="#route_query/3" translate="no">route_query(query, proxy_seq, registry_table)</a>
 
       </div>
 
-        <div class="summary-synopsis"><p>Pad the given data to the block size of 16.</p></div>
+        <div class="summary-synopsis"><p>Route a query to the appropriate service provider.</p></div>
 
     </div>
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#unpad/1" translate="no">unpad(data)</a>
+        <a href="#route_tcp_query/3" translate="no">route_tcp_query(query, conn_id, registry_table)</a>
 
       </div>
-
-        <div class="summary-synopsis"><p>Unpad the given data.</p></div>
 
     </div>
 
@@ -163,16 +163,16 @@ LAP2
 Functions
     </h1>
     <div class="functions-list">
-<section class="detail" id="pad/2">
+<section class="detail" id="route_query/3">
 
   <div class="detail-header">
-    <a href="#pad/2" class="detail-link" title="Link to this function">
+    <a href="#route_query/3" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">pad(data, len)</h1>
+    <h1 class="signature" translate="no">route_query(query, proxy_seq, registry_table)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/padding/pkcs7.ex#L10" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/service_providers.ex#L28" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -184,23 +184,23 @@ Functions
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">@spec</span> pad(<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>()) :: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>()</pre>
+          <pre translate="no"><span class="attribute">@spec</span> route_query(Query.t(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()) :: :ok | :error</pre>
 
       </div>
 
-<p>Pad the given data to the block size of 16.</p>
+<p>Route a query to the appropriate service provider.</p>
   </section>
 </section>
-<section class="detail" id="unpad/1">
+<section class="detail" id="route_tcp_query/3">
 
   <div class="detail-header">
-    <a href="#unpad/1" class="detail-link" title="Link to this function">
+    <a href="#route_tcp_query/3" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">unpad(data)</h1>
+    <h1 class="signature" translate="no">route_tcp_query(query, conn_id, registry_table)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/padding/pkcs7.ex#L20" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/service_providers.ex#L100" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -212,11 +212,11 @@ Functions
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">@spec</span> unpad(<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>()) :: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>()</pre>
+          <pre translate="no"><span class="attribute">@spec</span> route_tcp_query(Query.t(), <a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()) :: :ok | :error</pre>
 
       </div>
 
-<p>Unpad the given data.</p>
+
   </section>
 </section>
 

@@ -7,13 +7,13 @@
     <meta name="generator" content="ExDoc v0.29.4">
     <meta name="project" content="LAP2 v0.1.0">
 
-    <title>LAP2.Crypto.InformationDispersal.RabinIDA — LAP2 v0.1.0</title>
+    <title>LAP2.Networking.Sockets.TcpServer — LAP2 v0.1.0</title>
     <link rel="stylesheet" href="dist/html-elixir-HHVY3JYD.css" />
 
 
     <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
     <script src="dist/handlebars.templates-XWGFFSCD.js"></script>
-    <script src="dist/sidebar_items-6C7E0438.js"></script>
+    <script src="dist/sidebar_items-08CB9D83.js"></script>
 
       <script src="docs_config.js"></script>
 
@@ -100,20 +100,16 @@ LAP2
 </button>
 
 
-    <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/information_dispersal/rabin_ida.ex#L1" title="View Source" class="icon-action" rel="help">
+    <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/networking/sockets/tcp_server.ex#L1" title="View Source" class="icon-action" rel="help">
       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
       <span class="sr-only">View Source</span>
     </a>
 
-  <span translate="no">LAP2.Crypto.InformationDispersal.RabinIDA</span> 
+  <span translate="no">LAP2.Networking.Sockets.TcpServer</span> 
   <small class="app-vsn" translate="no">(LAP2 v0.1.0)</small>
 
 </h1>
 
-
-  <section id="moduledoc">
-<p>Rabin's Information Dispersal Algorithm, used to split and reconstruct data.</p>
-  </section>
 
 
   <section id="summary" class="details-list">
@@ -131,7 +127,27 @@ LAP2
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#decode_double_byte/1" translate="no">decode_double_byte(bytes)</a>
+        <a href="#child_spec/1" translate="no">child_spec(init_arg)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Returns a specification to start this module under a supervisor.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#init/1" translate="no">init(config)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Callback implementation for <a href="https://hexdocs.pm/elixir/GenServer.html#c:init/1"><code class="inline">GenServer.init/1</code></a>.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#respond/3" translate="no">respond(conn_id, data, name)</a>
 
       </div>
 
@@ -139,7 +155,7 @@ LAP2
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#encode_double_byte/1" translate="no">encode_double_byte(bytes)</a>
+        <a href="#send/3" translate="no">send(arg, data, registry_table)</a>
 
       </div>
 
@@ -147,26 +163,21 @@ LAP2
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#reconstruct/1" translate="no">reconstruct(shares)</a>
+        <a href="#start_link/1" translate="no">start_link(config)</a>
 
       </div>
 
-        <div class="summary-synopsis"><p>Reconstruct the data from the given shares.
-Generates the reassembly matrix and performs matrix multiplication with the dat
-a in the shares.
-Finally, the data is un-padded and returned.</p></div>
+        <div class="summary-synopsis"><p>Start the TCP server.</p></div>
 
     </div>
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#split/3" translate="no">split(data, n, m)</a>
+        <a href="#terminate/2" translate="no">terminate(reason, arg2)</a>
 
       </div>
 
-        <div class="summary-synopsis"><p>Split the data into the given number of shares.
-n is the number of shares to split the data into.
-m is the number of shares required to reconstruct the data (threshold).</p></div>
+        <div class="summary-synopsis"><p>Terminate the TCP server.</p></div>
 
     </div>
 
@@ -184,16 +195,38 @@ m is the number of shares required to reconstruct the data (threshold).</p></div
 Functions
     </h1>
     <div class="functions-list">
-<section class="detail" id="decode_double_byte/1">
+<section class="detail" id="child_spec/1">
 
   <div class="detail-header">
-    <a href="#decode_double_byte/1" class="detail-link" title="Link to this function">
+    <a href="#child_spec/1" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">decode_double_byte(bytes)</h1>
+    <h1 class="signature" translate="no">child_spec(init_arg)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/information_dispersal/rabin_ida.ex#L75" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/networking/sockets/tcp_server.ex#L4" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+<p>Returns a specification to start this module under a supervisor.</p><p>See <a href="https://hexdocs.pm/elixir/Supervisor.html"><code class="inline">Supervisor</code></a>.</p>
+  </section>
+</section>
+<section class="detail" id="init/1">
+
+  <div class="detail-header">
+    <a href="#init/1" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">init(config)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/networking/sockets/tcp_server.ex#L18" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -205,23 +238,51 @@ Functions
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">@spec</span> decode_double_byte(<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>()) :: [<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>()]</pre>
+          <pre translate="no"><span class="attribute">@spec</span> init(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()) :: {:ok, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()} | {:stop, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()}</pre>
+
+      </div>
+
+<p>Callback implementation for <a href="https://hexdocs.pm/elixir/GenServer.html#c:init/1"><code class="inline">GenServer.init/1</code></a>.</p>
+  </section>
+</section>
+<section class="detail" id="respond/3">
+
+  <div class="detail-header">
+    <a href="#respond/3" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">respond(conn_id, data, name)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/networking/sockets/tcp_server.ex#L133" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> respond(<a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) :: :ok | {:error, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()}</pre>
 
       </div>
 
 
   </section>
 </section>
-<section class="detail" id="encode_double_byte/1">
+<section class="detail" id="send/3">
 
   <div class="detail-header">
-    <a href="#encode_double_byte/1" class="detail-link" title="Link to this function">
+    <a href="#send/3" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">encode_double_byte(bytes)</h1>
+    <h1 class="signature" translate="no">send(arg, data, registry_table)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/information_dispersal/rabin_ida.ex#L69" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/networking/sockets/tcp_server.ex#L126" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -233,23 +294,23 @@ Functions
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">@spec</span> encode_double_byte([<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>()]) :: [<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>()]</pre>
+          <pre translate="no"><span class="attribute">@spec</span> send({<a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>()}, <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()) :: :ok</pre>
 
       </div>
 
 
   </section>
 </section>
-<section class="detail" id="reconstruct/1">
+<section class="detail" id="start_link/1">
 
   <div class="detail-header">
-    <a href="#reconstruct/1" class="detail-link" title="Link to this function">
+    <a href="#start_link/1" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">reconstruct(shares)</h1>
+    <h1 class="signature" translate="no">start_link(config)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/information_dispersal/rabin_ida.ex#L44" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/networking/sockets/tcp_server.ex#L13" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -261,26 +322,23 @@ Functions
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">@spec</span> reconstruct([<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()]) :: {:ok, <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>()} | {:error, nil}</pre>
+          <pre translate="no"><span class="attribute">@spec</span> start_link(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()) :: <a href="https://hexdocs.pm/elixir/GenServer.html#t:on_start/0">GenServer.on_start</a>()</pre>
 
       </div>
 
-<p>Reconstruct the data from the given shares.
-Generates the reassembly matrix and performs matrix multiplication with the dat
-a in the shares.
-Finally, the data is un-padded and returned.</p>
+<p>Start the TCP server.</p>
   </section>
 </section>
-<section class="detail" id="split/3">
+<section class="detail" id="terminate/2">
 
   <div class="detail-header">
-    <a href="#split/3" class="detail-link" title="Link to this function">
+    <a href="#terminate/2" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">split(data, n, m)</h1>
+    <h1 class="signature" translate="no">terminate(reason, arg2)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/information_dispersal/rabin_ida.ex#L18" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/networking/sockets/tcp_server.ex#L54" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -292,13 +350,11 @@ Finally, the data is un-padded and returned.</p>
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">@spec</span> split(<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>()) :: [<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>()]</pre>
+          <pre translate="no"><span class="attribute">@spec</span> terminate(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">any</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()) :: :ok</pre>
 
       </div>
 
-<p>Split the data into the given number of shares.
-n is the number of shares to split the data into.
-m is the number of shares required to reconstruct the data (threshold).</p>
+<p>Terminate the TCP server.</p>
   </section>
 </section>
 

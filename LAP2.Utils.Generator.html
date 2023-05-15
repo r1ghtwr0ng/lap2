@@ -7,13 +7,13 @@
     <meta name="generator" content="ExDoc v0.29.4">
     <meta name="project" content="LAP2 v0.1.0">
 
-    <title>LAP2.Networking.Resolver — LAP2 v0.1.0</title>
+    <title>LAP2.Utils.Generator — LAP2 v0.1.0</title>
     <link rel="stylesheet" href="dist/html-elixir-HHVY3JYD.css" />
 
 
     <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
     <script src="dist/handlebars.templates-XWGFFSCD.js"></script>
-    <script src="dist/sidebar_items-6C7E0438.js"></script>
+    <script src="dist/sidebar_items-08CB9D83.js"></script>
 
       <script src="docs_config.js"></script>
 
@@ -100,19 +100,19 @@ LAP2
 </button>
 
 
-    <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/networking/resolver.ex#L1" title="View Source" class="icon-action" rel="help">
+    <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/generator.ex#L1" title="View Source" class="icon-action" rel="help">
       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
       <span class="sr-only">View Source</span>
     </a>
 
-  <span translate="no">LAP2.Networking.Resolver</span> 
+  <span translate="no">LAP2.Utils.Generator</span> 
   <small class="app-vsn" translate="no">(LAP2 v0.1.0)</small>
 
 </h1>
 
 
   <section id="moduledoc">
-<p>This module contains helper function for resolving addresses.</p>
+<p>This module is used to generate various secure tokens.</p>
   </section>
 
 
@@ -131,19 +131,31 @@ LAP2
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#build_query/1" translate="no">build_query(addr)</a>
+        <a href="#generate_float/2" translate="no">generate_float(min, max)</a>
 
       </div>
 
-        <div class="summary-synopsis"><p>Build a DHT update query</p></div>
+        <div class="summary-synopsis"><p>Generate a random float value between two given values</p></div>
 
     </div>
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#resolve_addr/2" translate="no">resolve_addr(addr, dht)</a>
+        <a href="#generate_hex/1" translate="no">generate_hex(byte_length)</a>
 
       </div>
+
+        <div class="summary-synopsis"><p>Generate a random hexadecimal string of a given byte length</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#generate_integer/1" translate="no">generate_integer(byte_length)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Generate a random non-negative integer value of a given byte length</p></div>
 
     </div>
 
@@ -161,16 +173,16 @@ LAP2
 Functions
     </h1>
     <div class="functions-list">
-<section class="detail" id="build_query/1">
+<section class="detail" id="generate_float/2">
 
   <div class="detail-header">
-    <a href="#build_query/1" class="detail-link" title="Link to this function">
+    <a href="#generate_float/2" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">build_query(addr)</h1>
+    <h1 class="signature" translate="no">generate_float(min, max)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/networking/resolver.ex#L13" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/generator.ex#L28" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -182,23 +194,23 @@ Functions
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">@spec</span> build_query(<a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>()) :: :ok | :error</pre>
+          <pre translate="no"><span class="attribute">@spec</span> generate_float(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">float</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">float</a>()) :: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">float</a>()</pre>
 
       </div>
 
-<p>Build a DHT update query</p>
+<p>Generate a random float value between two given values</p>
   </section>
 </section>
-<section class="detail" id="resolve_addr/2">
+<section class="detail" id="generate_hex/1">
 
   <div class="detail-header">
-    <a href="#resolve_addr/2" class="detail-link" title="Link to this function">
+    <a href="#generate_hex/1" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">resolve_addr(addr, dht)</h1>
+    <h1 class="signature" translate="no">generate_hex(byte_length)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/networking/resolver.ex#L21" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/generator.ex#L10" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -210,12 +222,39 @@ Functions
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">@spec</span> resolve_addr(<a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()) ::
-  {:ok, {<a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>()}} | {:error, :not_found}</pre>
+          <pre translate="no"><span class="attribute">@spec</span> generate_hex(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">integer</a>()) :: <a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>()</pre>
 
       </div>
 
+<p>Generate a random hexadecimal string of a given byte length</p>
+  </section>
+</section>
+<section class="detail" id="generate_integer/1">
 
+  <div class="detail-header">
+    <a href="#generate_integer/1" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">generate_integer(byte_length)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/generator.ex#L19" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> generate_integer(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">integer</a>()) :: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">integer</a>()</pre>
+
+      </div>
+
+<p>Generate a random non-negative integer value of a given byte length</p>
   </section>
 </section>
 

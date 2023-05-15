@@ -13,7 +13,7 @@
 
     <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
     <script src="dist/handlebars.templates-XWGFFSCD.js"></script>
-    <script src="dist/sidebar_items-6C7E0438.js"></script>
+    <script src="dist/sidebar_items-08CB9D83.js"></script>
 
       <script src="docs_config.js"></script>
 
@@ -131,7 +131,7 @@ LAP2
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#add_crypto_struct/3" translate="no">add_crypto_struct(crypto_struct, proxy_seq, name \\ :crypto_manager)</a>
+        <a href="#add_crypto_struct/3" translate="no">add_crypto_struct(crypto_struct, proxy_seq, name)</a>
 
       </div>
 
@@ -142,11 +142,11 @@ TODO this is for testing ONLY, remove for final version (as well as its genserve
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#add_temp_crypto_struct/3" translate="no">add_temp_crypto_struct(crypto_struct, clove_seq, name \\ :crypto_manager)</a>
+        <a href="#add_temp_crypto_struct/3" translate="no">add_temp_crypto_struct(crypto_struct, clove_seq, name)</a>
 
       </div>
 
-        <div class="summary-synopsis"><p>Add a temporary crypto struct to the ETS table.</p></div>
+        <div class="summary-synopsis"><p>Add a temporary crypto struct to the state.</p></div>
 
     </div>
 
@@ -162,7 +162,15 @@ TODO this is for testing ONLY, remove for final version (as well as its genserve
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#decrypt_request/3" translate="no">decrypt_request(enc_request, proxy_seq, name \\ :crypto_manager)</a>
+        <a href="#debug_crypto_structs/1" translate="no">debug_crypto_structs(name)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#decrypt_request/3" translate="no">decrypt_request(enc_request, proxy_seq, name)</a>
 
       </div>
 
@@ -173,17 +181,17 @@ Return binary for deserialisation.</p></div>
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#delete_temp_crypto/2" translate="no">delete_temp_crypto(clove_seq, name \\ :crypto_manager)</a>
+        <a href="#delete_temp_crypto/2" translate="no">delete_temp_crypto(clove_seq, name)</a>
 
       </div>
 
-        <div class="summary-synopsis"><p>Add a temporary crypto struct to the ETS table.</p></div>
+        <div class="summary-synopsis"><p>Delete a temporary crypto struct from the state.</p></div>
 
     </div>
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#encrypt_request/3" translate="no">encrypt_request(data, proxy_seq, name \\ :crypto_manager)</a>
+        <a href="#encrypt_request/3" translate="no">encrypt_request(data, proxy_seq, name)</a>
 
       </div>
 
@@ -193,11 +201,29 @@ Return binary for deserialisation.</p></div>
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#get_identity/1" translate="no">get_identity(name \\ :crypto_manager)</a>
+        <a href="#get_crypto_struct/2" translate="no">get_crypto_struct(name, proxy_seq)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#get_identity/1" translate="no">get_identity(name)</a>
 
       </div>
 
         <div class="summary-synopsis"><p>Fetch the crypto identity from the GenServer state.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#get_temp_crypto_struct/2" translate="no">get_temp_crypto_struct(clove_seq, name)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Get a temporary crypto struct from the state.</p></div>
 
     </div>
 
@@ -213,7 +239,7 @@ Return binary for deserialisation.</p></div>
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#remove_crypto_struct/2" translate="no">remove_crypto_struct(proxy_seq, name \\ :crypto_manager)</a>
+        <a href="#remove_crypto_struct/2" translate="no">remove_crypto_struct(proxy_seq, name)</a>
 
       </div>
 
@@ -223,7 +249,7 @@ Return binary for deserialisation.</p></div>
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#rotate_keys/3" translate="no">rotate_keys(crypto_struct, proxy_seq, name \\ :crypto_manager)</a>
+        <a href="#rotate_keys/3" translate="no">rotate_keys(crypto_struct, proxy_seq, name)</a>
 
       </div>
 
@@ -257,16 +283,14 @@ Functions
     <div class="functions-list">
 <section class="detail" id="add_crypto_struct/3">
 
-    <span id="add_crypto_struct/2"></span>
-
   <div class="detail-header">
     <a href="#add_crypto_struct/3" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">add_crypto_struct(crypto_struct, proxy_seq, name \\ :crypto_manager)</h1>
+    <h1 class="signature" translate="no">add_crypto_struct(crypto_struct, proxy_seq, name)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/crypto_manager.ex#L118" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/crypto_manager.ex#L138" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -288,16 +312,14 @@ TODO this is for testing ONLY, remove for final version (as well as its genserve
 </section>
 <section class="detail" id="add_temp_crypto_struct/3">
 
-    <span id="add_temp_crypto_struct/2"></span>
-
   <div class="detail-header">
     <a href="#add_temp_crypto_struct/3" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">add_temp_crypto_struct(crypto_struct, clove_seq, name \\ :crypto_manager)</h1>
+    <h1 class="signature" translate="no">add_temp_crypto_struct(crypto_struct, clove_seq, name)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/crypto_manager.ex#L126" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/crypto_manager.ex#L147" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -313,7 +335,7 @@ TODO this is for testing ONLY, remove for final version (as well as its genserve
 
       </div>
 
-<p>Add a temporary crypto struct to the ETS table.</p>
+<p>Add a temporary crypto struct to the state.</p>
   </section>
 </section>
 <section class="detail" id="child_spec/1">
@@ -338,18 +360,38 @@ TODO this is for testing ONLY, remove for final version (as well as its genserve
 <p>Returns a specification to start this module under a supervisor.</p><p>See <a href="https://hexdocs.pm/elixir/Supervisor.html"><code class="inline">Supervisor</code></a>.</p>
   </section>
 </section>
-<section class="detail" id="decrypt_request/3">
+<section class="detail" id="debug_crypto_structs/1">
 
-    <span id="decrypt_request/2"></span>
+  <div class="detail-header">
+    <a href="#debug_crypto_structs/1" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">debug_crypto_structs(name)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/crypto_manager.ex#L170" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+
+  </section>
+</section>
+<section class="detail" id="decrypt_request/3">
 
   <div class="detail-header">
     <a href="#decrypt_request/3" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">decrypt_request(enc_request, proxy_seq, name \\ :crypto_manager)</h1>
+    <h1 class="signature" translate="no">decrypt_request(enc_request, proxy_seq, name)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/crypto_manager.ex#L100" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/crypto_manager.ex#L120" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -372,16 +414,14 @@ Return binary for deserialisation.</p>
 </section>
 <section class="detail" id="delete_temp_crypto/2">
 
-    <span id="delete_temp_crypto/1"></span>
-
   <div class="detail-header">
     <a href="#delete_temp_crypto/2" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">delete_temp_crypto(clove_seq, name \\ :crypto_manager)</h1>
+    <h1 class="signature" translate="no">delete_temp_crypto(clove_seq, name)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/crypto_manager.ex#L134" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/crypto_manager.ex#L165" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -397,21 +437,19 @@ Return binary for deserialisation.</p>
 
       </div>
 
-<p>Add a temporary crypto struct to the ETS table.</p>
+<p>Delete a temporary crypto struct from the state.</p>
   </section>
 </section>
 <section class="detail" id="encrypt_request/3">
-
-    <span id="encrypt_request/2"></span>
 
   <div class="detail-header">
     <a href="#encrypt_request/3" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">encrypt_request(data, proxy_seq, name \\ :crypto_manager)</h1>
+    <h1 class="signature" translate="no">encrypt_request(data, proxy_seq, name)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/crypto_manager.ex#L108" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/crypto_manager.ex#L128" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -431,18 +469,16 @@ Return binary for deserialisation.</p>
 <p>Encrypt a serialised (binary) request, returning an EncryptedRequest struct.</p>
   </section>
 </section>
-<section class="detail" id="get_identity/1">
-
-    <span id="get_identity/0"></span>
+<section class="detail" id="get_crypto_struct/2">
 
   <div class="detail-header">
-    <a href="#get_identity/1" class="detail-link" title="Link to this function">
+    <a href="#get_crypto_struct/2" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">get_identity(name \\ :crypto_manager)</h1>
+    <h1 class="signature" translate="no">get_crypto_struct(name, proxy_seq)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/crypto_manager.ex#L158" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/crypto_manager.ex#L175" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -454,11 +490,67 @@ Return binary for deserialisation.</p>
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">@spec</span> get_identity(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) :: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>()</pre>
+          <pre translate="no"><span class="attribute">@spec</span> get_crypto_struct(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>()) :: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>() | nil</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="get_identity/1">
+
+  <div class="detail-header">
+    <a href="#get_identity/1" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">get_identity(name)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/crypto_manager.ex#L199" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> get_identity(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) :: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>()</pre>
 
       </div>
 
 <p>Fetch the crypto identity from the GenServer state.</p>
+  </section>
+</section>
+<section class="detail" id="get_temp_crypto_struct/2">
+
+  <div class="detail-header">
+    <a href="#get_temp_crypto_struct/2" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">get_temp_crypto_struct(clove_seq, name)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/crypto_manager.ex#L156" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> get_temp_crypto_struct(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) :: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>() | nil</pre>
+
+      </div>
+
+<p>Get a temporary crypto struct from the state.</p>
   </section>
 </section>
 <section class="detail" id="init/1">
@@ -491,16 +583,14 @@ Return binary for deserialisation.</p>
 </section>
 <section class="detail" id="remove_crypto_struct/2">
 
-    <span id="remove_crypto_struct/1"></span>
-
   <div class="detail-header">
     <a href="#remove_crypto_struct/2" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">remove_crypto_struct(proxy_seq, name \\ :crypto_manager)</h1>
+    <h1 class="signature" translate="no">remove_crypto_struct(proxy_seq, name)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/crypto_manager.ex#L142" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/crypto_manager.ex#L183" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -521,16 +611,14 @@ Return binary for deserialisation.</p>
 </section>
 <section class="detail" id="rotate_keys/3">
 
-    <span id="rotate_keys/2"></span>
-
   <div class="detail-header">
     <a href="#rotate_keys/3" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">rotate_keys(crypto_struct, proxy_seq, name \\ :crypto_manager)</h1>
+    <h1 class="signature" translate="no">rotate_keys(crypto_struct, proxy_seq, name)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/crypto_manager.ex#L150" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/crypto_manager.ex#L191" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>

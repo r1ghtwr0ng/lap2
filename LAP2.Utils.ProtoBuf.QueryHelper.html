@@ -7,13 +7,13 @@
     <meta name="generator" content="ExDoc v0.29.4">
     <meta name="project" content="LAP2 v0.1.0">
 
-    <title>LAP2.Main.ProxyManager — LAP2 v0.1.0</title>
+    <title>LAP2.Utils.ProtoBuf.QueryHelper — LAP2 v0.1.0</title>
     <link rel="stylesheet" href="dist/html-elixir-HHVY3JYD.css" />
 
 
     <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
     <script src="dist/handlebars.templates-XWGFFSCD.js"></script>
-    <script src="dist/sidebar_items-6C7E0438.js"></script>
+    <script src="dist/sidebar_items-08CB9D83.js"></script>
 
       <script src="docs_config.js"></script>
 
@@ -100,19 +100,19 @@ LAP2
 </button>
 
 
-    <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/proxy_manager.ex#L1" title="View Source" class="icon-action" rel="help">
+    <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/query_helper.ex#L1" title="View Source" class="icon-action" rel="help">
       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
       <span class="sr-only">View Source</span>
     </a>
 
-  <span translate="no">LAP2.Main.ProxyManager</span> 
+  <span translate="no">LAP2.Utils.ProtoBuf.QueryHelper</span> 
   <small class="app-vsn" translate="no">(LAP2 v0.1.0)</small>
 
 </h1>
 
 
   <section id="moduledoc">
-<p>Module for handling ProxyManager requests.</p>
+<p>Contains helper functions for generating and parsing ProtoBuf Query structs</p>
   </section>
 
 
@@ -131,89 +131,92 @@ LAP2
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#add_proxy/3" translate="no">add_proxy(proxy_name, proxy_seq, proxy_pid)</a>
+        <a href="#build_content_request_header/1" translate="no">build_content_request_header(service_id)</a>
 
       </div>
 
-        <div class="summary-synopsis"><p>Add a proxy to the pool.</p></div>
+        <div class="summary-synopsis"><p>Build a content request header</p></div>
 
     </div>
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#child_spec/1" translate="no">child_spec(init_arg)</a>
+        <a href="#build_dht_request_header/0" translate="no">build_dht_request_header()</a>
 
       </div>
 
-        <div class="summary-synopsis"><p>Returns a specification to start this module under a supervisor.</p></div>
+        <div class="summary-synopsis"><p>Build a DHT request header
+Currently not fully implemented</p></div>
 
     </div>
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#debug/1" translate="no">debug(name)</a>
+        <a href="#build_establish_header/1" translate="no">build_establish_header(service_ids)</a>
 
       </div>
+
+        <div class="summary-synopsis"><p>Build an introduction point establishment header</p></div>
 
     </div>
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#handle_discovery_response/3" translate="no">handle_discovery_response(request, aux_data, proxy_name)</a>
+        <a href="#build_query/3" translate="no">build_query(header, query_id, data)</a>
 
       </div>
 
-        <div class="summary-synopsis"><p>Handle a discovery response.</p></div>
+        <div class="summary-synopsis"><p>Build an outgoing query struct</p></div>
 
     </div>
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#handle_proxy_request/3" translate="no">handle_proxy_request(request, aux_data, proxy_name)</a>
+        <a href="#build_remote_query_header/3" translate="no">build_remote_query_header(address, port, service_id)</a>
 
       </div>
 
-        <div class="summary-synopsis"><p>Handle a proxy request.</p></div>
+        <div class="summary-synopsis"><p>Build a remote query header</p></div>
 
     </div>
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#handle_regular_proxy/3" translate="no">handle_regular_proxy(request, pseq, proxy_name)</a>
+        <a href="#build_response/2" translate="no">build_response(query, data)</a>
 
       </div>
 
-        <div class="summary-synopsis"><p>Handle a regular proxy request/response.</p></div>
+        <div class="summary-synopsis"><p>Set the ACK flag and replace the data with the response</p></div>
 
     </div>
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#init/1" translate="no">init(config)</a>
+        <a href="#build_teardown_header/0" translate="no">build_teardown_header()</a>
 
       </div>
 
-        <div class="summary-synopsis"><p>Initialise the data handler GenServer.</p></div>
+        <div class="summary-synopsis"><p>Build an introduction point teardown header</p></div>
 
     </div>
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#remove_proxy/2" translate="no">remove_proxy(proxy_seq, proxy_name)</a>
+        <a href="#deserialise/1" translate="no">deserialise(data)</a>
 
       </div>
 
-        <div class="summary-synopsis"><p>Remove a proxy from the pool.</p></div>
+        <div class="summary-synopsis"><p>Deserialise a Query struct</p></div>
 
     </div>
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#start_link/1" translate="no">start_link(config)</a>
+        <a href="#serialise/1" translate="no">serialise(query)</a>
 
       </div>
 
-        <div class="summary-synopsis"><p>Start the ProxyManager process.</p></div>
+        <div class="summary-synopsis"><p>Serialise a Query struct</p></div>
 
     </div>
 
@@ -231,16 +234,16 @@ LAP2
 Functions
     </h1>
     <div class="functions-list">
-<section class="detail" id="add_proxy/3">
+<section class="detail" id="build_content_request_header/1">
 
   <div class="detail-header">
-    <a href="#add_proxy/3" class="detail-link" title="Link to this function">
+    <a href="#build_content_request_header/1" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">add_proxy(proxy_name, proxy_seq, proxy_pid)</h1>
+    <h1 class="signature" translate="no">build_content_request_header(service_id)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/proxy_manager.ex#L103" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/query_helper.ex#L84" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -252,67 +255,24 @@ Functions
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">@spec</span> add_proxy(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">pid</a>()) :: :ok</pre>
+          <pre translate="no"><span class="attribute">@spec</span> build_content_request_header(<a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>()) ::
+  {:content_request, ContentRequest.t()}</pre>
 
       </div>
 
-<p>Add a proxy to the pool.</p>
+<p>Build a content request header</p>
   </section>
 </section>
-<section class="detail" id="child_spec/1">
+<section class="detail" id="build_dht_request_header/0">
 
   <div class="detail-header">
-    <a href="#child_spec/1" class="detail-link" title="Link to this function">
+    <a href="#build_dht_request_header/0" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">child_spec(init_arg)</h1>
+    <h1 class="signature" translate="no">build_dht_request_header()</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/proxy_manager.ex#L5" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
-
-
-  </div>
-
-  <section class="docstring">
-
-<p>Returns a specification to start this module under a supervisor.</p><p>See <a href="https://hexdocs.pm/elixir/Supervisor.html"><code class="inline">Supervisor</code></a>.</p>
-  </section>
-</section>
-<section class="detail" id="debug/1">
-
-  <div class="detail-header">
-    <a href="#debug/1" class="detail-link" title="Link to this function">
-      <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this function</span>
-    </a>
-    <h1 class="signature" translate="no">debug(name)</h1>
-
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/proxy_manager.ex#L87" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
-
-
-  </div>
-
-  <section class="docstring">
-
-
-  </section>
-</section>
-<section class="detail" id="handle_discovery_response/3">
-
-  <div class="detail-header">
-    <a href="#handle_discovery_response/3" class="detail-link" title="Link to this function">
-      <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this function</span>
-    </a>
-    <h1 class="signature" translate="no">handle_discovery_response(request, aux_data, proxy_name)</h1>
-
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/proxy_manager.ex#L95" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/query_helper.ex#L108" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -324,23 +284,25 @@ Functions
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">@spec</span> handle_discovery_response(Request.t(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) :: :ok</pre>
+          <pre translate="no"><span class="attribute">@spec</span> build_dht_request_header() ::
+  {:dht_request, DHTRequest.t()} | {:error, :invalid_dht_request_header}</pre>
 
       </div>
 
-<p>Handle a discovery response.</p>
+<p>Build a DHT request header
+Currently not fully implemented</p>
   </section>
 </section>
-<section class="detail" id="handle_proxy_request/3">
+<section class="detail" id="build_establish_header/1">
 
   <div class="detail-header">
-    <a href="#handle_proxy_request/3" class="detail-link" title="Link to this function">
+    <a href="#build_establish_header/1" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">handle_proxy_request(request, aux_data, proxy_name)</h1>
+    <h1 class="signature" translate="no">build_establish_header(service_ids)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/proxy_manager.ex#L82" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/query_helper.ex#L64" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -352,23 +314,24 @@ Functions
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">@spec</span> handle_proxy_request(Request.t(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) :: :ok</pre>
+          <pre translate="no"><span class="attribute">@spec</span> build_establish_header([<a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>()]) ::
+  {:establish_intro, EstablishIntroductionPoint.t()}</pre>
 
       </div>
 
-<p>Handle a proxy request.</p>
+<p>Build an introduction point establishment header</p>
   </section>
 </section>
-<section class="detail" id="handle_regular_proxy/3">
+<section class="detail" id="build_query/3">
 
   <div class="detail-header">
-    <a href="#handle_regular_proxy/3" class="detail-link" title="Link to this function">
+    <a href="#build_query/3" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">handle_regular_proxy(request, pseq, proxy_name)</h1>
+    <h1 class="signature" translate="no">build_query(header, query_id, data)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/proxy_manager.ex#L111" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/query_helper.ex#L41" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -380,23 +343,23 @@ Functions
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">@spec</span> handle_regular_proxy(Request.t(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) :: :ok | :error</pre>
+          <pre translate="no"><span class="attribute">@spec</span> build_query(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">tuple</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>()) :: Query.t()</pre>
 
       </div>
 
-<p>Handle a regular proxy request/response.</p>
+<p>Build an outgoing query struct</p>
   </section>
 </section>
-<section class="detail" id="init/1">
+<section class="detail" id="build_remote_query_header/3">
 
   <div class="detail-header">
-    <a href="#init/1" class="detail-link" title="Link to this function">
+    <a href="#build_remote_query_header/3" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">init(config)</h1>
+    <h1 class="signature" translate="no">build_remote_query_header(address, port, service_id)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/proxy_manager.ex#L21" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/query_helper.ex#L95" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -408,23 +371,24 @@ Functions
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">@spec</span> init(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()) :: {:ok, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()}</pre>
+          <pre translate="no"><span class="attribute">@spec</span> build_remote_query_header(<a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>(), <a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>()) ::
+  {:remote_query, RemoteQuery.t()} | {:error, :invalid_remote_query_header}</pre>
 
       </div>
 
-<p>Initialise the data handler GenServer.</p>
+<p>Build a remote query header</p>
   </section>
 </section>
-<section class="detail" id="remove_proxy/2">
+<section class="detail" id="build_response/2">
 
   <div class="detail-header">
-    <a href="#remove_proxy/2" class="detail-link" title="Link to this function">
+    <a href="#build_response/2" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">remove_proxy(proxy_seq, proxy_name)</h1>
+    <h1 class="signature" translate="no">build_response(query, data)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/proxy_manager.ex#L153" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/query_helper.ex#L54" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -436,23 +400,23 @@ Functions
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">@spec</span> remove_proxy(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) :: :ok</pre>
+          <pre translate="no"><span class="attribute">@spec</span> build_response(Query.t(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>()) :: Query.t()</pre>
 
       </div>
 
-<p>Remove a proxy from the pool.</p>
+<p>Set the ACK flag and replace the data with the response</p>
   </section>
 </section>
-<section class="detail" id="start_link/1">
+<section class="detail" id="build_teardown_header/0">
 
   <div class="detail-header">
-    <a href="#start_link/1" class="detail-link" title="Link to this function">
+    <a href="#build_teardown_header/0" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">start_link(config)</h1>
+    <h1 class="signature" translate="no">build_teardown_header()</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/proxy_manager.ex#L13" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/query_helper.ex#L75" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -464,11 +428,67 @@ Functions
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">@spec</span> start_link(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()) :: <a href="https://hexdocs.pm/elixir/GenServer.html#t:on_start/0">GenServer.on_start</a>()</pre>
+          <pre translate="no"><span class="attribute">@spec</span> build_teardown_header() :: {:teardown_intro, TeardownIntroductionPoint.t()}</pre>
 
       </div>
 
-<p>Start the ProxyManager process.</p>
+<p>Build an introduction point teardown header</p>
+  </section>
+</section>
+<section class="detail" id="deserialise/1">
+
+  <div class="detail-header">
+    <a href="#deserialise/1" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">deserialise(data)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/query_helper.ex#L26" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> deserialise(<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>()) :: {:ok, Query.t()} | {:error, :invalid_query}</pre>
+
+      </div>
+
+<p>Deserialise a Query struct</p>
+  </section>
+</section>
+<section class="detail" id="serialise/1">
+
+  <div class="detail-header">
+    <a href="#serialise/1" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">serialise(query)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/query_helper.ex#L12" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> serialise(Query.t()) :: {:ok, <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>()} | {:error, :invalid_query}</pre>
+
+      </div>
+
+<p>Serialise a Query struct</p>
   </section>
 </section>
 

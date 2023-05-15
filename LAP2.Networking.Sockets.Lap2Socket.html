@@ -13,7 +13,7 @@
 
     <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
     <script src="dist/handlebars.templates-XWGFFSCD.js"></script>
-    <script src="dist/sidebar_items-6C7E0438.js"></script>
+    <script src="dist/sidebar_items-08CB9D83.js"></script>
 
       <script src="docs_config.js"></script>
 
@@ -141,11 +141,41 @@ LAP2
 
     <div class="summary-row">
       <div class="summary-signature">
+        <a href="#parse_segment/3" translate="no">parse_segment(conn_id, segment, registry_table)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Parse a received TCP segment.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#respond_tcp/3" translate="no">respond_tcp(query, conn_id, tcp_name)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Reply to a TCP request with a response Query.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
         <a href="#send_clove/3" translate="no">send_clove(arg, clove, udp_name)</a>
 
       </div>
 
         <div class="summary-synopsis"><p>Send a clove to a destination address and port.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#send_tcp/3" translate="no">send_tcp(arg, query, registry_table)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Send out a TCP request and wait for a response.</p></div>
 
     </div>
 
@@ -172,7 +202,7 @@ Functions
     </a>
     <h1 class="signature" translate="no">parse_dgram(source, dgram, router_name)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/networking/sockets/lap2_sock.ex#L15" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/networking/sockets/lap2_sock.ex#L18" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -191,6 +221,62 @@ Functions
 <p>Parse a received datagram.</p>
   </section>
 </section>
+<section class="detail" id="parse_segment/3">
+
+  <div class="detail-header">
+    <a href="#parse_segment/3" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">parse_segment(conn_id, segment, registry_table)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/networking/sockets/lap2_sock.ex#L35" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> parse_segment(<a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()) :: :ok | :error</pre>
+
+      </div>
+
+<p>Parse a received TCP segment.</p>
+  </section>
+</section>
+<section class="detail" id="respond_tcp/3">
+
+  <div class="detail-header">
+    <a href="#respond_tcp/3" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">respond_tcp(query, conn_id, tcp_name)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/networking/sockets/lap2_sock.ex#L70" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> respond_tcp(Query.t(), <a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) :: :ok | :error</pre>
+
+      </div>
+
+<p>Reply to a TCP request with a response Query.</p>
+  </section>
+</section>
 <section class="detail" id="send_clove/3">
 
   <div class="detail-header">
@@ -200,7 +286,7 @@ Functions
     </a>
     <h1 class="signature" translate="no">send_clove(arg, clove, udp_name)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/networking/sockets/lap2_sock.ex#L32" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/networking/sockets/lap2_sock.ex#L52" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -217,6 +303,34 @@ Functions
       </div>
 
 <p>Send a clove to a destination address and port.</p>
+  </section>
+</section>
+<section class="detail" id="send_tcp/3">
+
+  <div class="detail-header">
+    <a href="#send_tcp/3" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">send_tcp(arg, query, registry_table)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/networking/sockets/lap2_sock.ex#L84" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> send_tcp({<a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>()}, Query.t(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()) :: :ok | :error</pre>
+
+      </div>
+
+<p>Send out a TCP request and wait for a response.</p>
   </section>
 </section>
 

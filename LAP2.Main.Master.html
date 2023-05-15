@@ -13,7 +13,7 @@
 
     <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
     <script src="dist/handlebars.templates-XWGFFSCD.js"></script>
-    <script src="dist/sidebar_items-6C7E0438.js"></script>
+    <script src="dist/sidebar_items-08CB9D83.js"></script>
 
       <script src="docs_config.js"></script>
 
@@ -131,6 +131,26 @@ LAP2
 
     <div class="summary-row">
       <div class="summary-signature">
+        <a href="#bootstrap_dht/2" translate="no">bootstrap_dht(bootstrap_addr, master_name)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Bootstrap the DHT table with a request to a known network node.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#cache_query/4" translate="no">cache_query(query, routing_info, service_id, name)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Add a query to the cache so it can be retrieved for a response.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
         <a href="#child_spec/1" translate="no">child_spec(init_arg)</a>
 
       </div>
@@ -141,29 +161,68 @@ LAP2
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#deliver_query/3" translate="no">deliver_query(data, stream_id, master_name \\ :master)</a>
+        <a href="#deregister_listener/2" translate="no">deregister_listener(listener_id, master_name)</a>
 
       </div>
 
-        <div class="summary-synopsis"><p>Send a query to the appropriate listener socket.</p></div>
+        <div class="summary-synopsis"><p>Deregister a listener with a given stream ID.</p></div>
 
     </div>
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#deliver_response/3" translate="no">deliver_response(data, stream_id, master_name \\ :master)</a>
+        <a href="#deregister_service/3" translate="no">deregister_service(service_id, secret, master_name)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Attempt to deregister a service with a given stream ID and its associated secret key.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#discard_query/4" translate="no">discard_query(service_id, query_id, secret, name)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Delete a query from the cache.
+Used if a service does not wish to respond to a query.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#discover_proxy/1" translate="no">discover_proxy(master_name)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Initialise the proxy discovery process.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#get_listener_struct/2" translate="no">get_listener_struct(listener_id, master_name)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#get_registry_table/1" translate="no">get_registry_table(name)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#get_service_target/2" translate="no">get_service_target(listener_id, master_name)</a>
 
       </div>
 
         <div class="summary-synopsis"><p>Send a response to the appropriate listener socket.</p></div>
-
-    </div>
-
-    <div class="summary-row">
-      <div class="summary-signature">
-        <a href="#handle_cast/3" translate="no">handle_cast(arg, from, state)</a>
-
-      </div>
 
     </div>
 
@@ -179,11 +238,89 @@ LAP2
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#register_listener/3" translate="no">register_listener(stream_id, listener, master_name \\ :master)</a>
+        <a href="#pop_return/2" translate="no">pop_return(query_id, name)</a>
 
       </div>
 
-        <div class="summary-synopsis"><p>Register a listener with a unique stream ID.</p></div>
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#register_dht_request/2" translate="no">register_dht_request(query_id, name)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Remember a query ID for a DHT request to verify the response</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#register_listener/2" translate="no">register_listener(listener, master_name)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Register a listener with a unique stream ID.
+:stdout for STDOUT
+{:tcp, {ip, port}} for TCP
+{:native, funct, service_id} for a native listener function</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#register_return/3" translate="no">register_return(query_id, listener_id, name)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#register_service/3" translate="no">register_service(service_id, listener_id, master_name)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Register a service with a given stream ID.
+This function returs a secret key needed to modify the registered service.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#request_remote/5" translate="no">request_remote(intro_points, data, service_id, listener_id, name)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#respond/5" translate="no">respond(service_id, query_ids, secret, data, name)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Respond to a query with a given query ID.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#service_lookup/2" translate="no">service_lookup(service_id, master_name)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Lookup a service to get its associated stream ID.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#setup_introduction_point/2" translate="no">setup_introduction_point(service_ids, name)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Get the registry table for a given master name.</p></div>
 
     </div>
 
@@ -194,6 +331,16 @@ LAP2
       </div>
 
         <div class="summary-synopsis"><p>Start the Master process.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#valid_dht_request?/2" translate="no">valid_dht_request?(query_id, name)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Verify if a query ID is valid for a DHT request</p></div>
 
     </div>
 
@@ -211,6 +358,65 @@ LAP2
 Functions
     </h1>
     <div class="functions-list">
+<section class="detail" id="bootstrap_dht/2">
+
+  <div class="detail-header">
+    <a href="#bootstrap_dht/2" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">bootstrap_dht(bootstrap_addr, master_name)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/master.ex#L341" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> bootstrap_dht(
+  {<a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>()},
+  <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()
+) :: :ok | :error</pre>
+
+      </div>
+
+<p>Bootstrap the DHT table with a request to a known network node.</p>
+  </section>
+</section>
+<section class="detail" id="cache_query/4">
+
+  <div class="detail-header">
+    <a href="#cache_query/4" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">cache_query(query, routing_info, service_id, name)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/master.ex#L227" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> cache_query(Query.t(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>(), <a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) :: :ok | :error</pre>
+
+      </div>
+
+<p>Add a query to the cache so it can be retrieved for a response.</p>
+  </section>
+</section>
 <section class="detail" id="child_spec/1">
 
   <div class="detail-header">
@@ -220,7 +426,7 @@ Functions
     </a>
     <h1 class="signature" translate="no">child_spec(init_arg)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/master.ex#L5" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/master.ex#L6" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -233,18 +439,16 @@ Functions
 <p>Returns a specification to start this module under a supervisor.</p><p>See <a href="https://hexdocs.pm/elixir/Supervisor.html"><code class="inline">Supervisor</code></a>.</p>
   </section>
 </section>
-<section class="detail" id="deliver_query/3">
-
-    <span id="deliver_query/2"></span>
+<section class="detail" id="deregister_listener/2">
 
   <div class="detail-header">
-    <a href="#deliver_query/3" class="detail-link" title="Link to this function">
+    <a href="#deregister_listener/2" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">deliver_query(data, stream_id, master_name \\ :master)</h1>
+    <h1 class="signature" translate="no">deregister_listener(listener_id, master_name)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/master.ex#L83" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/master.ex#L265" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -256,25 +460,23 @@ Functions
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">@spec</span> deliver_query(<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) :: :ok</pre>
+          <pre translate="no"><span class="attribute">@spec</span> deregister_listener(<a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) :: :ok</pre>
 
       </div>
 
-<p>Send a query to the appropriate listener socket.</p>
+<p>Deregister a listener with a given stream ID.</p>
   </section>
 </section>
-<section class="detail" id="deliver_response/3">
-
-    <span id="deliver_response/2"></span>
+<section class="detail" id="deregister_service/3">
 
   <div class="detail-header">
-    <a href="#deliver_response/3" class="detail-link" title="Link to this function">
+    <a href="#deregister_service/3" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">deliver_response(data, stream_id, master_name \\ :master)</h1>
+    <h1 class="signature" translate="no">deregister_service(service_id, secret, master_name)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/master.ex#L74" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/master.ex#L290" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -286,48 +488,153 @@ Functions
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">@spec</span> deliver_response(<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) :: :ok</pre>
+          <pre translate="no"><span class="attribute">@spec</span> deregister_service(<a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>(), <a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) :: :ok | :error</pre>
+
+      </div>
+
+<p>Attempt to deregister a service with a given stream ID and its associated secret key.</p>
+  </section>
+</section>
+<section class="detail" id="discard_query/4">
+
+  <div class="detail-header">
+    <a href="#discard_query/4" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">discard_query(service_id, query_id, secret, name)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/master.ex#L309" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> discard_query(<a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>(), <a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) :: :ok | :error</pre>
+
+      </div>
+
+<p>Delete a query from the cache.
+Used if a service does not wish to respond to a query.</p>
+  </section>
+</section>
+<section class="detail" id="discover_proxy/1">
+
+  <div class="detail-header">
+    <a href="#discover_proxy/1" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">discover_proxy(master_name)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/master.ex#L333" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> discover_proxy(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) :: :ok</pre>
+
+      </div>
+
+<p>Initialise the proxy discovery process.</p>
+  </section>
+</section>
+<section class="detail" id="get_listener_struct/2">
+
+  <div class="detail-header">
+    <a href="#get_listener_struct/2" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">get_listener_struct(listener_id, master_name)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/master.ex#L219" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> get_listener_struct(<a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) :: {:ok, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()} | {:error, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()}</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="get_registry_table/1">
+
+  <div class="detail-header">
+    <a href="#get_registry_table/1" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">get_registry_table(name)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/master.ex#L364" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> get_registry_table(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) :: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="get_service_target/2">
+
+  <div class="detail-header">
+    <a href="#get_service_target/2" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">get_service_target(listener_id, master_name)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/master.ex#L213" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> get_service_target(<a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) ::
+  {:ok, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">tuple</a>()} | {:error, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()}</pre>
 
       </div>
 
 <p>Send a response to the appropriate listener socket.</p>
-  </section>
-</section>
-<section class="detail" id="handle_cast/3">
-
-  <div class="detail-header">
-    <a href="#handle_cast/3" class="detail-link" title="Link to this function">
-      <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this function</span>
-    </a>
-    <h1 class="signature" translate="no">handle_cast(arg, from, state)</h1>
-
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/master.ex#L33" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
-
-
-  </div>
-
-  <section class="docstring">
-
-      <div class="specs">
-
-          <pre translate="no"><span class="attribute">@spec</span> handle_cast({:deliver_query, <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>()}, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">any</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()) ::
-  {:noreply, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()}</pre>
-
-          <pre translate="no"><span class="attribute">@spec</span> handle_cast({:deliver_response, <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>()}, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">any</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()) ::
-  {:noreply, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()}</pre>
-
-          <pre translate="no"><span class="attribute">@spec</span> handle_cast({:register_listener, <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">any</a>()}, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">any</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()) ::
-  {:noreply, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()}</pre>
-
-          <pre translate="no"><span class="attribute">@spec</span> handle_cast({:deregister_listener, <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>()}, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">any</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()) :: {:noreply, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()}</pre>
-
-      </div>
-
-
   </section>
 </section>
 <section class="detail" id="init/1">
@@ -339,7 +646,7 @@ Functions
     </a>
     <h1 class="signature" translate="no">init(config)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/master.ex#L20" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/master.ex#L27" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -358,18 +665,16 @@ Functions
 <p>Initialise the data handler GenServer.</p>
   </section>
 </section>
-<section class="detail" id="register_listener/3">
-
-    <span id="register_listener/2"></span>
+<section class="detail" id="pop_return/2">
 
   <div class="detail-header">
-    <a href="#register_listener/3" class="detail-link" title="Link to this function">
+    <a href="#pop_return/2" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">register_listener(stream_id, listener, master_name \\ :master)</h1>
+    <h1 class="signature" translate="no">pop_return(query_id, name)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/master.ex#L93" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/master.ex#L300" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -381,11 +686,248 @@ Functions
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">@spec</span> register_listener(<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">any</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) :: :ok</pre>
+          <pre translate="no"><span class="attribute">@spec</span> pop_return(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) :: <a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>() | :error</pre>
 
       </div>
 
-<p>Register a listener with a unique stream ID.</p>
+
+  </section>
+</section>
+<section class="detail" id="register_dht_request/2">
+
+  <div class="detail-header">
+    <a href="#register_dht_request/2" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">register_dht_request(query_id, name)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/master.ex#L235" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> register_dht_request(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) :: :ok</pre>
+
+      </div>
+
+<p>Remember a query ID for a DHT request to verify the response</p>
+  </section>
+</section>
+<section class="detail" id="register_listener/2">
+
+  <div class="detail-header">
+    <a href="#register_listener/2" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">register_listener(listener, master_name)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/master.ex#L255" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> register_listener(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">tuple</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) :: {:ok, <a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>()}</pre>
+
+      </div>
+
+<p>Register a listener with a unique stream ID.
+:stdout for STDOUT
+{:tcp, {ip, port}} for TCP
+{:native, funct, service_id} for a native listener function</p>
+  </section>
+</section>
+<section class="detail" id="register_return/3">
+
+  <div class="detail-header">
+    <a href="#register_return/3" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">register_return(query_id, listener_id, name)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/master.ex#L295" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> register_return(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>(), <a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) :: :ok</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="register_service/3">
+
+  <div class="detail-header">
+    <a href="#register_service/3" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">register_service(service_id, listener_id, master_name)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/master.ex#L274" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> register_service(<a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>(), <a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) ::
+  {:ok, <a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>()} | {:error, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()}</pre>
+
+      </div>
+
+<p>Register a service with a given stream ID.
+This function returs a secret key needed to modify the registered service.</p>
+  </section>
+</section>
+<section class="detail" id="request_remote/5">
+
+  <div class="detail-header">
+    <a href="#request_remote/5" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">request_remote(intro_points, data, service_id, listener_id, name)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/master.ex#L359" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> request_remote(
+  [{<a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>()}],
+  <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
+  <a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>(),
+  <a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>(),
+  <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()
+) ::
+  :ok | :error</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="respond/5">
+
+  <div class="detail-header">
+    <a href="#respond/5" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">respond(service_id, query_ids, secret, data, name)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/master.ex#L317" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> respond(<a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>(), [<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>()], <a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) ::
+  :ok | :error</pre>
+
+      </div>
+
+<p>Respond to a query with a given query ID.</p>
+  </section>
+</section>
+<section class="detail" id="service_lookup/2">
+
+  <div class="detail-header">
+    <a href="#service_lookup/2" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">service_lookup(service_id, master_name)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/master.ex#L282" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> service_lookup(<a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) :: {:ok, <a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>()} | {:error, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()}</pre>
+
+      </div>
+
+<p>Lookup a service to get its associated stream ID.</p>
+  </section>
+</section>
+<section class="detail" id="setup_introduction_point/2">
+
+  <div class="detail-header">
+    <a href="#setup_introduction_point/2" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">setup_introduction_point(service_ids, name)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/master.ex#L351" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> setup_introduction_point([<a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>()], <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) :: :ok | :error</pre>
+
+      </div>
+
+<p>Get the registry table for a given master name.</p>
   </section>
 </section>
 <section class="detail" id="start_link/1">
@@ -397,7 +939,7 @@ Functions
     </a>
     <h1 class="signature" translate="no">start_link(config)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/master.ex#L12" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/master.ex#L19" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -414,6 +956,34 @@ Functions
       </div>
 
 <p>Start the Master process.</p>
+  </section>
+</section>
+<section class="detail" id="valid_dht_request?/2">
+
+  <div class="detail-header">
+    <a href="#valid_dht_request?/2" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">valid_dht_request?(query_id, name)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/master.ex#L243" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> valid_dht_request?(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) :: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">boolean</a>()</pre>
+
+      </div>
+
+<p>Verify if a query ID is valid for a DHT request</p>
   </section>
 </section>
 

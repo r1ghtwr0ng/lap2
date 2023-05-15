@@ -13,7 +13,7 @@
 
     <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
     <script src="dist/handlebars.templates-XWGFFSCD.js"></script>
-    <script src="dist/sidebar_items-6C7E0438.js"></script>
+    <script src="dist/sidebar_items-08CB9D83.js"></script>
 
       <script src="docs_config.js"></script>
 
@@ -132,7 +132,7 @@ Verifies integrity, serves as interface for serialising/deserialising with Proto
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#build_fin_crypto/1" translate="no">build_fin_crypto(ring_sign)</a>
+        <a href="#build_fin_claimable/1" translate="no">build_fin_claimable(ring_sig)</a>
 
       </div>
 
@@ -142,7 +142,7 @@ Verifies integrity, serves as interface for serialising/deserialising with Proto
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#build_init_crypto/5" translate="no">build_init_crypto(identity, ephem_pk, generator, ring_pk, signature)</a>
+        <a href="#build_init_claimable/6" translate="no">build_init_claimable(identity, pk_ephem_sign, pk_dh, signature, arg1, arg2)</a>
 
       </div>
 
@@ -170,7 +170,7 @@ Verifies integrity, serves as interface for serialising/deserialising with Proto
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#build_resp_crypto/6" translate="no">build_resp_crypto(identity, ephem_pk, generator, ring_pk, signature, ring_sign)</a>
+        <a href="#build_resp_claimable/7" translate="no">build_resp_claimable(identity, pk_ephem_sign, pk_dh, signature, arg1, arg2, ring_sig)</a>
 
       </div>
 
@@ -213,7 +213,7 @@ If encrypted, unwrap and decrypt request.</p></div>
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#deserialise_and_unwrap/3" translate="no">deserialise_and_unwrap(enc_request, proxy_seq, crypto_mgr_name \\ :crypto_manager)</a>
+        <a href="#deserialise_and_unwrap/3" translate="no">deserialise_and_unwrap(enc_request, proxy_seq, crypto_mgr_name)</a>
 
       </div>
 
@@ -221,7 +221,7 @@ If encrypted, unwrap and decrypt request.</p></div>
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#encrypt_and_wrap/3" translate="no">encrypt_and_wrap(request, proxy_seq, crypto_mgr_name \\ :crypto_manager)</a>
+        <a href="#encrypt_and_wrap/3" translate="no">encrypt_and_wrap(request, proxy_seq, crypto_mgr_name)</a>
 
       </div>
 
@@ -231,7 +231,39 @@ If encrypted, unwrap and decrypt request.</p></div>
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#gen_finalise_exchange/4" translate="no">gen_finalise_exchange(request, proxy_seq, clove_seq, crypto_mgr \\ :crypto_manager)</a>
+        <a href="#format_export/1" translate="no">format_export(struct)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#format_import/1" translate="no">format_import(struct)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#format_sag_export/1" translate="no">format_sag_export(sag)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#format_sag_import/1" translate="no">format_sag_import(sag)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#gen_finalise_exchange/3" translate="no">gen_finalise_exchange(request, proxy_seq, crypto_mgr)</a>
 
       </div>
 
@@ -242,7 +274,7 @@ Different from recv_finalise_exchange as this is called by the initiator.</p></d
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#gen_response/3" translate="no">gen_response(request, proxy_seq, crypto_mgr \\ :crypto_manager)</a>
+        <a href="#gen_response/3" translate="no">gen_response(request, proxy_seq, crypto_mgr)</a>
 
       </div>
 
@@ -252,7 +284,7 @@ Different from recv_finalise_exchange as this is called by the initiator.</p></d
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#init_exchange/2" translate="no">init_exchange(clove_seq, crypto_mgr \\ :crypto_manager)</a>
+        <a href="#init_exchange/1" translate="no">init_exchange(crypto_mgr)</a>
 
       </div>
 
@@ -262,7 +294,7 @@ Different from recv_finalise_exchange as this is called by the initiator.</p></d
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#init_key_rotation/2" translate="no">init_key_rotation(proxy_seq, crypto_mgr \\ :crypto_manager)</a>
+        <a href="#init_key_rotation/2" translate="no">init_key_rotation(proxy_seq, crypto_mgr)</a>
 
       </div>
 
@@ -272,7 +304,7 @@ Different from recv_finalise_exchange as this is called by the initiator.</p></d
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#recv_finalise_exchange/3" translate="no">recv_finalise_exchange(request, proxy_seq, crypto_mgr \\ :crypto_manager)</a>
+        <a href="#recv_finalise_exchange/3" translate="no">recv_finalise_exchange(request, proxy_seq, crypto_mgr)</a>
 
       </div>
 
@@ -283,7 +315,7 @@ Different from gen_finalise_exchange as this is called by the receiver proxy.</p
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#rotate_keys/3" translate="no">rotate_keys(request, proxy_seq, crypto_mgr \\ :crypto_manager)</a>
+        <a href="#rotate_keys/3" translate="no">rotate_keys(request, proxy_seq, crypto_mgr)</a>
 
       </div>
 
@@ -323,16 +355,16 @@ Different from gen_finalise_exchange as this is called by the receiver proxy.</p
 Functions
     </h1>
     <div class="functions-list">
-<section class="detail" id="build_fin_crypto/1">
+<section class="detail" id="build_fin_claimable/1">
 
   <div class="detail-header">
-    <a href="#build_fin_crypto/1" class="detail-link" title="Link to this function">
+    <a href="#build_fin_claimable/1" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">build_fin_crypto(ring_sign)</h1>
+    <h1 class="signature" translate="no">build_fin_claimable(ring_sig)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/request_helper.ex#L180" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/request_helper.ex#L181" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -344,23 +376,23 @@ Functions
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">@spec</span> build_fin_crypto(<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>()) :: {:fin_ke, KeyExchangeFinal.t()}</pre>
+          <pre translate="no"><span class="attribute">@spec</span> build_fin_claimable(SAG.t()) :: {:fin_ke, KeyExchangeFinal.t()}</pre>
 
       </div>
 
 <p>Build the key exchange finalisation struct</p>
   </section>
 </section>
-<section class="detail" id="build_init_crypto/5">
+<section class="detail" id="build_init_claimable/6">
 
   <div class="detail-header">
-    <a href="#build_init_crypto/5" class="detail-link" title="Link to this function">
+    <a href="#build_init_claimable/6" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">build_init_crypto(identity, ephem_pk, generator, ring_pk, signature)</h1>
+    <h1 class="signature" translate="no">build_init_claimable(identity, pk_ephem_sign, pk_dh, signature, arg1, arg2)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/request_helper.ex#L149" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/request_helper.ex#L145" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -372,8 +404,14 @@ Functions
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">@spec</span> build_init_crypto(<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>()) ::
-  {:init_ke, KeyExchangeInit.t()}</pre>
+          <pre translate="no"><span class="attribute">@spec</span> build_init_claimable(
+  <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>(),
+  <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>(),
+  <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
+  <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>(),
+  {<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>()},
+  {<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>()}
+) :: {:init_ke, KeyExchangeInit.t()}</pre>
 
       </div>
 
@@ -389,7 +427,7 @@ Functions
     </a>
     <h1 class="signature" translate="no">build_key_rotation(new_key)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/request_helper.ex#L200" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/request_helper.ex#L203" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -417,7 +455,7 @@ Functions
     </a>
     <h1 class="signature" translate="no">build_request(crypto, data, req_type, req_id)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/request_helper.ex#L208" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/request_helper.ex#L211" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -429,7 +467,7 @@ Functions
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">@spec</span> build_request({<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()}, <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>()) ::
+          <pre translate="no"><span class="attribute">@spec</span> build_request({<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">struct</a>()}, <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>()) ::
   Request.t()</pre>
 
       </div>
@@ -437,16 +475,16 @@ Functions
 
   </section>
 </section>
-<section class="detail" id="build_resp_crypto/6">
+<section class="detail" id="build_resp_claimable/7">
 
   <div class="detail-header">
-    <a href="#build_resp_crypto/6" class="detail-link" title="Link to this function">
+    <a href="#build_resp_claimable/7" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">build_resp_crypto(identity, ephem_pk, generator, ring_pk, signature, ring_sign)</h1>
+    <h1 class="signature" translate="no">build_resp_claimable(identity, pk_ephem_sign, pk_dh, signature, arg1, arg2, ring_sig)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/request_helper.ex#L164" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/request_helper.ex#L163" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -458,8 +496,15 @@ Functions
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">@spec</span> build_resp_crypto(<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>()) ::
-  {:resp_ke, KeyExchangeResponse.t()}</pre>
+          <pre translate="no"><span class="attribute">@spec</span> build_resp_claimable(
+  <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>(),
+  <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>(),
+  <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
+  <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>(),
+  {<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>()},
+  {<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>()},
+  SAG.t()
+) :: {:resp_ke, KeyExchangeResponse.t()}</pre>
 
       </div>
 
@@ -475,7 +520,7 @@ Functions
     </a>
     <h1 class="signature" translate="no">build_symmetric_crypto()</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/request_helper.ex#L192" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/request_helper.ex#L193" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -504,7 +549,7 @@ Note: HMAC key is set when the HMAC is computed</p>
     </a>
     <h1 class="signature" translate="no">deserialise(data, struct)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/request_helper.ex#L233" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/request_helper.ex#L236" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -533,7 +578,7 @@ Note: HMAC key is set when the HMAC is computed</p>
     </a>
     <h1 class="signature" translate="no">deserialise_and_unwrap(enc_request)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/request_helper.ex#L244" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/request_helper.ex#L247" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -556,16 +601,14 @@ If encrypted, unwrap and decrypt request.</p>
 </section>
 <section class="detail" id="deserialise_and_unwrap/3">
 
-    <span id="deserialise_and_unwrap/2"></span>
-
   <div class="detail-header">
     <a href="#deserialise_and_unwrap/3" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">deserialise_and_unwrap(enc_request, proxy_seq, crypto_mgr_name \\ :crypto_manager)</h1>
+    <h1 class="signature" translate="no">deserialise_and_unwrap(enc_request, proxy_seq, crypto_mgr_name)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/request_helper.ex#L258" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/request_helper.ex#L261" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -587,16 +630,14 @@ If encrypted, unwrap and decrypt request.</p>
 </section>
 <section class="detail" id="encrypt_and_wrap/3">
 
-    <span id="encrypt_and_wrap/2"></span>
-
   <div class="detail-header">
     <a href="#encrypt_and_wrap/3" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">encrypt_and_wrap(request, proxy_seq, crypto_mgr_name \\ :crypto_manager)</h1>
+    <h1 class="signature" translate="no">encrypt_and_wrap(request, proxy_seq, crypto_mgr_name)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/request_helper.ex#L285" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/request_helper.ex#L288" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -616,18 +657,16 @@ If encrypted, unwrap and decrypt request.</p>
 <p>Encrypt a Request struct and serialise to EncryptedRequest struct.</p>
   </section>
 </section>
-<section class="detail" id="gen_finalise_exchange/4">
-
-    <span id="gen_finalise_exchange/3"></span>
+<section class="detail" id="format_export/1">
 
   <div class="detail-header">
-    <a href="#gen_finalise_exchange/4" class="detail-link" title="Link to this function">
+    <a href="#format_export/1" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">gen_finalise_exchange(request, proxy_seq, clove_seq, crypto_mgr \\ :crypto_manager)</h1>
+    <h1 class="signature" translate="no">format_export(struct)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/request_helper.ex#L66" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/request_helper.ex#L302" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -639,7 +678,119 @@ If encrypted, unwrap and decrypt request.</p>
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">@spec</span> gen_finalise_exchange(Request.t(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) ::
+          <pre translate="no"><span class="attribute">@spec</span> format_export(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">struct</a>()) :: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">struct</a>()</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="format_import/1">
+
+  <div class="detail-header">
+    <a href="#format_import/1" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">format_import(struct)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/request_helper.ex#L319" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> format_import(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">struct</a>()) :: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">struct</a>()</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="format_sag_export/1">
+
+  <div class="detail-header">
+    <a href="#format_sag_export/1" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">format_sag_export(sag)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/request_helper.ex#L335" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> format_sag_export(SAG.t() | {SAG.t(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">list</a>()}) :: SAG.t() | {SAG.t(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">list</a>()}</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="format_sag_import/1">
+
+  <div class="detail-header">
+    <a href="#format_sag_import/1" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">format_sag_import(sag)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/request_helper.ex#L349" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> format_sag_import(SAG.t() | {SAG.t(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">list</a>()}) :: SAG.t() | {SAG.t(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">list</a>()}</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="gen_finalise_exchange/3">
+
+  <div class="detail-header">
+    <a href="#gen_finalise_exchange/3" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">gen_finalise_exchange(request, proxy_seq, crypto_mgr)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/request_helper.ex#L63" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> gen_finalise_exchange(Request.t(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) ::
   {:ok, EncryptedRequest.t()} | {:error, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()}</pre>
 
       </div>
@@ -650,16 +801,14 @@ Different from recv_finalise_exchange as this is called by the initiator.</p>
 </section>
 <section class="detail" id="gen_response/3">
 
-    <span id="gen_response/2"></span>
-
   <div class="detail-header">
     <a href="#gen_response/3" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">gen_response(request, proxy_seq, crypto_mgr \\ :crypto_manager)</h1>
+    <h1 class="signature" translate="no">gen_response(request, proxy_seq, crypto_mgr)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/request_helper.ex#L38" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/request_helper.ex#L41" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -679,18 +828,16 @@ Different from recv_finalise_exchange as this is called by the initiator.</p>
 <p>Respond to a key exchange request from a remote proxy.</p>
   </section>
 </section>
-<section class="detail" id="init_exchange/2">
-
-    <span id="init_exchange/1"></span>
+<section class="detail" id="init_exchange/1">
 
   <div class="detail-header">
-    <a href="#init_exchange/2" class="detail-link" title="Link to this function">
+    <a href="#init_exchange/1" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">init_exchange(clove_seq, crypto_mgr \\ :crypto_manager)</h1>
+    <h1 class="signature" translate="no">init_exchange(crypto_mgr)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/request_helper.ex#L18" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/request_helper.ex#L19" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -702,8 +849,7 @@ Different from recv_finalise_exchange as this is called by the initiator.</p>
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">@spec</span> init_exchange(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) ::
-  {:ok, EncryptedRequest.t()} | {:error, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()}</pre>
+          <pre translate="no"><span class="attribute">@spec</span> init_exchange(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) :: {:ok, EncryptedRequest.t()} | {:error, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()}</pre>
 
       </div>
 
@@ -712,16 +858,14 @@ Different from recv_finalise_exchange as this is called by the initiator.</p>
 </section>
 <section class="detail" id="init_key_rotation/2">
 
-    <span id="init_key_rotation/1"></span>
-
   <div class="detail-header">
     <a href="#init_key_rotation/2" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">init_key_rotation(proxy_seq, crypto_mgr \\ :crypto_manager)</h1>
+    <h1 class="signature" translate="no">init_key_rotation(proxy_seq, crypto_mgr)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/request_helper.ex#L112" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/request_helper.ex#L105" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -743,16 +887,14 @@ Different from recv_finalise_exchange as this is called by the initiator.</p>
 </section>
 <section class="detail" id="recv_finalise_exchange/3">
 
-    <span id="recv_finalise_exchange/2"></span>
-
   <div class="detail-header">
     <a href="#recv_finalise_exchange/3" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">recv_finalise_exchange(request, proxy_seq, crypto_mgr \\ :crypto_manager)</h1>
+    <h1 class="signature" translate="no">recv_finalise_exchange(request, proxy_seq, crypto_mgr)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/request_helper.ex#L96" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/request_helper.ex#L90" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -765,7 +907,7 @@ Different from recv_finalise_exchange as this is called by the initiator.</p>
       <div class="specs">
 
           <pre translate="no"><span class="attribute">@spec</span> recv_finalise_exchange(Request.t(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) ::
-  {:ok, EncryptedRequest.t()} | {:error, :invalid_signature}</pre>
+  {:ok, EncryptedRequest.t()} | {:error, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()}</pre>
 
       </div>
 
@@ -775,16 +917,14 @@ Different from gen_finalise_exchange as this is called by the receiver proxy.</p
 </section>
 <section class="detail" id="rotate_keys/3">
 
-    <span id="rotate_keys/2"></span>
-
   <div class="detail-header">
     <a href="#rotate_keys/3" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">rotate_keys(request, proxy_seq, crypto_mgr \\ :crypto_manager)</h1>
+    <h1 class="signature" translate="no">rotate_keys(request, proxy_seq, crypto_mgr)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/request_helper.ex#L130" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/request_helper.ex#L124" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -813,7 +953,7 @@ Different from gen_finalise_exchange as this is called by the receiver proxy.</p
     </a>
     <h1 class="signature" translate="no">serialise(request)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/request_helper.ex#L276" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/request_helper.ex#L279" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -842,7 +982,7 @@ Different from gen_finalise_exchange as this is called by the receiver proxy.</p
     </a>
     <h1 class="signature" translate="no">wrap_unencrypted(request)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/request_helper.ex#L220" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/utils/protobuf/request_helper.ex#L223" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>

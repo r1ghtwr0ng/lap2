@@ -13,7 +13,7 @@
 
     <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
     <script src="dist/handlebars.templates-XWGFFSCD.js"></script>
-    <script src="dist/sidebar_items-6C7E0438.js"></script>
+    <script src="dist/sidebar_items-08CB9D83.js"></script>
 
       <script src="docs_config.js"></script>
 
@@ -131,7 +131,7 @@ LAP2
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#deserialise/2" translate="no">deserialise(data, struct_type \\ Clove)</a>
+        <a href="#deserialise/2" translate="no">deserialise(data, struct_type)</a>
 
       </div>
 
@@ -165,16 +165,14 @@ Functions
     <div class="functions-list">
 <section class="detail" id="deserialise/2">
 
-    <span id="deserialise/1"></span>
-
   <div class="detail-header">
     <a href="#deserialise/2" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">deserialise(data, struct_type \\ Clove)</h1>
+    <h1 class="signature" translate="no">deserialise(data, struct_type)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/networking/protobuf.ex#L27" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/networking/protobuf.ex#L30" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -186,7 +184,7 @@ Functions
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">@spec</span> deserialise(<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), Clove | Share | Request | EncryptedRequest) ::
+          <pre translate="no"><span class="attribute">@spec</span> deserialise(<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), Clove | Share | Request | EncryptedRequest | Query) ::
   {:error, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">any</a>()} | {:ok, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">struct</a>()}</pre>
 
       </div>
@@ -203,7 +201,7 @@ Functions
     </a>
     <h1 class="signature" translate="no">serialise(struct)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/networking/protobuf.ex#L15" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/networking/protobuf.ex#L18" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -215,7 +213,13 @@ Functions
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">@spec</span> serialise(Clove.t() | Share.t() | Request.t() | EncryptedRequest.t()) ::
+          <pre translate="no"><span class="attribute">@spec</span> serialise(
+  Clove.t()
+  | Share.t()
+  | Request.t()
+  | EncryptedRequest.t()
+  | Query.t()
+) ::
   {:ok, <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>()} | {:error, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">any</a>()}</pre>
 
       </div>

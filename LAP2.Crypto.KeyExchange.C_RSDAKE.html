@@ -13,7 +13,7 @@
 
     <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
     <script src="dist/handlebars.templates-XWGFFSCD.js"></script>
-    <script src="dist/sidebar_items-6C7E0438.js"></script>
+    <script src="dist/sidebar_items-08CB9D83.js"></script>
 
       <script src="docs_config.js"></script>
 
@@ -112,7 +112,8 @@ LAP2
 
 
   <section id="moduledoc">
-<p>This module implements the C-RSDAKE key exchange protocol.</p>
+<p>This module implements the C-RSDAKE key exchange protocol.
+See:</p>
   </section>
 
 
@@ -132,38 +133,6 @@ LAP2
     <div class="summary-row">
       <div class="summary-signature">
         <a href="#t:crypto_state/0" translate="no">crypto_state()</a>
-
-      </div>
-
-    </div>
-
-    <div class="summary-row">
-      <div class="summary-signature">
-        <a href="#t:rsdake_final/0" translate="no">rsdake_final()</a>
-
-      </div>
-
-    </div>
-
-    <div class="summary-row">
-      <div class="summary-signature">
-        <a href="#t:rsdake_init/0" translate="no">rsdake_init()</a>
-
-      </div>
-
-    </div>
-
-    <div class="summary-row">
-      <div class="summary-signature">
-        <a href="#t:rsdake_resp/0" translate="no">rsdake_resp()</a>
-
-      </div>
-
-    </div>
-
-    <div class="summary-row">
-      <div class="summary-signature">
-        <a href="#t:sag/0" translate="no">sag()</a>
 
       </div>
 
@@ -197,7 +166,7 @@ LAP2
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#respond/3" translate="no">respond(identity, lt_keys, recv_init)</a>
+        <a href="#respond/3" translate="no">respond(identity, arg2, recv_init)</a>
 
       </div>
 
@@ -207,7 +176,7 @@ LAP2
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#verify_final/3" translate="no">verify_final(identity, crypto_state, map)</a>
+        <a href="#verify_final/3" translate="no">verify_final(identity, crypto_state, arg3)</a>
 
       </div>
 
@@ -238,7 +207,7 @@ Types
     </a>
     <h1 class="signature" translate="no">crypto_state()</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/key_exchange/c_rsdake.ex#L12" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/key_exchange/c_rsdake.ex#L8" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -258,133 +227,6 @@ Types
   shared_secret: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
   recv_struct: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()
 }</pre>
-
-      </div>
-
-
-  </section>
-</section>
-<section class="detail" id="t:rsdake_final/0">
-
-  <div class="detail-header">
-    <a href="#t:rsdake_final/0" class="detail-link" title="Link to this type">
-      <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this type</span>
-    </a>
-    <h1 class="signature" translate="no">rsdake_final()</h1>
-
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/key_exchange/c_rsdake.ex#L37" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
-
-
-  </div>
-
-  <section class="docstring">
-
-      <div class="specs">
-
-          <pre translate="no"><span class="attribute">@type</span> rsdake_final() :: %{ring_signature: {<a href="#t:sag/0">sag</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>()}}</pre>
-
-      </div>
-
-
-  </section>
-</section>
-<section class="detail" id="t:rsdake_init/0">
-
-  <div class="detail-header">
-    <a href="#t:rsdake_init/0" class="detail-link" title="Link to this type">
-      <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this type</span>
-    </a>
-    <h1 class="signature" translate="no">rsdake_init()</h1>
-
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/key_exchange/c_rsdake.ex#L20" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
-
-
-  </div>
-
-  <section class="docstring">
-
-      <div class="specs">
-
-          <pre translate="no"><span class="attribute">@type</span> rsdake_init() :: %{
-  identity: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>(),
-  pk_lt: {<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>()},
-  pk_rs: {<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>()},
-  pk_ephem_sign: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>(),
-  pk_dh: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
-  signature: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>()
-}</pre>
-
-      </div>
-
-
-  </section>
-</section>
-<section class="detail" id="t:rsdake_resp/0">
-
-  <div class="detail-header">
-    <a href="#t:rsdake_resp/0" class="detail-link" title="Link to this type">
-      <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this type</span>
-    </a>
-    <h1 class="signature" translate="no">rsdake_resp()</h1>
-
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/key_exchange/c_rsdake.ex#L28" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
-
-
-  </div>
-
-  <section class="docstring">
-
-      <div class="specs">
-
-          <pre translate="no"><span class="attribute">@type</span> rsdake_resp() :: %{
-  identity: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>(),
-  pk_lt: {<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>()},
-  pk_rs: {<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>()},
-  pk_ephem_sign: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>(),
-  pk_dh: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
-  signature: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>(),
-  ring_signature: {<a href="#t:sag/0">sag</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>()}
-}</pre>
-
-      </div>
-
-
-  </section>
-</section>
-<section class="detail" id="t:sag/0">
-
-  <div class="detail-header">
-    <a href="#t:sag/0" class="detail-link" title="Link to this type">
-      <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this type</span>
-    </a>
-    <h1 class="signature" translate="no">sag()</h1>
-
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/key_exchange/c_rsdake.ex#L7" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
-
-
-  </div>
-
-  <section class="docstring">
-
-      <div class="specs">
-
-          <pre translate="no"><span class="attribute">@type</span> sag() :: %{chal: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>(), ring: [<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>()], resp: [<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>()]}</pre>
 
       </div>
 
@@ -413,7 +255,7 @@ Functions
     </a>
     <h1 class="signature" translate="no">finalise(identity, crypto_state, recv_resp)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/key_exchange/c_rsdake.ex#L153" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/key_exchange/c_rsdake.ex#L151" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -425,12 +267,24 @@ Functions
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">@spec</span> finalise(<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>(), <a href="#t:crypto_state/0">crypto_state</a>(), <a href="#t:rsdake_resp/0">rsdake_resp</a>()) ::
-  {:ok, {<a href="#t:crypto_state/0">crypto_state</a>(), <a href="#t:rsdake_final/0">rsdake_final</a>()}} | {:error, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()}</pre>
+          <pre translate="no"><span class="attribute">@spec</span> finalise(<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>(), <a href="#t:crypto_state/0">crypto_state</a>(), KeyExchangeResponse.t()) ::
+  {:ok, {<a href="#t:crypto_state/0">crypto_state</a>(), {:fin_ke, KeyExchangeFinal.t()}}} | {:error, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()}</pre>
 
       </div>
 
-<p>Implements RSDAKE's finalisation phase.</p>
+<p>Implements RSDAKE's finalisation phase.</p><h2 id="finalise/3-arguments" class="section-heading">
+  <a href="#finalise/3-arguments" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">arguments</p>
+  </a>
+  Arguments
+</h2>
+<ul><li><code class="inline">identity</code> - The identity of the responder (charlist)</li><li><code class="inline">sk_lt</code> - The long-term secret key of the responder (map)</li><li><code class="inline">recv_resp</code> - The response received from the other party (KeyExchangeResponse.t()</li></ul><h2 id="finalise/3-returns" class="section-heading">
+  <a href="#finalise/3-returns" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">returns</p>
+  </a>
+  Returns
+</h2>
+<ul><li>}}</li><li><p>{:error, :invalid_arguments}</p></li><li><p>{:error, :invalid_signature}</p></li><li><p>{:error, :invalid_identity}</p></li><li><p>{:error, :invalid_ring_signature}</p></li></ul>
   </section>
 </section>
 <section class="detail" id="initialise/1">
@@ -442,7 +296,7 @@ Functions
     </a>
     <h1 class="signature" translate="no">initialise(identity)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/key_exchange/c_rsdake.ex#L49" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/key_exchange/c_rsdake.ex#L31" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -454,11 +308,25 @@ Functions
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">@spec</span> initialise(<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>()) :: {<a href="#t:crypto_state/0">crypto_state</a>(), <a href="#t:rsdake_init/0">rsdake_init</a>()}</pre>
+          <pre translate="no"><span class="attribute">@spec</span> initialise(<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>()) ::
+  {:ok, {<a href="#t:crypto_state/0">crypto_state</a>(), {:init_ke, KeyExchangeInit.t()}}}
+  | {:error, :invalid_identity}</pre>
 
       </div>
 
-<p>Implements RSDAKE's key exchange protocol initialisation phase.</p>
+<p>Implements RSDAKE's key exchange protocol initialisation phase.</p><h2 id="initialise/1-arguments" class="section-heading">
+  <a href="#initialise/1-arguments" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">arguments</p>
+  </a>
+  Arguments
+</h2>
+<ul><li><code class="inline">identity</code> - The identity of the initiator (charlist)</li></ul><h2 id="initialise/1-returns" class="section-heading">
+  <a href="#initialise/1-returns" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">returns</p>
+  </a>
+  Returns
+</h2>
+<ul><li><code class="inline">{:ok, {crypto_state, init_struct}}</code> - The initialisation message and the new crypto state</li><li><code class="inline">{:error, :invalid_identity}</code> - The identity is invalid</li></ul>
   </section>
 </section>
 <section class="detail" id="respond/3">
@@ -468,9 +336,9 @@ Functions
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">respond(identity, lt_keys, recv_init)</h1>
+    <h1 class="signature" translate="no">respond(identity, arg2, recv_init)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/key_exchange/c_rsdake.ex#L85" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/key_exchange/c_rsdake.ex#L76" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -482,12 +350,25 @@ Functions
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">@spec</span> respond(<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>(), <a href="#t:rsdake_init/0">rsdake_init</a>()) ::
-  {:ok, {<a href="#t:crypto_state/0">crypto_state</a>(), <a href="#t:rsdake_resp/0">rsdake_resp</a>()}} | {:error, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()}</pre>
+          <pre translate="no"><span class="attribute">@spec</span> respond(<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>(), KeyExchangeInit.t()) ::
+  {:ok, {<a href="#t:crypto_state/0">crypto_state</a>(), {:resp_ke, KeyExchangeResponse.t()}}}
+  | {:error, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()}</pre>
 
       </div>
 
-<p>Implements RSDAKE's response phase.</p>
+<p>Implements RSDAKE's response phase.</p><h2 id="respond/3-parameters" class="section-heading">
+  <a href="#respond/3-parameters" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">parameters</p>
+  </a>
+  Parameters
+</h2>
+<ul><li><code class="inline">identity</code> - The identity of the responder (charlist)</li><li><code class="inline">sk_lt</code> - The long-term secret key of the responder (map)</li><li><code class="inline">recv_init</code> - The received initialisation message (KeyExchangeInit.t())</li></ul><h2 id="respond/3-returns" class="section-heading">
+  <a href="#respond/3-returns" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">returns</p>
+  </a>
+  Returns
+</h2>
+<ul><li><code class="inline">{:ok, {crypto_state, response_struct}}</code> - The response message and the new crypto state</li><li><code class="inline">{:error, :invalid_aguments}</code> - The identity is invalid</li><li><code class="inline">{:error, :invalid_signature}</code> - The signature is invalid</li></ul>
   </section>
 </section>
 <section class="detail" id="verify_final/3">
@@ -497,9 +378,9 @@ Functions
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">verify_final(identity, crypto_state, map)</h1>
+    <h1 class="signature" translate="no">verify_final(identity, crypto_state, arg3)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/key_exchange/c_rsdake.ex#L212" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/key_exchange/c_rsdake.ex#L218" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -511,12 +392,24 @@ Functions
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">@spec</span> verify_final(<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>(), <a href="#t:crypto_state/0">crypto_state</a>(), <a href="#t:rsdake_final/0">rsdake_final</a>()) ::
+          <pre translate="no"><span class="attribute">@spec</span> verify_final(<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>(), <a href="#t:crypto_state/0">crypto_state</a>(), KeyExchangeFinal.t()) ::
   {:ok, <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">boolean</a>()} | {:error, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()}</pre>
 
       </div>
 
-<p>Implements RSDAKE's final response verification phase.</p>
+<p>Implements RSDAKE's final response verification phase.</p><h2 id="verify_final/3-arguments" class="section-heading">
+  <a href="#verify_final/3-arguments" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">arguments</p>
+  </a>
+  Arguments
+</h2>
+<ul><li><code class="inline">identity</code> - The identity of the responder (charlist)</li><li><code class="inline">crypto_state</code> - The crypto state of the responder (map)</li><li><code class="inline">recv_resp</code> - The response received from the other party (KeyExchangeResponse.t()</li></ul><h2 id="verify_final/3-returns" class="section-heading">
+  <a href="#verify_final/3-returns" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">returns</p>
+  </a>
+  Returns
+</h2>
+<ul><li><p></p></li><li><p>{:error, :invalid_arguments}</p></li><li><p>{:error, :invalid_ring_signature}</p></li></ul>
   </section>
 </section>
 

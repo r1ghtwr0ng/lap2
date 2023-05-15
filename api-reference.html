@@ -13,7 +13,7 @@
 
     <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
     <script src="dist/handlebars.templates-XWGFFSCD.js"></script>
-    <script src="dist/sidebar_items-6C7E0438.js"></script>
+    <script src="dist/sidebar_items-08CB9D83.js"></script>
 
       <script src="docs_config.js"></script>
 
@@ -184,7 +184,8 @@ revealing a commitment secret.</p></div>
 
   </div>
 
-    <div class="summary-synopsis"><p>This module implements the C-RSDAKE key exchange protocol.</p></div>
+    <div class="summary-synopsis"><p>This module implements the C-RSDAKE key exchange protocol.
+See</p></div>
 
 </div>
 <div class="summary-row">
@@ -193,7 +194,10 @@ revealing a commitment secret.</p></div>
 
   </div>
 
-    <div class="summary-synopsis"><p>This module implements the RSDAKE key exchange protocol.</p></div>
+    <div class="summary-synopsis"><p>This module implements the RSDAKE key exchange protocol.
+TODO consider depricating this and just use C-RSDAKE.
+If the user doesn't wish to have claimability, they can
+just discard the PRF secret and RS commitments.</p></div>
 
 </div>
 <div class="summary-row">
@@ -203,6 +207,40 @@ revealing a commitment secret.</p></div>
   </div>
 
     <div class="summary-synopsis"><p>PKCS7 padding and unpadding.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="LAP2.Main.ConnectionSupervisor.html" translate="no">LAP2.Main.ConnectionSupervisor</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Module for supervising the status of various network connections.
+Dispatches proxy requests via the ProxyManager.
+Encodes/decodes and routes data above the proxy abstraction layer.
+Receives commands directly from the Master module, interfaces with ProxyManager and IntroductionPoint modules.
+Relays are abstracted away by the ProxyManager, this module handles connections bound to proxy sequences.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="LAP2.Main.Helpers.HostBuffer.html" translate="no">LAP2.Main.Helpers.HostBuffer</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Acts as a buffer abstraction for service hosts.
+Uses ShareHandler to reconstruct original service requests.
+Provides utility functions for deconstructing responses
+to the appropriate requests.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="LAP2.Main.Helpers.ListenerHandler.html" translate="no">LAP2.Main.Helpers.ListenerHandler</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Generates encoded JSON responses for listener processes.</p></div>
 
 </div>
 <div class="summary-row">
@@ -239,6 +277,16 @@ revealing a commitment secret.</p></div>
   </div>
 
     <div class="summary-synopsis"><p>Module for handling ProxyManager requests.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="LAP2.Main.ServiceProviders.html" translate="no">LAP2.Main.ServiceProviders</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Module for registering and routing various services over the network.
+Anonymous proxies and introduction points perform</p></div>
 
 </div>
 <div class="summary-row">
@@ -358,9 +406,25 @@ TODO have a look at a secure way of storing the keys</p></div>
 </div>
 <div class="summary-row">
   <div class="summary-signature">
+    <a href="LAP2.Networking.Sockets.TcpServer.html" translate="no">LAP2.Networking.Sockets.TcpServer</a>
+
+  </div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
     <a href="LAP2.Networking.Sockets.UdpServer.html" translate="no">LAP2.Networking.Sockets.UdpServer</a>
 
   </div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="LAP2.Services.FileIO.html" translate="no">LAP2.Services.FileIO</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Example service provider for file transfer.</p></div>
 
 </div>
 <div class="summary-row">
@@ -383,6 +447,15 @@ TODO have a look at a secure way of storing the keys</p></div>
 </div>
 <div class="summary-row">
   <div class="summary-signature">
+    <a href="LAP2.Utils.Generator.html" translate="no">LAP2.Utils.Generator</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>This module is used to generate various secure tokens.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
     <a href="LAP2.Utils.JsonUtils.html" translate="no">LAP2.Utils.JsonUtils</a>
 
   </div>
@@ -398,6 +471,15 @@ TODO have a look at a secure way of storing the keys</p></div>
 
     <div class="summary-synopsis"><p>Helper functions for generating clove information, checksums, splitting and reconstructing cloves, padding, etc.
 Handles serialising and deserialising cloves (simplifies serial data types).</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="LAP2.Utils.ProtoBuf.QueryHelper.html" translate="no">LAP2.Utils.ProtoBuf.QueryHelper</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Contains helper functions for generating and parsing ProtoBuf Query structs</p></div>
 
 </div>
 <div class="summary-row">

@@ -13,7 +13,7 @@
 
     <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
     <script src="dist/handlebars.templates-XWGFFSCD.js"></script>
-    <script src="dist/sidebar_items-6C7E0438.js"></script>
+    <script src="dist/sidebar_items-08CB9D83.js"></script>
 
       <script src="docs_config.js"></script>
 
@@ -136,7 +136,7 @@ loading the config and setting the log level.</p>
 
       </div>
 
-        <div class="summary-synopsis"><p>Kill supervisor and its children</p></div>
+        <div class="summary-synopsis"><p>Kill main process supervisor (this stops the whole supervision tree)</p></div>
 
     </div>
 
@@ -155,10 +155,10 @@ loading the config and setting the log level.</p>
       </div>
 
         <div class="summary-synopsis"><p>Start the server without a config file.
-The config files<code class="inline">debug_config.json</code> and <code class="inline">prod_config.json</code> can be found in the config dir.
+The config files<code class="inline">dev_config.json</code> and <code class="inline">prod_config.json</code> can be found in the config dir.
 By default, the DEBUG config is used, if the environment variable <code class="inline">LAP2_ENV</code> is set to
 <code class="inline">PROD</code>, the prod config is used. To use a custom config file, set the environment variable
-<code class="inline">LAP2_PROD_CONFIG_PATH</code> or <code class="inline">LAP2_DEBUG_CONFIG_PATH</code> to the path of the config file.</p></div>
+<code class="inline">LAP2_PROD_CONFIG_PATH</code> or <code class="inline">LAP2_DEV_CONFIG_PATH</code> to the path of the config file.</p></div>
 
     </div>
 
@@ -221,7 +221,7 @@ Functions
 
       </div>
 
-<p>Kill supervisor and its children</p>
+<p>Kill main process supervisor (this stops the whole supervision tree)</p>
   </section>
 </section>
 <section class="detail" id="load_config/0">
@@ -278,10 +278,10 @@ Functions
       </div>
 
 <p>Start the server without a config file.
-The config files<code class="inline">debug_config.json</code> and <code class="inline">prod_config.json</code> can be found in the config dir.
+The config files<code class="inline">dev_config.json</code> and <code class="inline">prod_config.json</code> can be found in the config dir.
 By default, the DEBUG config is used, if the environment variable <code class="inline">LAP2_ENV</code> is set to
 <code class="inline">PROD</code>, the prod config is used. To use a custom config file, set the environment variable
-<code class="inline">LAP2_PROD_CONFIG_PATH</code> or <code class="inline">LAP2_DEBUG_CONFIG_PATH</code> to the path of the config file.</p>
+<code class="inline">LAP2_PROD_CONFIG_PATH</code> or <code class="inline">LAP2_DEV_CONFIG_PATH</code> to the path of the config file.</p>
   </section>
 </section>
 <section class="detail" id="start/1">

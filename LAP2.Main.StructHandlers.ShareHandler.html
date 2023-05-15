@@ -13,7 +13,7 @@
 
     <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
     <script src="dist/handlebars.templates-XWGFFSCD.js"></script>
-    <script src="dist/sidebar_items-6C7E0438.js"></script>
+    <script src="dist/sidebar_items-08CB9D83.js"></script>
 
       <script src="docs_config.js"></script>
 
@@ -145,7 +145,7 @@ LAP2
 
       </div>
 
-        <div class="summary-synopsis"><p>Receive data from the network.</p></div>
+        <div class="summary-synopsis"><p>Reassemble network received shares and route along pipeline.</p></div>
 
     </div>
 
@@ -156,6 +156,16 @@ LAP2
       </div>
 
         <div class="summary-synopsis"><p>Initialise the share handler GenServer.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#service_deliver/3" translate="no">service_deliver(data, routing_info, name)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Reconstruct service request from shares.</p></div>
 
     </div>
 
@@ -224,7 +234,7 @@ Functions
     </a>
     <h1 class="signature" translate="no">deliver(data, aux_data, name)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/struct_handlers/share_handler.ex#L74" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/struct_handlers/share_handler.ex#L96" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -240,7 +250,7 @@ Functions
 
       </div>
 
-<p>Receive data from the network.</p>
+<p>Reassemble network received shares and route along pipeline.</p>
   </section>
 </section>
 <section class="detail" id="init/1">
@@ -269,6 +279,35 @@ Functions
       </div>
 
 <p>Initialise the share handler GenServer.</p>
+  </section>
+</section>
+<section class="detail" id="service_deliver/3">
+
+  <div class="detail-header">
+    <a href="#service_deliver/3" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">service_deliver(data, routing_info, name)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/struct_handlers/share_handler.ex#L105" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> service_deliver(<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) ::
+  {:reconstructed, <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), [<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()]} | :cached | :dropped</pre>
+
+      </div>
+
+<p>Reconstruct service request from shares.</p>
   </section>
 </section>
 <section class="detail" id="start_link/1">
@@ -308,7 +347,7 @@ Functions
     </a>
     <h1 class="signature" translate="no">terminate(reason, state)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/struct_handlers/share_handler.ex#L64" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/struct_handlers/share_handler.ex#L86" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>

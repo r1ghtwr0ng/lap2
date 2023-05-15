@@ -13,7 +13,7 @@
 
     <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
     <script src="dist/handlebars.templates-XWGFFSCD.js"></script>
-    <script src="dist/sidebar_items-6C7E0438.js"></script>
+    <script src="dist/sidebar_items-08CB9D83.js"></script>
 
       <script src="docs_config.js"></script>
 
@@ -204,7 +204,7 @@ a Spontaneous Anonymous Group (SAG) ring signature scheme.</p></div>
       </div>
 
         <div class="summary-synopsis"><p>Generate a secret and public key pair tuple for
-a ed25519_dalek signature scheme.</p></div>
+a RSA-PSS signature scheme.</p></div>
 
     </div>
 
@@ -214,7 +214,7 @@ a ed25519_dalek signature scheme.</p></div>
 
       </div>
 
-        <div class="summary-synopsis"><p>Sign a message using a ed25519_dalek signature scheme.</p></div>
+        <div class="summary-synopsis"><p>Sign a message using the RSA-PSS probabilistic signature scheme.</p></div>
 
     </div>
 
@@ -224,7 +224,7 @@ a ed25519_dalek signature scheme.</p></div>
 
       </div>
 
-        <div class="summary-synopsis"><p>Verify a ed25519_dalek signature.</p></div>
+        <div class="summary-synopsis"><p>Verify a RSA-PSS signature.</p></div>
 
     </div>
 
@@ -251,7 +251,7 @@ Functions
     </a>
     <h1 class="signature" translate="no">commit_gen(sk, rand)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/constructions/crypto_nifs.ex#L21" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/constructions/crypto_nifs.ex#L35" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -267,7 +267,19 @@ Functions
 
       </div>
 
-<p>Generate a hash-based (SHA256) commitment of a message.</p>
+<p>Generate a hash-based (SHA256) commitment of a message.</p><h2 id="commit_gen/2-arguments" class="section-heading">
+  <a href="#commit_gen/2-arguments" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">arguments</p>
+  </a>
+  Arguments
+</h2>
+<ul><li><code class="inline">sk</code> - Secret commitment key (charlist)</li><li><code class="inline">rand</code> - The randomness used to generate the commitment (charlist)</li></ul><h2 id="commit_gen/2-returns" class="section-heading">
+  <a href="#commit_gen/2-returns" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">returns</p>
+  </a>
+  Returns
+</h2>
+<ul><li>The commitment (charlist)</li></ul>
   </section>
 </section>
 <section class="detail" id="commit_vrfy/3">
@@ -279,7 +291,7 @@ Functions
     </a>
     <h1 class="signature" translate="no">commit_vrfy(sk, rand, com)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/constructions/crypto_nifs.ex#L27" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/constructions/crypto_nifs.ex#L47" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -295,7 +307,19 @@ Functions
 
       </div>
 
-<p>Verify a hash-based (SHA256) commitment.</p>
+<p>Verify a hash-based (SHA256) commitment.</p><h2 id="commit_vrfy/3-arguments" class="section-heading">
+  <a href="#commit_vrfy/3-arguments" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">arguments</p>
+  </a>
+  Arguments
+</h2>
+<ul><li><code class="inline">sk</code> - Secret commitment key (charlist)</li><li><code class="inline">rand</code> - The randomness used to generate the commitment (charlist)</li><li><code class="inline">com</code> - The commitment to verify (charlist)</li></ul><h2 id="commit_vrfy/3-returns" class="section-heading">
+  <a href="#commit_vrfy/3-returns" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">returns</p>
+  </a>
+  Returns
+</h2>
+<ul><li><code class="inline">true</code> if the commitment is valid, <code class="inline">false</code> otherwise</li></ul>
   </section>
 </section>
 <section class="detail" id="prf_eval/2">
@@ -307,7 +331,7 @@ Functions
     </a>
     <h1 class="signature" translate="no">prf_eval(sk, data)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/constructions/crypto_nifs.ex#L15" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/constructions/crypto_nifs.ex#L24" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -324,7 +348,19 @@ Functions
       </div>
 
 <p>Generate pseudo-random function (PRF) output.
-The PRF uses AES128-CMAC.</p>
+The PRF uses AES128-CMAC.</p><h2 id="prf_eval/2-arguments" class="section-heading">
+  <a href="#prf_eval/2-arguments" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">arguments</p>
+  </a>
+  Arguments
+</h2>
+<ul><li><code class="inline">sk</code> - Secret PRF key (charlist)</li><li><code class="inline">data</code> - The data to be used as a random seed (charlist)</li></ul><h2 id="prf_eval/2-returns" class="section-heading">
+  <a href="#prf_eval/2-returns" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">returns</p>
+  </a>
+  Returns
+</h2>
+<ul><li>The PRF output (charlist)</li></ul>
   </section>
 </section>
 <section class="detail" id="prf_gen/1">
@@ -336,7 +372,7 @@ The PRF uses AES128-CMAC.</p>
     </a>
     <h1 class="signature" translate="no">prf_gen(n)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/constructions/crypto_nifs.ex#L8" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/constructions/crypto_nifs.ex#L12" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -352,7 +388,19 @@ The PRF uses AES128-CMAC.</p>
 
       </div>
 
-<p>Generate n-bit randomness (floored to nearest byte).</p>
+<p>Generate n-bit randomness (floored to nearest byte).</p><h2 id="prf_gen/1-arguments" class="section-heading">
+  <a href="#prf_gen/1-arguments" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">arguments</p>
+  </a>
+  Arguments
+</h2>
+<ul><li><code class="inline">n</code> - The number of bits of randomness to generate</li></ul><h2 id="prf_gen/1-returns" class="section-heading">
+  <a href="#prf_gen/1-returns" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">returns</p>
+  </a>
+  Returns
+</h2>
+<ul><li>The generated randomness (charlist)</li></ul>
   </section>
 </section>
 <section class="detail" id="rs_nif_gen/0">
@@ -364,7 +412,7 @@ The PRF uses AES128-CMAC.</p>
     </a>
     <h1 class="signature" translate="no">rs_nif_gen()</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/constructions/crypto_nifs.ex#L47" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/constructions/crypto_nifs.ex#L56" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -381,7 +429,13 @@ The PRF uses AES128-CMAC.</p>
       </div>
 
 <p>Generate a secret and public key pair tuple for
-a Spontaneous Anonymous Group (SAG) ring signature scheme.</p>
+a Spontaneous Anonymous Group (SAG) ring signature scheme.</p><h2 id="rs_nif_gen/0-returns" class="section-heading">
+  <a href="#rs_nif_gen/0-returns" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">returns</p>
+  </a>
+  Returns
+</h2>
+<ul><li>A tuple containing the secret and public keys (charlist, charlist)</li></ul>
   </section>
 </section>
 <section class="detail" id="rs_nif_sign/4">
@@ -393,7 +447,7 @@ a Spontaneous Anonymous Group (SAG) ring signature scheme.</p>
     </a>
     <h1 class="signature" translate="no">rs_nif_sign(idx, sk, ring, msg)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/constructions/crypto_nifs.ex#L34" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/constructions/crypto_nifs.ex#L70" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -410,7 +464,19 @@ a Spontaneous Anonymous Group (SAG) ring signature scheme.</p>
 
       </div>
 
-<p>Sign a message using a Spontaneous Anonymous Group (SAG) ring signature.</p>
+<p>Sign a message using a Spontaneous Anonymous Group (SAG) ring signature.</p><h2 id="rs_nif_sign/4-arguments" class="section-heading">
+  <a href="#rs_nif_sign/4-arguments" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">arguments</p>
+  </a>
+  Arguments
+</h2>
+<ul><li><code class="inline">idx</code> - The index of the signer in the ring (non-negative integer)</li><li><code class="inline">sk</code> - The signer's secret key (charlist)</li><li><code class="inline">ring</code> - The ring of public keys (list of charlists)</li><li><code class="inline">msg</code> - The message to be signed (charlist)</li></ul><h2 id="rs_nif_sign/4-returns" class="section-heading">
+  <a href="#rs_nif_sign/4-returns" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">returns</p>
+  </a>
+  Returns
+</h2>
+<ul><li>A ring signature tuple containing the signature challenge, response, and ring (charlist, list(charlist), list(charlist))</li></ul>
   </section>
 </section>
 <section class="detail" id="rs_nif_vrfy/4">
@@ -422,7 +488,7 @@ a Spontaneous Anonymous Group (SAG) ring signature scheme.</p>
     </a>
     <h1 class="signature" translate="no">rs_nif_vrfy(chal, ring, resp, msg)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/constructions/crypto_nifs.ex#L40" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/constructions/crypto_nifs.ex#L83" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -438,7 +504,19 @@ a Spontaneous Anonymous Group (SAG) ring signature scheme.</p>
 
       </div>
 
-<p>Verify a Spontaneous Anonymous Group (SAG) ring signature.</p>
+<p>Verify a Spontaneous Anonymous Group (SAG) ring signature.</p><h2 id="rs_nif_vrfy/4-arguments" class="section-heading">
+  <a href="#rs_nif_vrfy/4-arguments" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">arguments</p>
+  </a>
+  Arguments
+</h2>
+<ul><li><code class="inline">chal</code> - The signature challenge (charlist)</li><li><code class="inline">ring</code> - The ring of public keys (list of charlists)</li><li><code class="inline">resp</code> - The challenge responses (list of charlists)</li><li><code class="inline">msg</code> - The message that was signed (charlist)</li></ul><h2 id="rs_nif_vrfy/4-returns" class="section-heading">
+  <a href="#rs_nif_vrfy/4-returns" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">returns</p>
+  </a>
+  Returns
+</h2>
+<ul><li><code class="inline">true</code> if the signature is valid, <code class="inline">false</code> otherwise</li></ul>
   </section>
 </section>
 <section class="detail" id="standard_signature_gen/0">
@@ -450,7 +528,7 @@ a Spontaneous Anonymous Group (SAG) ring signature scheme.</p>
     </a>
     <h1 class="signature" translate="no">standard_signature_gen()</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/constructions/crypto_nifs.ex#L54" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/constructions/crypto_nifs.ex#L92" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -467,7 +545,13 @@ a Spontaneous Anonymous Group (SAG) ring signature scheme.</p>
       </div>
 
 <p>Generate a secret and public key pair tuple for
-a ed25519_dalek signature scheme.</p>
+a RSA-PSS signature scheme.</p><h2 id="standard_signature_gen/0-returns" class="section-heading">
+  <a href="#standard_signature_gen/0-returns" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">returns</p>
+  </a>
+  Returns
+</h2>
+<ul><li>A tuple containing the secret and public keys (charlist, charlist)</li></ul>
   </section>
 </section>
 <section class="detail" id="standard_signature_sign/3">
@@ -479,7 +563,7 @@ a ed25519_dalek signature scheme.</p>
     </a>
     <h1 class="signature" translate="no">standard_signature_sign(sk, msg, rand)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/constructions/crypto_nifs.ex#L60" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/constructions/crypto_nifs.ex#L104" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -495,7 +579,19 @@ a ed25519_dalek signature scheme.</p>
 
       </div>
 
-<p>Sign a message using a ed25519_dalek signature scheme.</p>
+<p>Sign a message using the RSA-PSS probabilistic signature scheme.</p><h2 id="standard_signature_sign/3-arguments" class="section-heading">
+  <a href="#standard_signature_sign/3-arguments" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">arguments</p>
+  </a>
+  Arguments
+</h2>
+<ul><li><code class="inline">sk</code> - The signer's secret key (charlist)</li><li><code class="inline">msg</code> - The message to be signed (charlist)</li><li><code class="inline">rand</code> - The randomness used to generate the signature (charlist)</li></ul><h2 id="standard_signature_sign/3-returns" class="section-heading">
+  <a href="#standard_signature_sign/3-returns" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">returns</p>
+  </a>
+  Returns
+</h2>
+<ul><li>The signature (charlist)</li></ul>
   </section>
 </section>
 <section class="detail" id="standard_signature_vrfy/3">
@@ -507,7 +603,7 @@ a ed25519_dalek signature scheme.</p>
     </a>
     <h1 class="signature" translate="no">standard_signature_vrfy(sig, vk, msg)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/constructions/crypto_nifs.ex#L66" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/constructions/crypto_nifs.ex#L116" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -523,7 +619,19 @@ a ed25519_dalek signature scheme.</p>
 
       </div>
 
-<p>Verify a ed25519_dalek signature.</p>
+<p>Verify a RSA-PSS signature.</p><h2 id="standard_signature_vrfy/3-arguments" class="section-heading">
+  <a href="#standard_signature_vrfy/3-arguments" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">arguments</p>
+  </a>
+  Arguments
+</h2>
+<ul><li><code class="inline">sig</code> - The signature to verify (charlist)</li><li><code class="inline">vk</code> - The signer's public key (charlist)</li><li><code class="inline">msg</code> - The message to be signed (charlist)</li></ul><h2 id="standard_signature_vrfy/3-returns" class="section-heading">
+  <a href="#standard_signature_vrfy/3-returns" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">returns</p>
+  </a>
+  Returns
+</h2>
+<ul><li><code class="inline">true</code> if the signature is valid, <code class="inline">false</code> otherwise</li></ul>
   </section>
 </section>
 

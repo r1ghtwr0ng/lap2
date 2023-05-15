@@ -13,7 +13,7 @@
 
     <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
     <script src="dist/handlebars.templates-XWGFFSCD.js"></script>
-    <script src="dist/sidebar_items-6C7E0438.js"></script>
+    <script src="dist/sidebar_items-08CB9D83.js"></script>
 
       <script src="docs_config.js"></script>
 
@@ -131,16 +131,6 @@ LAP2
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#add_proxy/3" translate="no">add_proxy(proxy_name, proxy_seq, proxy_pid)</a>
-
-      </div>
-
-        <div class="summary-synopsis"><p>Add a proxy to the pool.</p></div>
-
-    </div>
-
-    <div class="summary-row">
-      <div class="summary-signature">
         <a href="#child_spec/1" translate="no">child_spec(init_arg)</a>
 
       </div>
@@ -152,6 +142,14 @@ LAP2
     <div class="summary-row">
       <div class="summary-signature">
         <a href="#debug/1" translate="no">debug(name)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#handle_call/2" translate="no">handle_call(arg, state)</a>
 
       </div>
 
@@ -199,11 +197,41 @@ LAP2
 
     <div class="summary-row">
       <div class="summary-signature">
+        <a href="#init_proxy/1" translate="no">init_proxy(proxy_name)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Initialise the proxy discovery process.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
         <a href="#remove_proxy/2" translate="no">remove_proxy(proxy_seq, proxy_name)</a>
 
       </div>
 
         <div class="summary-synopsis"><p>Remove a proxy from the pool.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#send_request/3" translate="no">send_request(data, proxy_seq, name)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Send a query to a specific proxy.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#send_response/3" translate="no">send_response(data, proxy_seq, name)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Send a response to a specific proxy.</p></div>
 
     </div>
 
@@ -231,34 +259,6 @@ LAP2
 Functions
     </h1>
     <div class="functions-list">
-<section class="detail" id="add_proxy/3">
-
-  <div class="detail-header">
-    <a href="#add_proxy/3" class="detail-link" title="Link to this function">
-      <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this function</span>
-    </a>
-    <h1 class="signature" translate="no">add_proxy(proxy_name, proxy_seq, proxy_pid)</h1>
-
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/proxy_manager.ex#L103" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
-
-
-  </div>
-
-  <section class="docstring">
-
-      <div class="specs">
-
-          <pre translate="no"><span class="attribute">@spec</span> add_proxy(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">pid</a>()) :: :ok</pre>
-
-      </div>
-
-<p>Add a proxy to the pool.</p>
-  </section>
-</section>
 <section class="detail" id="child_spec/1">
 
   <div class="detail-header">
@@ -268,7 +268,7 @@ Functions
     </a>
     <h1 class="signature" translate="no">child_spec(init_arg)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/proxy_manager.ex#L5" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/proxy_manager.ex#L6" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -290,7 +290,7 @@ Functions
     </a>
     <h1 class="signature" translate="no">debug(name)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/proxy_manager.ex#L87" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/proxy_manager.ex#L103" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -299,6 +299,43 @@ Functions
   </div>
 
   <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> debug(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) :: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="handle_call/2">
+
+  <div class="detail-header">
+    <a href="#handle_call/2" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">handle_call(arg, state)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/proxy_manager.ex#L70" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> handle_call(
+  {:remove_proxy, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>()},
+  <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()
+) :: {:reply, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()}</pre>
+
+      </div>
 
 
   </section>
@@ -312,7 +349,7 @@ Functions
     </a>
     <h1 class="signature" translate="no">handle_discovery_response(request, aux_data, proxy_name)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/proxy_manager.ex#L95" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/proxy_manager.ex#L152" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -340,7 +377,7 @@ Functions
     </a>
     <h1 class="signature" translate="no">handle_proxy_request(request, aux_data, proxy_name)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/proxy_manager.ex#L82" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/proxy_manager.ex#L144" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -368,7 +405,7 @@ Functions
     </a>
     <h1 class="signature" translate="no">handle_regular_proxy(request, pseq, proxy_name)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/proxy_manager.ex#L111" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/proxy_manager.ex#L161" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -396,7 +433,7 @@ Functions
     </a>
     <h1 class="signature" translate="no">init(config)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/proxy_manager.ex#L21" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/proxy_manager.ex#L24" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -415,6 +452,34 @@ Functions
 <p>Initialise the data handler GenServer.</p>
   </section>
 </section>
+<section class="detail" id="init_proxy/1">
+
+  <div class="detail-header">
+    <a href="#init_proxy/1" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">init_proxy(proxy_name)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/proxy_manager.ex#L126" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> init_proxy(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) :: :ok</pre>
+
+      </div>
+
+<p>Initialise the proxy discovery process.</p>
+  </section>
+</section>
 <section class="detail" id="remove_proxy/2">
 
   <div class="detail-header">
@@ -424,7 +489,7 @@ Functions
     </a>
     <h1 class="signature" translate="no">remove_proxy(proxy_seq, proxy_name)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/proxy_manager.ex#L153" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/proxy_manager.ex#L134" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -443,6 +508,62 @@ Functions
 <p>Remove a proxy from the pool.</p>
   </section>
 </section>
+<section class="detail" id="send_request/3">
+
+  <div class="detail-header">
+    <a href="#send_request/3" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">send_request(data, proxy_seq, name)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/proxy_manager.ex#L109" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> send_request(<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) :: :ok | :error</pre>
+
+      </div>
+
+<p>Send a query to a specific proxy.</p>
+  </section>
+</section>
+<section class="detail" id="send_response/3">
+
+  <div class="detail-header">
+    <a href="#send_response/3" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">send_response(data, proxy_seq, name)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/proxy_manager.ex#L117" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> send_response(<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) :: :ok | :error</pre>
+
+      </div>
+
+<p>Send a response to a specific proxy.</p>
+  </section>
+</section>
 <section class="detail" id="start_link/1">
 
   <div class="detail-header">
@@ -452,7 +573,7 @@ Functions
     </a>
     <h1 class="signature" translate="no">start_link(config)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/proxy_manager.ex#L13" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/proxy_manager.ex#L16" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>

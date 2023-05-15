@@ -13,7 +13,7 @@
 
     <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
     <script src="dist/handlebars.templates-XWGFFSCD.js"></script>
-    <script src="dist/sidebar_items-6C7E0438.js"></script>
+    <script src="dist/sidebar_items-08CB9D83.js"></script>
 
       <script src="docs_config.js"></script>
 
@@ -131,7 +131,7 @@ LAP2
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#build_query/1" translate="no">build_query(addr)</a>
+        <a href="#build_dht_query/0" translate="no">build_dht_query()</a>
 
       </div>
 
@@ -141,9 +141,29 @@ LAP2
 
     <div class="summary-row">
       <div class="summary-signature">
+        <a href="#distribute_dht/2" translate="no">distribute_dht(query, router_name)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Fetch the DHT from the router</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
         <a href="#resolve_addr/2" translate="no">resolve_addr(addr, dht)</a>
 
       </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#update_dht/2" translate="no">update_dht(dht_data, router_name)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Update the DHT in the router</p></div>
 
     </div>
 
@@ -161,16 +181,16 @@ LAP2
 Functions
     </h1>
     <div class="functions-list">
-<section class="detail" id="build_query/1">
+<section class="detail" id="build_dht_query/0">
 
   <div class="detail-header">
-    <a href="#build_query/1" class="detail-link" title="Link to this function">
+    <a href="#build_dht_query/0" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">build_query(addr)</h1>
+    <h1 class="signature" translate="no">build_dht_query()</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/networking/resolver.ex#L13" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/networking/resolver.ex#L16" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -182,11 +202,39 @@ Functions
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">@spec</span> build_query(<a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>()) :: :ok | :error</pre>
+          <pre translate="no"><span class="attribute">@spec</span> build_dht_query() :: Query.t()</pre>
 
       </div>
 
 <p>Build a DHT update query</p>
+  </section>
+</section>
+<section class="detail" id="distribute_dht/2">
+
+  <div class="detail-header">
+    <a href="#distribute_dht/2" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">distribute_dht(query, router_name)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/networking/resolver.ex#L26" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> distribute_dht(Query.t(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) :: {:ok, Query.t()} | {:error, :bad_dht}</pre>
+
+      </div>
+
+<p>Fetch the DHT from the router</p>
   </section>
 </section>
 <section class="detail" id="resolve_addr/2">
@@ -198,7 +246,7 @@ Functions
     </a>
     <h1 class="signature" translate="no">resolve_addr(addr, dht)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/networking/resolver.ex#L21" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/networking/resolver.ex#L52" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -216,6 +264,34 @@ Functions
       </div>
 
 
+  </section>
+</section>
+<section class="detail" id="update_dht/2">
+
+  <div class="detail-header">
+    <a href="#update_dht/2" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">update_dht(dht_data, router_name)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/networking/resolver.ex#L42" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> update_dht(<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) :: :ok</pre>
+
+      </div>
+
+<p>Update the DHT in the router</p>
   </section>
 </section>
 

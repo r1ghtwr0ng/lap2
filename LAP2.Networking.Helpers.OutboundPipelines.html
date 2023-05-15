@@ -13,7 +13,7 @@
 
     <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
     <script src="dist/handlebars.templates-XWGFFSCD.js"></script>
-    <script src="dist/sidebar_items-6C7E0438.js"></script>
+    <script src="dist/sidebar_items-08CB9D83.js"></script>
 
       <script src="docs_config.js"></script>
 
@@ -131,7 +131,7 @@ LAP2
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#send_proxy_accept/5" translate="no">send_proxy_accept(enc_request, proxy_seq, clove_seq, relay_pool, router_name \\ :router)</a>
+        <a href="#send_proxy_accept/5" translate="no">send_proxy_accept(enc_request, proxy_seq, clove_seq, relay_pool, router_name)</a>
 
       </div>
 
@@ -141,7 +141,7 @@ LAP2
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#send_proxy_discovery/4" translate="no">send_proxy_discovery(enc_request, random_neighbors, clove_limit \\ 20, router_name \\ :router)</a>
+        <a href="#send_proxy_discovery/5" translate="no">send_proxy_discovery(enc_request, random_neighbors, clove_seq, clove_limit, router_name)</a>
 
       </div>
 
@@ -151,7 +151,7 @@ LAP2
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#send_regular_response/4" translate="no">send_regular_response(enc_request, proxy_seq, relay_pool, router_name)</a>
+        <a href="#send_regular_request/4" translate="no">send_regular_request(enc_request, proxy_seq, relay_pool, router_name)</a>
 
       </div>
 
@@ -175,16 +175,14 @@ Functions
     <div class="functions-list">
 <section class="detail" id="send_proxy_accept/5">
 
-    <span id="send_proxy_accept/4"></span>
-
   <div class="detail-header">
     <a href="#send_proxy_accept/5" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">send_proxy_accept(enc_request, proxy_seq, clove_seq, relay_pool, router_name \\ :router)</h1>
+    <h1 class="signature" translate="no">send_proxy_accept(enc_request, proxy_seq, clove_seq, relay_pool, router_name)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/networking/helpers/outbound_pipelines.ex#L33" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/networking/helpers/outbound_pipelines.ex#L30" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -210,42 +208,16 @@ Functions
 <p>Disperse and send out a proxy request acknowledgement.</p>
   </section>
 </section>
-<section class="detail" id="send_proxy_discovery/4">
-
-    <span id="send_proxy_discovery/2"></span>
-
-    <span id="send_proxy_discovery/3"></span>
+<section class="detail" id="send_proxy_discovery/5">
 
   <div class="detail-header">
-    <a href="#send_proxy_discovery/4" class="detail-link" title="Link to this function">
+    <a href="#send_proxy_discovery/5" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">send_proxy_discovery(enc_request, random_neighbors, clove_limit \\ 20, router_name \\ :router)</h1>
+    <h1 class="signature" translate="no">send_proxy_discovery(enc_request, random_neighbors, clove_seq, clove_limit, router_name)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/networking/helpers/outbound_pipelines.ex#L15" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
-
-
-  </div>
-
-  <section class="docstring">
-
-<p>Disperse and cast out proxy discovery requests.</p>
-  </section>
-</section>
-<section class="detail" id="send_regular_response/4">
-
-  <div class="detail-header">
-    <a href="#send_regular_response/4" class="detail-link" title="Link to this function">
-      <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this function</span>
-    </a>
-    <h1 class="signature" translate="no">send_regular_response(enc_request, proxy_seq, relay_pool, router_name)</h1>
-
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/networking/helpers/outbound_pipelines.ex#L52" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/networking/helpers/outbound_pipelines.ex#L14" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -257,7 +229,42 @@ Functions
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">@spec</span> send_regular_response(EncryptedRequest.t(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">list</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) ::
+          <pre translate="no"><span class="attribute">@spec</span> send_proxy_discovery(
+  EncryptedRequest.t(),
+  <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">list</a>(),
+  <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>(),
+  <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>(),
+  <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()
+) ::
+  :ok</pre>
+
+      </div>
+
+<p>Disperse and cast out proxy discovery requests.</p>
+  </section>
+</section>
+<section class="detail" id="send_regular_request/4">
+
+  <div class="detail-header">
+    <a href="#send_regular_request/4" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">send_regular_request(enc_request, proxy_seq, relay_pool, router_name)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/networking/helpers/outbound_pipelines.ex#L49" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> send_regular_request(EncryptedRequest.t(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">list</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) ::
   :ok</pre>
 
       </div>

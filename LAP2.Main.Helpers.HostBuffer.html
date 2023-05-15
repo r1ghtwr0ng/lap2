@@ -7,13 +7,13 @@
     <meta name="generator" content="ExDoc v0.29.4">
     <meta name="project" content="LAP2 v0.1.0">
 
-    <title>LAP2.Networking.ProtoBuf — LAP2 v0.1.0</title>
+    <title>LAP2.Main.Helpers.HostBuffer — LAP2 v0.1.0</title>
     <link rel="stylesheet" href="dist/html-elixir-HHVY3JYD.css" />
 
 
     <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
     <script src="dist/handlebars.templates-XWGFFSCD.js"></script>
-    <script src="dist/sidebar_items-6C7E0438.js"></script>
+    <script src="dist/sidebar_items-08CB9D83.js"></script>
 
       <script src="docs_config.js"></script>
 
@@ -100,19 +100,22 @@ LAP2
 </button>
 
 
-    <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/networking/protobuf.ex#L1" title="View Source" class="icon-action" rel="help">
+    <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/helpers/host_buffer.ex#L1" title="View Source" class="icon-action" rel="help">
       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
       <span class="sr-only">View Source</span>
     </a>
 
-  <span translate="no">LAP2.Networking.ProtoBuf</span> 
+  <span translate="no">LAP2.Main.Helpers.HostBuffer</span> 
   <small class="app-vsn" translate="no">(LAP2 v0.1.0)</small>
 
 </h1>
 
 
   <section id="moduledoc">
-<p>ProtoBuf serialisation and deserialisation.</p>
+<p>Acts as a buffer abstraction for service hosts.
+Uses ShareHandler to reconstruct original service requests.
+Provides utility functions for deconstructing responses
+to the appropriate requests.</p>
   </section>
 
 
@@ -131,21 +134,31 @@ LAP2
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#deserialise/2" translate="no">deserialise(data, struct_type \\ Clove)</a>
+        <a href="#disperse_response/3" translate="no">disperse_response(response_list, data, registry_table)</a>
 
       </div>
 
-        <div class="summary-synopsis"><p>Deserialised received data</p></div>
+        <div class="summary-synopsis"><p>Disperse response data along the response list and send them back to the client.</p></div>
 
     </div>
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#serialise/1" translate="no">serialise(struct)</a>
+        <a href="#reassemble_query/3" translate="no">reassemble_query(query, proxy_seq, registry_table)</a>
 
       </div>
 
-        <div class="summary-synopsis"><p>Serialise a map via ProtoBuff before sending it</p></div>
+        <div class="summary-synopsis"><p>Attempt to reassemble a query from shares and send them to the appropriate service host.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#request_remote/5" translate="no">request_remote(intro_points, data, service_id, listener_id, registry_table)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Send out requests for remote service data.</p></div>
 
     </div>
 
@@ -163,18 +176,16 @@ LAP2
 Functions
     </h1>
     <div class="functions-list">
-<section class="detail" id="deserialise/2">
-
-    <span id="deserialise/1"></span>
+<section class="detail" id="disperse_response/3">
 
   <div class="detail-header">
-    <a href="#deserialise/2" class="detail-link" title="Link to this function">
+    <a href="#disperse_response/3" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">deserialise(data, struct_type \\ Clove)</h1>
+    <h1 class="signature" translate="no">disperse_response(response_list, data, registry_table)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/networking/protobuf.ex#L27" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/helpers/host_buffer.ex#L102" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -186,24 +197,23 @@ Functions
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">@spec</span> deserialise(<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), Clove | Share | Request | EncryptedRequest) ::
-  {:error, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">any</a>()} | {:ok, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">struct</a>()}</pre>
+          <pre translate="no"><span class="attribute">@spec</span> disperse_response([<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()], <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()) :: :ok | :error</pre>
 
       </div>
 
-<p>Deserialised received data</p>
+<p>Disperse response data along the response list and send them back to the client.</p>
   </section>
 </section>
-<section class="detail" id="serialise/1">
+<section class="detail" id="reassemble_query/3">
 
   <div class="detail-header">
-    <a href="#serialise/1" class="detail-link" title="Link to this function">
+    <a href="#reassemble_query/3" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">serialise(struct)</h1>
+    <h1 class="signature" translate="no">reassemble_query(query, proxy_seq, registry_table)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/networking/protobuf.ex#L15" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/helpers/host_buffer.ex#L23" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -215,12 +225,46 @@ Functions
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">@spec</span> serialise(Clove.t() | Share.t() | Request.t() | EncryptedRequest.t()) ::
-  {:ok, <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>()} | {:error, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">any</a>()}</pre>
+          <pre translate="no"><span class="attribute">@spec</span> reassemble_query(Query.t(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()) :: :ok | :error</pre>
 
       </div>
 
-<p>Serialise a map via ProtoBuff before sending it</p>
+<p>Attempt to reassemble a query from shares and send them to the appropriate service host.</p>
+  </section>
+</section>
+<section class="detail" id="request_remote/5">
+
+  <div class="detail-header">
+    <a href="#request_remote/5" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">request_remote(intro_points, data, service_id, listener_id, registry_table)</h1>
+
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/main/helpers/host_buffer.ex#L123" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> request_remote(
+  [{<a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>()}],
+  <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
+  <a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>(),
+  <a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>(),
+  <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()
+) ::
+  :ok | :error</pre>
+
+      </div>
+
+<p>Send out requests for remote service data.</p>
   </section>
 </section>
 

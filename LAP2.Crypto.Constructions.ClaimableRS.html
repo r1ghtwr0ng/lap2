@@ -13,7 +13,7 @@
 
     <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
     <script src="dist/handlebars.templates-XWGFFSCD.js"></script>
-    <script src="dist/sidebar_items-6C7E0438.js"></script>
+    <script src="dist/sidebar_items-08CB9D83.js"></script>
 
       <script src="docs_config.js"></script>
 
@@ -130,20 +130,6 @@ Proceedings, Part III 39 (pp. 159-190). Springer International Publishing.</p>
       </a>
       Summary
     </h1>
-<div class="summary-types summary">
-  <h2>
-    <a href="#types">Types</a>
-  </h2>
-
-    <div class="summary-row">
-      <div class="summary-signature">
-        <a href="#t:sag/0" translate="no">sag()</a>
-
-      </div>
-
-    </div>
-
-</div>
 <div class="summary-functions summary">
   <h2>
     <a href="#functions">Functions</a>
@@ -151,7 +137,7 @@ Proceedings, Part III 39 (pp. 159-190). Springer International Publishing.</p>
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#crs_claim/3" translate="no">crs_claim(ring_idx, arg1, arg2)</a>
+        <a href="#crs_claim/3" translate="no">crs_claim(ring_idx, sk, sag)</a>
 
       </div>
 
@@ -165,13 +151,14 @@ Proceedings, Part III 39 (pp. 159-190). Springer International Publishing.</p>
 
       </div>
 
-        <div class="summary-synopsis"><p>Generate a Claimable RS (C-RS) key pair.</p></div>
+        <div class="summary-synopsis"><p>Generate a Claimable RS (C-RS) key pair.
+Returns a map with the secret and verification keys (sk, vk) respectively.</p></div>
 
     </div>
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#crs_sign/4" translate="no">crs_sign(ring_idx, arg, ring, msg)</a>
+        <a href="#crs_sign/4" translate="no">crs_sign(ring_idx, sk, ring, msg)</a>
 
       </div>
 
@@ -181,7 +168,7 @@ Proceedings, Part III 39 (pp. 159-190). Springer International Publishing.</p>
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#crs_vrfy/2" translate="no">crs_vrfy(arg, msg)</a>
+        <a href="#crs_vrfy/2" translate="no">crs_vrfy(sag, msg)</a>
 
       </div>
 
@@ -191,7 +178,7 @@ Proceedings, Part III 39 (pp. 159-190). Springer International Publishing.</p>
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#crs_vrfy_claim/3" translate="no">crs_vrfy_claim(arg1, arg2, arg3)</a>
+        <a href="#crs_vrfy_claim/3" translate="no">crs_vrfy_claim(arg1, sag, arg3)</a>
 
       </div>
 
@@ -247,47 +234,6 @@ calling the Rust NIF.</p></div>
   </section>
 
 
-  <section id="types" class="details-list">
-    <h1 class="section-heading">
-      <a class="hover-link" href="#types">
-        <i class="ri-link-m" aria-hidden="true"></i>
-        <span class="sr-only">Link to this section</span>
-      </a>
-Types
-    </h1>
-    <div class="types-list">
-<section class="detail" id="t:sag/0">
-
-  <div class="detail-header">
-    <a href="#t:sag/0" class="detail-link" title="Link to this type">
-      <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this type</span>
-    </a>
-    <h1 class="signature" translate="no">sag()</h1>
-
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/constructions/claimable_rs.ex#L17" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
-
-
-  </div>
-
-  <section class="docstring">
-
-      <div class="specs">
-
-          <pre translate="no"><span class="attribute">@type</span> sag() :: %{chal: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>(), ring: [<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>()], resp: [<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>()]}</pre>
-
-      </div>
-
-
-  </section>
-</section>
-
-    </div>
-  </section>
-
   <section id="functions" class="details-list">
     <h1 class="section-heading">
       <a class="hover-link" href="#functions">
@@ -304,9 +250,9 @@ Functions
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">crs_claim(ring_idx, arg1, arg2)</h1>
+    <h1 class="signature" translate="no">crs_claim(ring_idx, sk, sag)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/constructions/claimable_rs.ex#L151" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/constructions/claimable_rs.ex#L182" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -321,12 +267,24 @@ Functions
           <pre translate="no"><span class="attribute">@spec</span> crs_claim(
   <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>(),
   {{<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>()}, <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>()},
-  {<a href="#t:sag/0">sag</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>()}
+  SAG.t()
 ) :: {:ok, {<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>()} | :invalid_commitment} | {:error, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()}</pre>
 
       </div>
 
-<p>Generate a claim for a C-RS signature.</p>
+<p>Generate a claim for a C-RS signature.</p><h2 id="crs_claim/3-arguments" class="section-heading">
+  <a href="#crs_claim/3-arguments" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">arguments</p>
+  </a>
+  Arguments
+</h2>
+<ul><li><code class="inline">ring_idx</code> - The positional index of the signer in the ring (secret).</li><li><code class="inline">sk</code> - The C-RS secret key tuple.</li><li><code class="inline">sag</code> - The C-RS signature (SAG.t()).</li></ul><h2 id="crs_claim/3-returns" class="section-heading">
+  <a href="#crs_claim/3-returns" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">returns</p>
+  </a>
+  Returns
+</h2>
+<ul><li><code class="inline">{:ok, claim}</code> - The C-RS claim ({commitment, signature}).</li><li><code class="inline">{:error, reason}</code> - The reason for failure.</li></ul>
   </section>
 </section>
 <section class="detail" id="crs_gen/0">
@@ -338,7 +296,7 @@ Functions
     </a>
     <h1 class="signature" translate="no">crs_gen()</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/constructions/claimable_rs.ex#L75" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/constructions/claimable_rs.ex#L82" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -357,7 +315,8 @@ Functions
 
       </div>
 
-<p>Generate a Claimable RS (C-RS) key pair.</p>
+<p>Generate a Claimable RS (C-RS) key pair.
+Returns a map with the secret and verification keys (sk, vk) respectively.</p>
   </section>
 </section>
 <section class="detail" id="crs_sign/4">
@@ -367,9 +326,9 @@ Functions
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">crs_sign(ring_idx, arg, ring, msg)</h1>
+    <h1 class="signature" translate="no">crs_sign(ring_idx, sk, ring, msg)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/constructions/claimable_rs.ex#L93" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/constructions/claimable_rs.ex#L108" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -386,11 +345,23 @@ Functions
   {{<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>()}, <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>()},
   [<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>()],
   <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>()
-) :: {:ok, {<a href="#t:sag/0">sag</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>()}} | {:error, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()}</pre>
+) :: {:ok, SAG.t()} | {:error, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()}</pre>
 
       </div>
 
-<p>Generate a C-RS signature.</p>
+<p>Generate a C-RS signature.</p><h2 id="crs_sign/4-arguments" class="section-heading">
+  <a href="#crs_sign/4-arguments" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">arguments</p>
+  </a>
+  Arguments
+</h2>
+<ul><li><code class="inline">ring_idx</code> - The positional index of the signer in the ring (secret).</li><li><code class="inline">sk</code> - The C-RS secret key tuple.</li><li><code class="inline">ring</code> - The ring of verification (public) keys.</li><li><code class="inline">msg</code> - The message to sign (charlist).</li></ul><h2 id="crs_sign/4-returns" class="section-heading">
+  <a href="#crs_sign/4-returns" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">returns</p>
+  </a>
+  Returns
+</h2>
+<ul><li><code class="inline">{:ok, signature}</code> - The C-RS signature.</li><li><code class="inline">{:error, reason}</code> - The reason for failure.</li></ul>
   </section>
 </section>
 <section class="detail" id="crs_vrfy/2">
@@ -400,9 +371,9 @@ Functions
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">crs_vrfy(arg, msg)</h1>
+    <h1 class="signature" translate="no">crs_vrfy(sag, msg)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/constructions/claimable_rs.ex#L134" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/constructions/claimable_rs.ex#L152" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -414,11 +385,20 @@ Functions
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">@spec</span> crs_vrfy({<a href="#t:sag/0">sag</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>()}, <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>()) :: {:ok, <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">boolean</a>()} | {:error, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()}</pre>
+          <pre translate="no"><span class="attribute">@spec</span> crs_vrfy(
+  SAG.t(),
+  <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>()
+) :: {:ok, <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">boolean</a>()} | {:error, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()}</pre>
 
       </div>
 
-<p>Verify a C-RS signature.</p>
+<p>Verify a C-RS signature.</p><h2 id="crs_vrfy/2-arguments" class="section-heading">
+  <a href="#crs_vrfy/2-arguments" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">arguments</p>
+  </a>
+  Arguments
+</h2>
+<ul><li><code class="inline">sag</code> - The C-RS signature (SAG.t()).</li><li><code class="inline">msg</code> - The message to verify (charlist).</li></ul>
   </section>
 </section>
 <section class="detail" id="crs_vrfy_claim/3">
@@ -428,9 +408,9 @@ Functions
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">crs_vrfy_claim(arg1, arg2, arg3)</h1>
+    <h1 class="signature" translate="no">crs_vrfy_claim(arg1, sag, arg3)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/constructions/claimable_rs.ex#L191" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/constructions/claimable_rs.ex#L227" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -442,16 +422,18 @@ Functions
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">@spec</span> crs_vrfy_claim(
-  {<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>()},
-  {<a href="#t:sag/0">sag</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>()},
-  {<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>()}
-) ::
+          <pre translate="no"><span class="attribute">@spec</span> crs_vrfy_claim({<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>()}, SAG.t(), {<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>()}) ::
   {:ok, <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">boolean</a>()} | {:error, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()}</pre>
 
       </div>
 
-<p>Verify the validity of a claim for a C-RS signature.</p>
+<p>Verify the validity of a claim for a C-RS signature.</p><h2 id="crs_vrfy_claim/3-arguments" class="section-heading">
+  <a href="#crs_vrfy_claim/3-arguments" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">arguments</p>
+  </a>
+  Arguments
+</h2>
+<ul><li><code class="inline">vk</code> - The C-RS verification (public) key.</li><li><code class="inline">sag</code> - The C-RS signature (SAG.t()).</li><li><code class="inline">claim</code> - The C-RS claim ({commitment, signature}).</li></ul>
   </section>
 </section>
 <section class="detail" id="rs_gen/0">
@@ -463,7 +445,7 @@ Functions
     </a>
     <h1 class="signature" translate="no">rs_gen()</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/constructions/claimable_rs.ex#L32" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/constructions/claimable_rs.ex#L25" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -505,13 +487,25 @@ a Claimable Ring Signature (CRS) scheme.</p>
       <div class="specs">
 
           <pre translate="no"><span class="attribute">@spec</span> rs_sign(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">non_neg_integer</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>(), [<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>()], <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>()) ::
-  {:error, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()} | {:ok, <a href="#t:sag/0">sag</a>()}</pre>
+  {:error, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()} | {:ok, SAG.t()}</pre>
 
       </div>
 
 <p>Generate an SAG ring signature for a message.
 This function verifies the validity of the arguments before
-calling the Rust NIF.</p>
+calling the Rust NIF.</p><h2 id="rs_sign/4-arguments" class="section-heading">
+  <a href="#rs_sign/4-arguments" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">arguments</p>
+  </a>
+  Arguments
+</h2>
+<ul><li><code class="inline">ring_idx</code> - The index of the ring member in the ring</li><li><code class="inline">sk</code> - The secret key of the ring member</li><li><code class="inline">ring</code> - The ring of public keys</li><li><code class="inline">msg</code> - The message to sign</li></ul><h2 id="rs_sign/4-returns" class="section-heading">
+  <a href="#rs_sign/4-returns" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">returns</p>
+  </a>
+  Returns
+</h2>
+<ul><li><code class="inline">{:ok, sig}</code> if the arguments are valid, <code class="inline">{:error, reason}</code> otherwise</li></ul>
   </section>
 </section>
 <section class="detail" id="rs_vrfy/2">
@@ -523,7 +517,7 @@ calling the Rust NIF.</p>
     </a>
     <h1 class="signature" translate="no">rs_vrfy(sag, msg)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/constructions/claimable_rs.ex#L59" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/constructions/claimable_rs.ex#L65" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -536,13 +530,25 @@ calling the Rust NIF.</p>
       <div class="specs">
 
           <pre translate="no"><span class="attribute">@spec</span> rs_vrfy(
-  <a href="#t:sag/0">sag</a>(),
+  SAG.t(),
   <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>()
 ) :: {:error, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()} | {:ok, <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">boolean</a>()}</pre>
 
       </div>
 
-<p>Verify an SAG ring signature for a message.</p>
+<p>Verify an SAG ring signature for a message.</p><h2 id="rs_vrfy/2-arguments" class="section-heading">
+  <a href="#rs_vrfy/2-arguments" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">arguments</p>
+  </a>
+  Arguments
+</h2>
+<ul><li><code class="inline">sag</code> - The SAG ring signature</li><li><code class="inline">msg</code> - The message to verify</li></ul><h2 id="rs_vrfy/2-returns" class="section-heading">
+  <a href="#rs_vrfy/2-returns" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">returns</p>
+  </a>
+  Returns
+</h2>
+<ul><li><code class="inline">{:ok, true}</code> if the signature is valid, <code class="inline">{:ok, false}</code> otherwise</li><li><code class="inline">{:error, reason}</code> if the arguments are invalid</li></ul>
   </section>
 </section>
 <section class="detail" id="sag_to_charlist/1">
@@ -554,7 +560,7 @@ calling the Rust NIF.</p>
     </a>
     <h1 class="signature" translate="no">sag_to_charlist(sag)</h1>
 
-      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/constructions/claimable_rs.ex#L224" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/r1ghtwr0ng/lap2/blob/main/lib/lap2/crypto/constructions/claimable_rs.ex#L265" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -566,11 +572,23 @@ calling the Rust NIF.</p>
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">@spec</span> sag_to_charlist(<a href="#t:sag/0">sag</a>()) :: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>()</pre>
+          <pre translate="no"><span class="attribute">@spec</span> sag_to_charlist(SAG.t()) :: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">charlist</a>()</pre>
 
       </div>
 
-<p>Merge a SAG struct to a flat charlist.</p>
+<p>Merge a SAG struct to a flat charlist.</p><h2 id="sag_to_charlist/1-arguments" class="section-heading">
+  <a href="#sag_to_charlist/1-arguments" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">arguments</p>
+  </a>
+  Arguments
+</h2>
+<ul><li><code class="inline">sag</code> - The SAG struct.</li></ul><h2 id="sag_to_charlist/1-returns" class="section-heading">
+  <a href="#sag_to_charlist/1-returns" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">returns</p>
+  </a>
+  Returns
+</h2>
+<ul><li><code class="inline">charlist</code> - The flattened SAG struct.</li></ul>
   </section>
 </section>
 
