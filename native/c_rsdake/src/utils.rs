@@ -47,15 +47,6 @@ pub fn reconstruct_sag(c: Vec<u8>, r: Vec<Vec<u8>>, s: Vec<Vec<u8>>) -> SAG {
     }
 }
 
-// Convert a vector of u8 to an array of [u8; 4]
-pub fn fixed_vec_to_arr(inp_vec: Vec<u8>) -> [u8; 4] {
-    let mut arr = [0u8; 4];
-    for i in 0..4 {
-        arr[i] = inp_vec[i].try_into().expect("Integer casting sheisse exceptions");
-    }
-    arr
-}
-
 // Convert a vector of u8 to an array of [u8; N]
 pub fn vec_to_arr<T, const N: usize>(v: Vec<T>) -> [T; N] {
     v.try_into()
