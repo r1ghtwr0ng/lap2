@@ -185,7 +185,6 @@ defmodule LAP2.Services.FileIO do
               service_id: ^serv_id
             } = get_state(serv_id)
             master_name = Map.get(get_registry_table(serv_id), :master)
-            IO.inspect(response, label: "[RESPONDING WITH RESPONSE]")
             Master.respond(serv_id, qids, secret, response, master_name)
 
           {:error, reason} ->
@@ -337,7 +336,6 @@ defmodule LAP2.Services.FileIO do
   # Split the data into fragments and return the response
   @spec split_data(binary, non_neg_integer, non_neg_integer) :: {:ok, map} | {:error, atom}
   defp split_data(data, fragment_idx, request_id) do
-    IO.inspect(fragment_idx, label: "Fragment Index")
     cond do
       byte_size(data) > fragment_idx * @max_fragment_size ->
         fragment = get_fragment(data, fragment_idx)

@@ -47,6 +47,15 @@ defmodule LAP2.Crypto.Constructions.CryptoNifs do
   def commit_vrfy(_sk, _rand, _com), do: :erlang.nif_error(:nif_not_loaded)
 
   @doc """
+  Generate a secret and public key pair tuple for
+  a Spontaneous Anonymous Group (SAG) ring signature scheme.
+  ## Returns
+    * A tuple containing the secret and public keys (charlist, charlist)
+  """
+  @spec rs_nif_gen() :: {charlist, charlist}
+  def rs_nif_gen(), do: :erlang.nif_error(:nif_not_loaded)
+
+  @doc """
   Sign a message using a Spontaneous Anonymous Group (SAG) ring signature.
   ## Arguments
     * `idx` - The index of the signer in the ring (non-negative integer)
@@ -65,8 +74,8 @@ defmodule LAP2.Crypto.Constructions.CryptoNifs do
   ## Arguments
     * `chal` - The signature challenge (charlist)
     * `ring` - The ring of public keys (list of charlists)
-    * `resp` - The signature response (list of charlists)
-    * `msg` - The message to be signed (charlist)
+    * `resp` - The challenge responses (list of charlists)
+    * `msg` - The message that was signed (charlist)
   ## Returns
     * `true` if the signature is valid, `false` otherwise
   """
@@ -75,16 +84,7 @@ defmodule LAP2.Crypto.Constructions.CryptoNifs do
 
   @doc """
   Generate a secret and public key pair tuple for
-  a Spontaneous Anonymous Group (SAG) ring signature scheme.
-  ## Returns
-    * A tuple containing the secret and public keys (charlist, charlist)
-  """
-  @spec rs_nif_gen() :: {charlist, charlist}
-  def rs_nif_gen(), do: :erlang.nif_error(:nif_not_loaded)
-
-  @doc """
-  Generate a secret and public key pair tuple for
-  a ed25519_dalek signature scheme.
+  a RSA-PSS signature scheme.
   ## Returns
     * A tuple containing the secret and public keys (charlist, charlist)
   """
@@ -92,7 +92,7 @@ defmodule LAP2.Crypto.Constructions.CryptoNifs do
   def standard_signature_gen(), do: :erlang.nif_error(:nif_not_loaded)
 
   @doc """
-  Sign a message using a ed25519_dalek signature scheme.
+  Sign a message using the RSA-PSS probabilistic signature scheme.
   ## Arguments
     * `sk` - The signer's secret key (charlist)
     * `msg` - The message to be signed (charlist)
@@ -104,7 +104,7 @@ defmodule LAP2.Crypto.Constructions.CryptoNifs do
   def standard_signature_sign(_sk, _msg, _rand), do: :erlang.nif_error(:nif_not_loaded)
 
   @doc """
-  Verify a ed25519_dalek signature.
+  Verify a RSA-PSS signature.
   ## Arguments
     * `sig` - The signature to verify (charlist)
     * `vk` - The signer's public key (charlist)

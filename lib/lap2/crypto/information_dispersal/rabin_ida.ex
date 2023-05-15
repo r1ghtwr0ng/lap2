@@ -40,8 +40,7 @@ defmodule LAP2.Crypto.InformationDispersal.RabinIDA do
 
   @doc """
   Reconstruct the data from the given shares.
-  Generates the reassembly matrix and performs matrix multiplication with the dat
-  a in the shares.
+  Generates the reassembly matrix and performs matrix multiplication with the data in the shares.
   Finally, the data is un-padded and returned.
   ## Arguments
     * `shares` - The shares to reconstruct the data from (list(map))

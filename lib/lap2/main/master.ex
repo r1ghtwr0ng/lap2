@@ -263,7 +263,7 @@ defmodule LAP2.Main.Master do
   """
   @spec deregister_listener(String.t(), atom) :: :ok
   def deregister_listener(listener_id, master_name) do
-    GenServer.cast({:global, master_name}, {:deregister_listener, listener_id})
+    GenServer.call({:global, master_name}, {:deregister_listener, listener_id})
   end
 
   @doc """

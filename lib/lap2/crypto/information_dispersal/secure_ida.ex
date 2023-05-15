@@ -16,7 +16,7 @@ defmodule LAP2.Crypto.InformationDispersal.SecureIDA do
   ## Arguments
     * `data` - The data to split (binary)
     * `n` - The number of shares to generate (non-negative integer)
-    * `m` - The size of each share (non-negative integer)
+    * `m` - The size of each share (non-negative integer), also the reconstruction threshold
   ## Returns
     * A list of shares, each containing the share data and its index (list(Share.t()))
   """

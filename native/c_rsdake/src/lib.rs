@@ -31,7 +31,7 @@ fn prf_eval(key: Vec<u8>, data: Vec<u8>) -> Vec<u8> {
 #[rustler::nif]
 fn commit_gen(s: Vec<u8>, r: Vec<u8>) -> Vec<u8> {
     // Move the randomness into a u8 array
-    let r_arr =  &r[..];
+    let r_arr = &r[..];
 
     // Commit string s and randomness r.
     let party = SHA256Commitment::new(&s, &r_arr);
@@ -41,7 +41,7 @@ fn commit_gen(s: Vec<u8>, r: Vec<u8>) -> Vec<u8> {
 #[rustler::nif]
 fn commit_vrfy(s: Vec<u8>, r: Vec<u8>, c: Vec<u8>) -> bool {
     // Move the randomness into a u8 array
-    let r_arr =  &r[..];
+    let r_arr = &r[..];
 
     // Commit string s and randomness r.
     let party = SHA256Commitment::new(&s, &r_arr);
