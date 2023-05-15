@@ -16,7 +16,7 @@ defmodule LAP2.Crypto.Constructions.CryptoNifs do
   The PRF uses AES128-CMAC.
   ## Arguments
     * `sk` - Secret PRF key (charlist)
-    * `data` - The data to be hashed (charlist)
+    * `data` - The data to be used as a random seed (charlist)
   ## Returns
     * The PRF output (charlist)
   """
@@ -37,8 +37,9 @@ defmodule LAP2.Crypto.Constructions.CryptoNifs do
   @doc """
   Verify a hash-based (SHA256) commitment.
   ## Arguments
-    * `com` - The commitment to verify (charlist)
+    * `sk` - Secret commitment key (charlist)
     * `rand` - The randomness used to generate the commitment (charlist)
+    * `com` - The commitment to verify (charlist)
   ## Returns
     * `true` if the commitment is valid, `false` otherwise
   """
