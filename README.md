@@ -205,7 +205,8 @@ Once a sufficient number of proxies has been established (depends on config setu
 This function expects the following arguments:
 1. `lap2_addr`: (string) The network address of the node requesting the introduction point.
 2. `service_identifier`: (string) The service identifier of the service that the node wishes to access. See how to generate service identifiers in the [FileUtils](#fileutils-services) section.
-```
+
+```elixir
 iex( )> NetUtils.find_intro_point(lap2_addr, service_identifier)
 :ok
 ```
