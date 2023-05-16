@@ -49,10 +49,10 @@ defmodule NetUtils do
       proxy_manager: %{
         name: String.to_atom("proxy_manager_#{addr}"),
         registry_table: registry_table,
-        clove_casts: 6,
-        max_hops: 10,
-        min_hops: 1,
-        proxy_limit: 20,
+        clove_casts: 32,
+        max_hops: 20,
+        min_hops: 5,
+        proxy_limit: 40,
         proxy_ttl: 60000
       },
       crypto_manager: %{name: String.to_atom("crypto_manager_#{addr}"),

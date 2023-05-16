@@ -6,11 +6,6 @@
         "name": "lap2_superv",
         "max_children": 10
     },
-    "crypto_manager": {
-        "name": "crypto_manager",
-        "identity": "IDENTITY",
-        "registry_table": null
-    },
     "conn_supervisor": {
         "name": "conn_supervisor",
         "registry_table": null,
@@ -20,13 +15,18 @@
         "name": "master",
         "registry_table": null
     },
+    "crypto_manager": {
+        "name": "crypto_manager",
+        "identity": "Node Identity",
+        "registry_table": null
+    },
     "proxy_manager": {
         "name": "proxy_manager",
         "registry_table": null,
-        "clove_casts": 6,
-        "max_hops": 10,
-        "min_hops": 1,
-        "proxy_limit": 20,
+        "clove_casts": 30,
+        "max_hops": 45,
+        "min_hops": 5,
+        "proxy_limit": 25,
         "proxy_ttl": 60000
     },
     "share_handler": {

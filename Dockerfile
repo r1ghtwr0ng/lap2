@@ -5,18 +5,13 @@ SHELL ["/bin/bash", "-c"]
 
 # Copy the application files
 WORKDIR /app
-COPY .iex.exs /app/.iex.exs
-COPY config /app/config
-COPY lib /app/lib
-COPY native /app/native
-COPY priv /app/priv
-COPY scripts /app/scripts
-COPY specs /app/specs
-COPY test /app/test
-COPY LICENSE /app/LICENSE
+ADD lib /app/lib
+ADD config /app/config
+ADD native /app/native
+ADD priv /app/priv
+ADD specs /app/specs
 COPY mix.exs /app/mix.exs
-COPY mix.lock /app/mix.lock
-COPY README.md /app/README.md
+COPY .iex.exs /app/.iex.exs
 
 # Install Debian Dependencies
 RUN apt update && apt upgrade -y && \
@@ -34,4 +29,4 @@ RUN source $HOME/.cargo/env && \
     mix compile
 
 # Program entrypoint for debugging
-#ENTRYPOINT [ "bash" ]
+ENTRYPOINT [ "iex", "-S", "mix" ]
