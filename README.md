@@ -32,11 +32,12 @@ It is recommended that you use the project inside a Docker container. To do that
 ### **Docker Setup**
 - Install Docker by following the instructions [here](https://docs.docker.com/get-docker/)
 
-- Build a Docker container for the project by running the following command in the root directory:
+- Build a Docker container for the project by running the following command in the root of the project directory:
 
     ```bash
     docker build -t lap2 .
     ```
+
 - Start the container in the LAP2 debug shell (IEx) with the following command:
 
     ```bash
@@ -48,7 +49,7 @@ It is recommended that you use the project inside a Docker container. To do that
 
     That's it! Now you can use the project inside a Docker container.
 
-    **Note:** If ran interactively using docker, the project should automatically start in the IEx shell (unless the Dockerfile entrypoint is changed).
+    > **Note:** If ran interactively using docker, the project should automatically start in the IEx shell (unless the Dockerfile entrypoint is changed).
 
 ### **IEx interactive shell**
 

@@ -66,10 +66,10 @@ defmodule LAP2.Utils.ConfigParserTest do
             udp_server: :udp_server,
             crypto_manager: :crypto_manager
           },
-          clove_casts: 6,
-          max_hops: 10,
-          min_hops: 1,
-          proxy_limit: 20,
+          clove_casts: 32,
+          max_hops: 25,
+          min_hops: 3,
+          proxy_limit: 25,
           proxy_ttl: 60000
         },
         router: %{

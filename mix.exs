@@ -36,7 +36,6 @@ defmodule LAP2.MixProject do
       {:crc, "~> 0.10.4"},
       {:protox, "~> 1.7"},
       {:elixir_make, "~> 0.6"},
-      {:ex_crypto, "~> 0.10.0"},
       {:keyx, "~> 0.4.1"},
       {:rustler, "~> 0.28.0"},
       {:curve25519, "~> 1.0"},

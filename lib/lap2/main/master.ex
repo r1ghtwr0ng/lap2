@@ -5,7 +5,6 @@ defmodule LAP2.Main.Master do
 
   use GenServer
   require Logger
-  alias ExCrypto.Hash
   alias LAP2.Main.ProxyManager
   alias LAP2.Main.ConnectionSupervisor
   alias LAP2.Main.Helpers.HostBuffer
@@ -121,7 +120,7 @@ defmodule LAP2.Main.Master do
       not is_map_key(state.services, service_id) ->
         secret = crypto_gen(32)
         serv_construct = %{
-          hash: Hash.sha256!(secret),
+          hash: :crypto.hash(:sha256, secret),
           listener_id: listener_id
         }
         new_serv = Map.put(state.services, service_id, serv_construct)

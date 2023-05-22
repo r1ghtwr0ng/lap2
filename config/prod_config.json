@@ -23,9 +23,9 @@
     "proxy_manager": {
         "name": "proxy_manager",
         "registry_table": null,
-        "clove_casts": 30,
-        "max_hops": 45,
-        "min_hops": 5,
+        "clove_casts": 32,
+        "max_hops": 25,
+        "min_hops": 3,
         "proxy_limit": 25,
         "proxy_ttl": 60000
     },
