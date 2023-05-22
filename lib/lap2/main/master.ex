@@ -378,7 +378,7 @@ defmodule LAP2.Main.Master do
 
   @spec valid_secret?(binary, binary) :: boolean
   defp valid_secret?(secret, hash) do
-    Hash.sha256!(secret) == hash
+    :crypto.hash(:sha256, secret) == hash
   end
 
   @spec cache_ets(:ets.tid(), %{query: Query.t(), routing_info: map}, String.t()) :: :ok | :error
