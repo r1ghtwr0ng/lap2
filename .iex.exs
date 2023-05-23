@@ -409,6 +409,14 @@ defmodule TestUtils do
     function
     |> :timer.tc()
     |> elem(0)
-    |> Kernel./(1_000_000)
+    |> Kernel./(1_000)
+  end
+
+  # Benchmark a function 10 times and return the mean
+  @spec mean(term) :: float
+  def mean(function) do
+    Enum.map(1..50, fn _ -> benchmark(function) end)
+    |> Enum.reduce(&Kernel.+/2)
+    |> Kernel./(10)
   end
 end

@@ -65,8 +65,16 @@ It is recommended that you use the project inside a Docker container. To do that
 ### **Benchmarking**
 - The `TestUtils` module provides a `benchmark/1` function which returns the execution time of a given function. For example RabinIDA reconstruction can be benchmarked like so:
 ```elixir
-iex(1)> shares = RabinIDA.split("Example data for splitting", 4, 3)
+iex(1)> shares = Enum.take_random(RabinIDA.split(:crypto.strong_rand_bytes(200_000), 16, 10), 10)
+[
+  %{
+    data: <<...>>,
+    share_idx: 1
+  },
+  ...
+]
 iex(2)> TestUtils.benchmark(fn -> RabinIDA.reconstruct(shares) end)
+401.819
 ```
 ### **File transfer example**
 We can test out the file transfer functionality of the project by using the `NetUtils` module to simulate the network of nodes and then using the `FileUtils` module to transfer files between them.
