@@ -74,7 +74,7 @@ defmodule LAP2.Networking.Helpers.State do
   end
 
   @doc """
-  Add a drop rule for the clove_Seq.
+  Add a drop rule for the clove_seq.
   """
   @spec ban_clove(map, non_neg_integer) :: map
   def ban_clove(state, clove_seq) do

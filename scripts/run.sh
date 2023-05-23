@@ -1,4 +1,2 @@
 #!/bin/bash
-
-# TODO write elixir script to start project
-iex -S mix
+docker build -t lap2 . && docker run -it lap2

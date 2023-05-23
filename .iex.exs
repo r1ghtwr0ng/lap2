@@ -50,8 +50,8 @@ defmodule NetUtils do
         name: String.to_atom("proxy_manager_#{addr}"),
         registry_table: registry_table,
         clove_casts: 32,
-        max_hops: 20,
-        min_hops: 5,
+        max_hops: 25,
+        min_hops: 2,
         proxy_limit: 40,
         proxy_ttl: 60000
       },
@@ -63,7 +63,7 @@ defmodule NetUtils do
         clove_cache_ttl: 30000,
         lap2_addr: addr,
         name: String.to_atom("router_#{addr}"),
-        proxy_limit: 20,
+        proxy_limit: 40,
         proxy_policy: true,
         registry_table: registry_table,
         relay_table_size: 5000,
@@ -415,8 +415,9 @@ defmodule TestUtils do
   # Benchmark a function 10 times and return the mean
   @spec mean(term) :: float
   def mean(function) do
-    Enum.map(1..50, fn _ -> benchmark(function) end)
+    runs = 50
+    Enum.map(1..runs, fn _ -> benchmark(function) end)
     |> Enum.reduce(&Kernel.+/2)
-    |> Kernel./(10)
+    |> Kernel./(runs)
   end
 end

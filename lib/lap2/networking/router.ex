@@ -112,7 +112,7 @@ defmodule LAP2.Networking.Router do
     state
     |> State.clean_state()
     |> State.get_route(source, clove)
-    |> drop_test(0.1) # Adjust packet loss probability for testing
+    #|> drop_test(0.01) # Adjust packet loss probability for testing
     |> case do
       {:random_walk, rand_neighbor} ->
         #Logger.info("[from #{inspect source}] ----> [via #{state.config.lap2_addr}] ----> [to #{inspect rand_neighbor}] (RANDOM WALK)")
@@ -388,12 +388,11 @@ defmodule LAP2.Networking.Router do
     GenServer.call({:global, name}, {:debug})
   end
 
-  @spec drop_test(atom | tuple, float) :: atom | tuple
-  defp drop_test(:drop, _), do: :drop
-  defp drop_test(route, drop_probab) do
-    cond do
-      :rand.uniform() < drop_probab -> :drop
-      true -> route
-    end
-  end
+  # @spec drop_test(atom | tuple, float) :: atom | tuple
+  # defp drop_test(route, drop_probab) do
+  #   cond do
+  #     :rand.uniform() < drop_probab -> :drop
+  #     true -> route
+  #   end
+  # end
 end
