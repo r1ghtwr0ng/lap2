@@ -401,3 +401,14 @@ defmodule CryptoUtils do
     |> :binary.bin_to_list()
   end
 end
+
+defmodule TestUtils do
+  # Benchmark function execution time
+  @spec benchmark(term) :: float
+  def benchmark(function) do
+    function
+    |> :timer.tc()
+    |> elem(0)
+    |> Kernel./(1_000_000)
+  end
+end

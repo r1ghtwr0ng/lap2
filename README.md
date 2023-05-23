@@ -62,6 +62,12 @@ It is recommended that you use the project inside a Docker container. To do that
 - The shell can be exited by pressing `Ctrl+C` twice.
 - The IEx shell can be used to test out much of the functionality of the modules in the project (with the exception of private functions). The following sections show some examples of how to test out some of LAP2's most important features. If needed, a short syntax reference for Elixir can be found [here](https://hexdocs.pm/elixir/1.12.3/syntax-reference.html), however the code examples should provide enough context to understand what is going on. 
 ---
+### **Benchmarking**
+- The `TestUtils` module provides a `benchmark/1` function which returns the execution time of a given function. For example RabinIDA reconstruction can be benchmarked like so:
+```elixir
+iex(1)> shares = RabinIDA.split("Example data for splitting", 4, 3)
+iex(2)> TestUtils.benchmark(fn -> RabinIDA.reconstruct(shares) end)
+```
 ### **File transfer example**
 We can test out the file transfer functionality of the project by using the `NetUtils` module to simulate the network of nodes and then using the `FileUtils` module to transfer files between them.
 Here is a general example of testing out the network by performing a file transfer using the IEx shell:
